@@ -1,0 +1,41 @@
+FROM python:3.12-slim
+
+LABEL maintainer="CleanTrack AI <ops@cleantrack.ai>"
+LABEL description="CleanTrack AI — AI/CV Microservice (YOLOv8)"
+
+# System deps: libGL for OpenCV, curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libpq-dev \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install AI dependencies (heavy — torch etc.)
+COPY ai_service/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy AI service code
+COPY ai_service/ ./ai_service/
+
+# Download YOLOv8 nano base weights (fine-tuned weights are volume-mounted)
+# The fine-tuned model is expected at /app/weights/cleantrack_yolov8n.pt
+# At first run, if not present, the service falls back to YOLOv8n pretrained.
+RUN mkdir -p /app/weights && \
+    python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')" || true
+
+RUN adduser --disabled-password --gecos "" aiuser && \
+    chown -R aiuser:aiuser /app
+USER aiuser
+
+EXPOSE 8001
+
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+CMD ["uvicorn", "ai_service.main:app", "--host", "0.0.0.0", "--port", "8001"]
