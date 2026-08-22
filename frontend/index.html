@@ -551,6 +551,24 @@
       </button>
     </div>
 
+    <!-- SMS-First Differentiator & Rewards Feature Callout -->
+    <div class="mt-4 w-full grid grid-cols-1 sm:grid-cols-2 gap-3 fade-in-up stagger-3 text-xs">
+      <div class="glass-card p-3 rounded-xl border border-accent/30 bg-accent/5 flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-accent text-xl shrink-0">sms</span>
+        <div class="text-left">
+          <span class="font-bold text-text-primary">SMS &amp; MMS First</span>
+          <p class="text-[10px] text-text-secondary">Text photos to <span class="font-bold text-accent">+1-800-BINGO</span> — no app or smartphone required.</p>
+        </div>
+      </div>
+      <div class="glass-card p-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-yellow-400 text-xl shrink-0">local_fire_department</span>
+        <div class="text-left">
+          <span class="font-bold text-text-primary">Streaks &amp; Rewards</span>
+          <p class="text-[10px] text-text-secondary">Earn BinGO credits &amp; redeem local partner discounts (Tea, Bus passes).</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Backend Status -->
     <div id="backend-status" class="mt-6 flex items-center gap-2.5 text-text-secondary text-xs font-label-mono fade-in-up stagger-4 cursor-pointer hover:text-text-primary bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md" onclick="navigate('page-settings')">
       <span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
@@ -623,23 +641,28 @@
   </div>
 
   <!-- Citizen Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
-    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
-      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
-      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">map</span>
-      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Map</span>
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-1.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button class="flex flex-col items-center text-primary py-1 px-2 min-w-[48px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-9 h-9 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[22px] relative z-10" style="font-variation-settings:'FILL' 1;">map</span>
+      <span class="font-label-sm text-[9px] mt-0.5 font-bold">Map</span>
     </button>
-    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">add_circle</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Report</span>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">add_circle</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Report</span>
     </button>
-    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">history</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">history</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Activity</span>
     </button>
-    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">person</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
+    <button onclick="navigate('page-rewards')" class="flex flex-col items-center text-text-secondary hover:text-yellow-400 transition-colors py-1 px-2 min-w-[48px] relative">
+      <span id="map-streak-badge" class="hidden absolute -top-1 right-1 w-4 h-4 rounded-full bg-yellow-500 text-black text-[8px] font-black flex items-center justify-center">3</span>
+      <span class="material-symbols-outlined text-[22px]">local_fire_department</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Rewards</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">person</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Profile</span>
     </button>
   </nav>
 </div>
@@ -736,23 +759,28 @@
   </main>
 
   <!-- Citizen Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
-    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">map</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-1.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">map</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Map</span>
     </button>
-    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
-      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
-      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">add_circle</span>
-      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Report</span>
+    <button class="flex flex-col items-center text-primary py-1 px-2 min-w-[48px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-9 h-9 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[22px] relative z-10" style="font-variation-settings:'FILL' 1;">add_circle</span>
+      <span class="font-label-sm text-[9px] mt-0.5 font-bold">Report</span>
     </button>
-    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">history</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">history</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Activity</span>
     </button>
-    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">person</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
+    <button onclick="navigate('page-rewards')" class="flex flex-col items-center text-text-secondary hover:text-yellow-400 transition-colors py-1 px-2 min-w-[48px] relative">
+      <span id="submit-streak-badge" class="hidden absolute -top-1 right-1 w-4 h-4 rounded-full bg-yellow-500 text-black text-[8px] font-black flex items-center justify-center">3</span>
+      <span class="material-symbols-outlined text-[22px]">local_fire_department</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Rewards</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">person</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Profile</span>
     </button>
   </nav>
 
@@ -966,60 +994,128 @@
         </div>
       </div>
 
-      <!-- Live Lifecycle Timeline -->
+      <!-- Live 5-Step Lifecycle Timeline -->
       <div class="bg-surface-raised/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg">
-        <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-3">Live Dispatch Progress</h3>
-        <div class="space-y-3">
-          <div id="step-submitted" class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[12px] text-primary">check</span>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Live Dispatch Pipeline</h3>
+          <span id="live-status-label" class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] font-bold border border-primary/30 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> LIVE
+          </span>
+        </div>
+        <div class="relative">
+          <!-- Vertical connector line -->
+          <div class="absolute left-[11px] top-3 bottom-3 w-0.5 bg-white/10"></div>
+          <div id="timeline-fill-bar" class="absolute left-[11px] top-3 w-0.5 bg-primary transition-all duration-700" style="height:20%"></div>
+          <div class="space-y-4 relative">
+            <!-- Step 1: Submitted -->
+            <div id="step-submitted" class="flex items-start gap-3">
+              <div class="w-6 h-6 rounded-full bg-primary border border-primary flex items-center justify-center shrink-0 mt-0 z-10 shadow-[0_0_8px_rgba(123,219,128,0.8)]">
+                <span class="material-symbols-outlined text-[11px] text-[#05070a] font-black">check</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-bold text-primary">Report Submitted</div>
+                <div id="step-submitted-desc" class="text-[10px] text-text-secondary font-label-mono">GPS tagged &amp; queued for AI</div>
+                <div id="step-submitted-time" class="text-[9px] text-text-secondary/60 mt-0.5">Just now</div>
+              </div>
             </div>
-            <div>
-              <div class="text-xs font-bold text-text-primary">Report Submitted</div>
-              <div class="text-[10px] text-text-secondary font-label-mono">GPS tagged &amp; queued</div>
+            <!-- Step 2: AI Verified -->
+            <div id="step-ai" class="flex items-start gap-3">
+              <div id="step-ai-dot" class="w-6 h-6 rounded-full bg-primary border border-primary flex items-center justify-center shrink-0 mt-0 z-10 shadow-[0_0_8px_rgba(123,219,128,0.8)]">
+                <span class="material-symbols-outlined text-[11px] text-[#05070a]">check</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-bold text-text-primary">YOLOv8 AI Verified</div>
+                <div id="step-ai-desc" class="text-[10px] text-text-secondary font-label-mono">Material: Plastic (~0.4 m³) · 95% conf</div>
+                <div id="step-ai-time" class="text-[9px] text-text-secondary/60 mt-0.5">~30s ago</div>
+              </div>
+            </div>
+            <!-- Step 3: Dispatched -->
+            <div id="step-dispatched" class="flex items-start gap-3">
+              <div id="step-dispatched-dot" class="w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0 z-10">
+                <span class="material-symbols-outlined text-[11px] text-text-secondary">send</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div id="step-dispatched-label" class="text-xs font-bold text-text-secondary">Municipal Dispatched</div>
+                <div id="step-verified" class="text-[10px] text-text-secondary/60 font-label-mono">Awaiting operator assignment</div>
+                <div id="step-dispatched-time" class="text-[9px] text-text-secondary/60 mt-0.5"></div>
+              </div>
+            </div>
+            <!-- Step 4: En Route -->
+            <div id="step-enroute" class="flex items-start gap-3">
+              <div id="step-enroute-dot" class="w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0 z-10">
+                <span class="material-symbols-outlined text-[11px] text-text-secondary">local_shipping</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div id="step-enroute-label" class="text-xs font-bold text-text-secondary">Unit En Route</div>
+                <div id="step-enroute-desc" class="text-[10px] text-text-secondary/60 font-label-mono">Vehicle not yet assigned</div>
+                <div id="step-enroute-time" class="text-[9px] text-text-secondary/60 mt-0.5"></div>
+              </div>
+            </div>
+            <!-- Step 5: Cleared -->
+            <div id="step-cleared" class="flex items-start gap-3">
+              <div id="step-cleared-dot" class="w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0 z-10">
+                <span class="material-symbols-outlined text-[11px] text-text-secondary">verified</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div id="step-cleared-label" class="text-xs font-bold text-text-secondary">Area Cleared ✅</div>
+                <div id="step-cleared-desc" class="text-[10px] text-text-secondary/60 font-label-mono">Cleanup not yet completed</div>
+                <div id="step-cleared-time" class="text-[9px] text-text-secondary/60 mt-0.5"></div>
+              </div>
             </div>
           </div>
-          <div id="step-ai" class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5 timeline-pulse">
-              <span class="material-symbols-outlined text-[12px] text-primary">check</span>
-            </div>
+        </div>
+      </div>
+
+      <!-- SMS Status Widget -->
+      <div class="bg-surface-raised/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-sm text-[11px] text-text-secondary uppercase font-bold tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[15px] text-primary">sms</span> SMS Status Updates
+          </span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="sms-toggle" type="checkbox" class="sr-only peer" onchange="toggleSmsUpdates(this)" checked/>
+            <div class="w-8 h-4 bg-surface-container-high rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </div>
+        <div id="sms-status-body" class="space-y-1.5 text-xs">
+          <div class="flex items-start gap-2 p-2 bg-primary/10 border border-primary/20 rounded-lg">
+            <span class="material-symbols-outlined text-primary text-[14px] shrink-0 mt-0.5">check_circle</span>
             <div>
-              <div class="text-xs font-bold text-text-primary">YOLOv8 AI Classification</div>
-              <div class="text-[10px] text-text-secondary font-label-mono">Material: Plastic (0.4 m³)</div>
+              <div class="font-bold text-primary text-[11px]">SMS Active — +91 XXXXX XX903</div>
+              <div id="last-sms-preview" class="text-[10px] text-text-secondary font-label-mono mt-0.5">&ldquo;Your report #8492 is AI-verified. Unit #07 dispatched.&rdquo;</div>
             </div>
           </div>
-          <div id="step-verified" class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[12px] text-text-secondary">hourglass_empty</span>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-text-primary">Municipal Dispatch</div>
-              <div class="text-[10px] text-text-secondary font-label-mono">Awaiting unit assignment</div>
-            </div>
-          </div>
+          <button onclick="resendSmsUpdate()" class="w-full text-[10px] font-bold text-text-secondary border border-white/10 rounded-lg py-1.5 hover:bg-white/5 flex items-center justify-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[12px]">refresh</span> Re-send SMS Update
+          </button>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Bottom Navigation Bar (Mobile only) — matches screen(3).png -->
-  <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
-    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">map</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
+  <!-- Bottom Navigation Bar (Mobile only) -->
+  <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-2 py-1.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">map</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Map</span>
     </button>
-    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">add_circle</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Report</span>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">add_circle</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Report</span>
     </button>
-    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
-      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
-      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">history</span>
-      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Activity</span>
+    <button class="flex flex-col items-center text-primary py-1 px-2 min-w-[48px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-9 h-9 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[22px] relative z-10" style="font-variation-settings:'FILL' 1;">history</span>
+      <span class="font-label-sm text-[9px] mt-0.5 font-bold">Activity</span>
     </button>
-    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">person</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
+    <button onclick="navigate('page-rewards')" class="flex flex-col items-center text-text-secondary hover:text-yellow-400 transition-colors py-1 px-2 min-w-[48px] relative">
+      <span id="track-streak-badge" class="hidden absolute -top-1 right-1 w-4 h-4 rounded-full bg-yellow-500 text-black text-[8px] font-black flex items-center justify-center">3</span>
+      <span class="material-symbols-outlined text-[22px]">local_fire_department</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Rewards</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">person</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Profile</span>
     </button>
   </nav>
 </div>
@@ -1829,6 +1925,238 @@
 
 
 <!-- ══════════════════════════════════════════════════════
+     PAGE: CITIZEN REWARDS & GAMIFICATION
+══════════════════════════════════════════════════════ -->
+<div id="page-rewards" class="page flex-col h-screen w-screen overflow-hidden">
+  <!-- Mobile Top Bar -->
+  <header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-white/10 px-4 py-2.5 flex items-center justify-between shrink-0">
+    <button onclick="navigate('page-landing')" class="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary font-bold">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span> Home
+    </button>
+    <span class="font-bold text-primary text-sm">🔥 My Rewards</span>
+    <div class="w-10"></div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto pb-24 px-4 py-4 space-y-4">
+
+    <!-- Streak Hero Card -->
+    <div class="glass-card rounded-2xl p-5 border border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 via-orange-500/5 to-transparent relative overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.15)]">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-bl-full blur-2xl"></div>
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-yellow-400/70 font-label-mono uppercase tracking-wider mb-1">Current Streak</div>
+          <div class="flex items-center gap-2">
+            <span class="text-4xl">🔥</span>
+            <div>
+              <span id="rewards-streak-count" class="text-4xl font-black text-yellow-400">3</span>
+              <span class="text-lg font-bold text-yellow-400/70"> days</span>
+            </div>
+          </div>
+          <div class="text-xs text-text-secondary mt-1">Report tomorrow to keep your streak alive!</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-text-secondary font-label-mono">Total Points</div>
+          <div id="rewards-points" class="text-3xl font-black text-primary">145</div>
+          <div class="text-[10px] text-text-secondary">BinGO Credits</div>
+        </div>
+      </div>
+      <!-- Weekly streak dots -->
+      <div class="flex items-center gap-2 mt-4 pt-3 border-t border-white/10">
+        <span class="text-[10px] text-text-secondary font-label-mono">WEEK:</span>
+        <div class="flex gap-1.5">
+          <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-[10px]">🔥</div>
+          <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-[10px]">🔥</div>
+          <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-[10px]">🔥</div>
+          <div class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-text-secondary">·</div>
+          <div class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-text-secondary">·</div>
+          <div class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-text-secondary">·</div>
+          <div class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-text-secondary">·</div>
+        </div>
+        <span class="text-[10px] text-yellow-400 font-bold ml-auto">+15 bonus pts at 7!</span>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="glass-card p-3 rounded-xl border border-white/10 text-center">
+        <div id="rewards-total-reports" class="font-black text-xl text-text-primary">12</div>
+        <div class="text-[9px] text-text-secondary font-label-mono uppercase">Reports</div>
+      </div>
+      <div class="glass-card p-3 rounded-xl border border-white/10 text-center">
+        <div id="rewards-verified" class="font-black text-xl text-primary">9</div>
+        <div class="text-[9px] text-text-secondary font-label-mono uppercase">Verified</div>
+      </div>
+      <div class="glass-card p-3 rounded-xl border border-white/10 text-center">
+        <div class="font-black text-xl text-yellow-400">#4</div>
+        <div class="text-[9px] text-text-secondary font-label-mono uppercase">Ward Rank</div>
+      </div>
+    </div>
+
+    <!-- Achievement Badges -->
+    <div class="glass-card rounded-2xl p-4 border border-white/10">
+      <h3 class="font-bold text-sm text-text-primary mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-yellow-400">emoji_events</span> Achievement Badges
+      </h3>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-primary/10 border border-primary/30 rounded-xl">
+          <span class="text-2xl">🌱</span>
+          <div class="text-[9px] text-primary font-bold text-center">First Report</div>
+          <div class="text-[8px] text-text-secondary">Earned!</div>
+        </div>
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+          <span class="text-2xl">🔥</span>
+          <div class="text-[9px] text-yellow-400 font-bold text-center">3-Day Streak</div>
+          <div class="text-[8px] text-text-secondary">Earned!</div>
+        </div>
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-white/5 border border-white/10 rounded-xl opacity-50">
+          <span class="text-2xl">🏆</span>
+          <div class="text-[9px] text-text-secondary font-bold text-center">10 Reports</div>
+          <div class="text-[8px] text-text-secondary">8/10</div>
+        </div>
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-white/5 border border-white/10 rounded-xl opacity-50">
+          <span class="text-2xl">☣️</span>
+          <div class="text-[9px] text-text-secondary font-bold text-center">Hazard Hero</div>
+          <div class="text-[8px] text-text-secondary">0/3 hazardous</div>
+        </div>
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-white/5 border border-white/10 rounded-xl opacity-50">
+          <span class="text-2xl">⚡</span>
+          <div class="text-[9px] text-text-secondary font-bold text-center">Speed Reporter</div>
+          <div class="text-[8px] text-text-secondary">7-day streak</div>
+        </div>
+        <div class="flex flex-col items-center gap-1 p-2.5 bg-white/5 border border-white/10 rounded-xl opacity-50">
+          <span class="text-2xl">🌍</span>
+          <div class="text-[9px] text-text-secondary font-bold text-center">Ward Guardian</div>
+          <div class="text-[8px] text-text-secondary">Top 3 in ward</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Local Business Coupon Wall -->
+    <div class="glass-card rounded-2xl p-4 border border-white/10">
+      <h3 class="font-bold text-sm text-text-primary mb-1 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-primary">local_offer</span> Local Partner Coupons
+      </h3>
+      <p class="text-[10px] text-text-secondary mb-3">Redeem your BinGO Credits with local businesses. Cities fund these rewards — zero cost to you.</p>
+      <div class="space-y-2.5">
+        <!-- Coupon 1: Unlocked -->
+        <div class="flex items-center gap-3 p-3 bg-primary/10 border border-primary/30 rounded-xl relative overflow-hidden">
+          <div class="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-xl shrink-0">☕</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-xs text-text-primary">Chai Corner — 15% Off</div>
+            <div class="text-[10px] text-text-secondary">Any order above ₹50 · Valid 7 days</div>
+            <div class="text-[9px] text-primary font-bold mt-0.5">Cost: 50 pts · You have 145 pts ✓</div>
+          </div>
+          <button onclick="redeemCoupon('chai-corner', 50)" class="px-3 py-1.5 bg-primary text-[#05070a] text-[10px] font-black rounded-lg hover:opacity-90 transition shrink-0">Redeem</button>
+        </div>
+        <!-- Coupon 2: Unlocked -->
+        <div class="flex items-center gap-3 p-3 bg-primary/10 border border-primary/30 rounded-xl">
+          <div class="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-xl shrink-0">🚌</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-xs text-text-primary">City Bus Pass — ₹5 Discount</div>
+            <div class="text-[10px] text-text-secondary">1-day pass · Municipal Transport Corp</div>
+            <div class="text-[9px] text-primary font-bold mt-0.5">Cost: 80 pts · You have 145 pts ✓</div>
+          </div>
+          <button onclick="redeemCoupon('bus-pass', 80)" class="px-3 py-1.5 bg-primary text-[#05070a] text-[10px] font-black rounded-lg hover:opacity-90 transition shrink-0">Redeem</button>
+        </div>
+        <!-- Coupon 3: Locked -->
+        <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl opacity-60">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">🎬</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-xs text-text-secondary">CineWorld — Free Popcorn</div>
+            <div class="text-[10px] text-text-secondary">Any screening · CineWorld Cinemas</div>
+            <div class="text-[9px] text-warning font-bold mt-0.5">Cost: 200 pts · Need 55 more pts</div>
+          </div>
+          <div class="px-3 py-1.5 bg-white/10 text-text-secondary text-[10px] font-black rounded-lg shrink-0">🔒 Locked</div>
+        </div>
+        <!-- Coupon 4: Locked -->
+        <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl opacity-60">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">🛒</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-xs text-text-secondary">D-Mart — ₹20 Off ₹500</div>
+            <div class="text-[10px] text-text-secondary">Municipal retail partnership</div>
+            <div class="text-[9px] text-warning font-bold mt-0.5">Cost: 300 pts · Need 155 more pts</div>
+          </div>
+          <div class="px-3 py-1.5 bg-white/10 text-text-secondary text-[10px] font-black rounded-lg shrink-0">🔒 Locked</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ward Leaderboard -->
+    <div class="glass-card rounded-2xl p-4 border border-white/10">
+      <h3 class="font-bold text-sm text-text-primary mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-accent">leaderboard</span> Ward Leaderboard
+        <span class="text-[9px] font-label-mono text-text-secondary ml-auto">Ward 14 · This Month</span>
+      </h3>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center gap-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+          <span class="text-base">🥇</span>
+          <div class="flex-1"><div class="font-bold text-yellow-400">Priya S.</div><div class="text-[10px] text-text-secondary">32 reports · 18-day streak</div></div>
+          <div class="font-black text-yellow-400">480 pts</div>
+        </div>
+        <div class="flex items-center gap-3 p-2 bg-white/5 rounded-lg">
+          <span class="text-base">🥈</span>
+          <div class="flex-1"><div class="font-bold text-text-primary">Rahul M.</div><div class="text-[10px] text-text-secondary">28 reports · 11-day streak</div></div>
+          <div class="font-black text-text-primary">310 pts</div>
+        </div>
+        <div class="flex items-center gap-3 p-2 bg-white/5 rounded-lg">
+          <span class="text-base">🥉</span>
+          <div class="flex-1"><div class="font-bold text-text-primary">Fatima K.</div><div class="text-[10px] text-text-secondary">21 reports · 9-day streak</div></div>
+          <div class="font-black text-text-primary">220 pts</div>
+        </div>
+        <div class="flex items-center gap-3 p-2 bg-primary/10 border border-primary/30 rounded-lg">
+          <span class="text-base font-black text-primary">#4</span>
+          <div class="flex-1"><div class="font-bold text-primary">You 🙋</div><div class="text-[10px] text-text-secondary">12 reports · 3-day streak</div></div>
+          <div class="font-black text-primary">145 pts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMS-First Differentiator Banner -->
+    <div class="glass-card rounded-2xl p-4 border border-accent/30 bg-accent/5">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-accent text-[28px] shrink-0">smartphone</span>
+        <div>
+          <div class="font-bold text-sm text-text-primary">No App? No Problem.</div>
+          <div class="text-xs text-text-secondary mt-1">Text a photo to <span class="font-bold text-accent">+1-800-BINGO</span> and we auto-file a report for you — no smartphone needed. Works over basic SMS &amp; MMS.</div>
+          <div class="mt-2 flex items-center gap-1.5 text-[10px] text-accent font-bold">
+            <span class="material-symbols-outlined text-[14px]">check_circle</span> Available in 6 languages
+            <span class="mx-1 text-white/20">·</span>
+            <span class="material-symbols-outlined text-[14px]">check_circle</span> Works on 2G
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-1.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">map</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Map</span>
+    </button>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">add_circle</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Report</span>
+    </button>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">history</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Activity</span>
+    </button>
+    <button class="flex flex-col items-center text-yellow-400 py-1 px-2 min-w-[48px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-9 h-9 bg-yellow-400/15 rounded-full border border-yellow-400/40 shadow-[0_0_12px_rgba(234,179,8,0.3)]"></span>
+      <span class="material-symbols-outlined text-[22px] relative z-10" style="font-variation-settings:'FILL' 1;">local_fire_department</span>
+      <span class="font-label-sm text-[9px] mt-0.5 font-bold">Rewards</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">person</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Profile</span>
+    </button>
+  </nav>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
      PAGE: USER PROFILE
 ══════════════════════════════════════════════════════ -->
 <div id="page-profile" class="page flex flex-col md:flex-row h-screen w-screen overflow-hidden">
@@ -1899,23 +2227,28 @@
   </main>
 
   <!-- Citizen Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
-    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">map</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-1.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">map</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Map</span>
     </button>
-    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">add_circle</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Report</span>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">add_circle</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Report</span>
     </button>
-    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
-      <span class="material-symbols-outlined text-[24px]">history</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 px-2 min-w-[48px]">
+      <span class="material-symbols-outlined text-[22px]">history</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Activity</span>
     </button>
-    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
-      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
-      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">person</span>
-      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Profile</span>
+    <button onclick="navigate('page-rewards')" class="flex flex-col items-center text-text-secondary hover:text-yellow-400 transition-colors py-1 px-2 min-w-[48px] relative">
+      <span id="profile-streak-badge" class="hidden absolute -top-1 right-1 w-4 h-4 rounded-full bg-yellow-500 text-black text-[8px] font-black flex items-center justify-center">3</span>
+      <span class="material-symbols-outlined text-[22px]">local_fire_department</span>
+      <span class="font-label-sm text-[9px] mt-0.5">Rewards</span>
+    </button>
+    <button class="flex flex-col items-center text-primary py-1 px-2 min-w-[48px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-9 h-9 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[22px] relative z-10" style="font-variation-settings:'FILL' 1;">person</span>
+      <span class="font-label-sm text-[9px] mt-0.5 font-bold">Profile</span>
     </button>
   </nav>
 </div>
@@ -3208,6 +3541,9 @@ async function submitReport() {
     }
 
     closeNotesModal();
+    awardPoints(10, 'Waste Report Submitted');
+    showToast('📱 SMS Status Confirmation sent to +91 XXXXX XX903 (Twilio Fallback Active)', 'info', 4000);
+
     if (!reportCreated) {
       currentReportId = '8492-AX';
       currentReportPhotoUrl = null;
@@ -3221,6 +3557,7 @@ async function submitReport() {
     }
   } catch (e) {
     closeNotesModal();
+    awardPoints(10, 'Waste Report Submitted');
     currentReportId = '8492-AX';
     currentReportPhotoUrl = null;
     showToast('✅ Report submitted! Live AI classification running...', 'success');
@@ -4028,13 +4365,14 @@ function navigate(pageId) {
     if (pageId === 'page-citizen-map') { initCitizenMap(); }
     if (pageId === 'page-dashboard')   { initDashboard(); }
     if (pageId === 'page-reports')     { initReportsQueue(); }
-    if (pageId === 'page-tracking')    { initTrackingPage(); initTrackingLiveMap(); }
+    if (pageId === 'page-tracking')    { initTrackingPage(); initTrackingLiveMap(); startStatusSimulation(); }
     if (pageId === 'page-submit')      { initSubmitPage(); }
     if (pageId === 'page-hotspots')    { initHotspotsPage(); }
     if (pageId === 'page-fleet')       { initFleetPage(); }
     if (pageId === 'page-analytics')   { initAnalyticsPage(); }
     if (pageId === 'page-settings')    { initSettingsPage(); }
     if (pageId === 'page-profile')     { initProfilePage(); }
+    if (pageId === 'page-rewards')     { initRewardsPage(); }
   }
 }
 
@@ -4427,6 +4765,211 @@ async function logAdminFeedbackToActiveLearning(reportId, aiPredicted, groundTru
       await fetch(`${API_BASE}/ai-ops/active-learning/log-feedback`, { method: 'POST', body: fd, signal: AbortSignal.timeout(5000) });
     } catch (e) { console.warn('AL feedback log failed:', e); }
   }
+// ── Gamification, Streaks & Micro-Rewards ────────────────────────────────────
+const DEFAULT_CITIZEN_STATS = {
+  points: 145,
+  streak: 3,
+  totalReports: 12,
+  verified: 9,
+  lastReportDate: new Date().toISOString().slice(0, 10),
+  redeemed: []
+};
+
+function getCitizenStats() {
+  try {
+    const raw = localStorage.getItem('bingo_citizen_stats');
+    if (raw) return { ...DEFAULT_CITIZEN_STATS, ...JSON.parse(raw) };
+  } catch {}
+  return { ...DEFAULT_CITIZEN_STATS };
+}
+
+function saveCitizenStats(stats) {
+  try {
+    localStorage.setItem('bingo_citizen_stats', JSON.stringify(stats));
+  } catch {}
+  updateStreakBadges();
+}
+
+function updateStreakBadges() {
+  const stats = getCitizenStats();
+  const badges = ['map-streak-badge', 'submit-streak-badge', 'track-streak-badge', 'profile-streak-badge'];
+  badges.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (stats.streak > 0) {
+        el.textContent = stats.streak;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+  });
+}
+
+function awardPoints(amount = 10, reason = 'Report Filed') {
+  const stats = getCitizenStats();
+  stats.points += amount;
+  stats.totalReports += 1;
+  
+  const today = new Date().toISOString().slice(0, 10);
+  if (stats.lastReportDate !== today) {
+    stats.streak += 1;
+    stats.lastReportDate = today;
+  }
+  
+  saveCitizenStats(stats);
+  showToast(`🔥 +${amount} BinGO Points Earned! (${reason}) • Streak: ${stats.streak} Days`, 'success', 4500);
+}
+
+function initRewardsPage() {
+  const stats = getCitizenStats();
+  const streakEl = document.getElementById('rewards-streak-count');
+  const pointsEl = document.getElementById('rewards-points');
+  const repEl = document.getElementById('rewards-total-reports');
+  const verEl = document.getElementById('rewards-verified');
+
+  if (streakEl) streakEl.textContent = stats.streak;
+  if (pointsEl) pointsEl.textContent = stats.points;
+  if (repEl) repEl.textContent = stats.totalReports;
+  if (verEl) verEl.textContent = stats.verified;
+  updateStreakBadges();
+}
+
+function redeemCoupon(couponId, cost) {
+  const stats = getCitizenStats();
+  if (stats.points < cost) {
+    showToast(`🔒 Insufficient BinGO Points! You need ${cost - stats.points} more points.`, 'warning');
+    return;
+  }
+  stats.points -= cost;
+  if (!stats.redeemed.includes(couponId)) {
+    stats.redeemed.push(couponId);
+  }
+  saveCitizenStats(stats);
+  initRewardsPage();
+  const code = 'BINGO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+  showToast(`🎉 Coupon Unlocked! Use Promo Code: [${code}] at checkout. (-${cost} pts)`, 'success', 6000);
+}
+
+// ── 5-Step Live Status Push & Fleet Truck Animation ──────────────────────────
+let statusSimulationTimer = null;
+let liveFleetMarker = null;
+
+function toggleSmsUpdates(checkbox) {
+  localStorage.setItem('bingo_sms_enabled', checkbox.checked ? 'true' : 'false');
+  if (checkbox.checked) {
+    showToast('📱 SMS dispatch updates enabled for +91 XXXXX XX903 (Twilio Fallback Active)', 'success');
+  } else {
+    showToast('SMS notifications muted.', 'info');
+  }
+}
+
+function resendSmsUpdate() {
+  showToast('📨 Twilio MMS/SMS dispatched: "BinGO Report #8492 status: Unit En Route (ETA 4 mins)"', 'info', 4000);
+}
+
+function pushStatusNotification(title, body) {
+  // In-app toast push
+  showToast(`🔔 Status Update: ${title} — ${body}`, 'info', 4500);
+  
+  // Browser Web Notification API if permitted
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(`BinGO Dispatch: ${title}`, {
+        body,
+        icon: 'assets/bingo_logo.jpg'
+      });
+    } catch {}
+  } else if ('Notification' in window && Notification.permission !== 'denied') {
+    try { Notification.requestPermission(); } catch {}
+  }
+
+  // Update SMS Preview widget
+  const preview = document.getElementById('last-sms-preview');
+  if (preview) {
+    preview.innerHTML = `&ldquo;BinGO: Report #${currentReportId || '8492'} is now <b>${title}</b>. ${body}&rdquo;`;
+  }
+}
+
+function startStatusSimulation() {
+  if (statusSimulationTimer) clearInterval(statusSimulationTimer);
+  
+  const fillBar = document.getElementById('timeline-fill-bar');
+  const stepDispDot = document.getElementById('step-dispatched-dot');
+  const stepDispLabel = document.getElementById('step-dispatched-label');
+  const stepDispTime = document.getElementById('step-dispatched-time');
+  
+  const stepEnrouteDot = document.getElementById('step-enroute-dot');
+  const stepEnrouteLabel = document.getElementById('step-enroute-label');
+  const stepEnrouteDesc = document.getElementById('step-enroute-desc');
+  const stepEnrouteTime = document.getElementById('step-enroute-time');
+  
+  const stepClearDot = document.getElementById('step-cleared-dot');
+  const stepClearLabel = document.getElementById('step-cleared-label');
+  const stepClearDesc = document.getElementById('step-cleared-desc');
+  const stepClearTime = document.getElementById('step-cleared-time');
+
+  let currentStage = 2; // Step 1 & 2 already verified
+
+  statusSimulationTimer = setInterval(() => {
+    currentStage++;
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (currentStage === 3) {
+      // Stage 3: Dispatched
+      if (fillBar) fillBar.style.height = '50%';
+      if (stepDispDot) {
+        stepDispDot.className = 'w-6 h-6 rounded-full bg-primary border border-primary flex items-center justify-center shrink-0 mt-0 z-10 shadow-[0_0_8px_rgba(123,219,128,0.8)]';
+        stepDispDot.innerHTML = '<span class="material-symbols-outlined text-[11px] text-[#05070a]">check</span>';
+      }
+      if (stepDispLabel) stepDispLabel.className = 'text-xs font-bold text-text-primary';
+      if (stepDispTime) stepDispTime.textContent = nowStr;
+      pushStatusNotification('Municipal Dispatched', 'Rapid Clean Unit #07 assigned to incident location.');
+    } else if (currentStage === 4) {
+      // Stage 4: En Route
+      if (fillBar) fillBar.style.height = '75%';
+      if (stepEnrouteDot) {
+        stepEnrouteDot.className = 'w-6 h-6 rounded-full bg-primary border border-primary flex items-center justify-center shrink-0 mt-0 z-10 shadow-[0_0_8px_rgba(123,219,128,0.8)] timeline-pulse';
+        stepEnrouteDot.innerHTML = '<span class="material-symbols-outlined text-[11px] text-[#05070a]">local_shipping</span>';
+      }
+      if (stepEnrouteLabel) stepEnrouteLabel.className = 'text-xs font-bold text-primary';
+      if (stepEnrouteDesc) stepEnrouteDesc.textContent = 'Ford F-550 Waste Tipper (Unit #07) is 1.2 km away · ETA ~4 mins';
+      if (stepEnrouteTime) stepEnrouteTime.textContent = nowStr;
+      
+      // Move vehicle closer on live map
+      if (trackingLiveMap) {
+        const lat = (userLocation.lat || 40.7580) - 0.001;
+        const lng = (userLocation.lng || -73.9855) + 0.0015;
+        const fleetIcon = L.divIcon({
+          className: 'custom-fleet-pin',
+          html: `<div class="w-10 h-10 rounded-full bg-primary border-2 border-white flex items-center justify-center shadow-[0_0_20px_rgba(123,219,128,0.9)] animate-bounce"><span class="material-symbols-outlined text-[#05070a] text-[18px]">local_shipping</span></div>`,
+          iconSize: [40, 40], iconAnchor: [20, 20]
+        });
+        if (liveFleetMarker) trackingLiveMap.removeLayer(liveFleetMarker);
+        liveFleetMarker = L.marker([lat, lng], { icon: fleetIcon }).addTo(trackingLiveMap)
+          .bindPopup('<b>🚛 Unit #07 — EN ROUTE</b><br>Speed: 34 km/h · ETA ~3 mins').openPopup();
+      }
+      pushStatusNotification('Unit En Route', 'Vehicle approaching. ETA is ~4 minutes.');
+    } else if (currentStage === 5) {
+      // Stage 5: Cleared
+      if (fillBar) fillBar.style.height = '100%';
+      if (stepClearDot) {
+        stepClearDot.className = 'w-6 h-6 rounded-full bg-success border border-success flex items-center justify-center shrink-0 mt-0 z-10 shadow-[0_0_10px_rgba(63,185,80,0.8)]';
+        stepClearDot.innerHTML = '<span class="material-symbols-outlined text-[11px] text-white">verified</span>';
+      }
+      if (stepClearLabel) stepClearLabel.className = 'text-xs font-bold text-success';
+      if (stepClearDesc) stepClearDesc.textContent = 'After-photo AI verified. Waste completely cleared!';
+      if (stepClearTime) stepClearTime.textContent = nowStr;
+      
+      const badge = document.getElementById('tracking-status-badge');
+      if (badge) {
+        badge.className = 'px-2 py-1 bg-success/20 border border-success/40 rounded text-label-mono font-label-mono text-success flex items-center gap-1 text-xs';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-success"></span> RESOLVED';
+      }
+      pushStatusNotification('Cleanup Certified Clean', 'Waste footprint 100% cleared. Thank you for keeping our city clean!');
+      clearInterval(statusSimulationTimer);
+    }
+  }, 6000);
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
@@ -4435,6 +4978,7 @@ window.addEventListener('DOMContentLoaded', () => {
   checkBackend();
   // Request true device GPS with high accuracy immediately
   requestAccurateGps(true);
+  updateStreakBadges();
 });
 </script>
 
