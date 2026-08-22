@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link rel="icon" type="image/jpeg" href="assets/bingo_logo.jpg"/>
 <link rel="apple-touch-icon" href="assets/bingo_logo.jpg"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -537,7 +537,7 @@
   </div>
 
   <!-- Footer - NullOps -->
-  <footer class="w-full max-w-2xl mx-auto pt-6 pb-12 mt-6 mb-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary shrink-0">
+  <footer class="w-full max-w-2xl mx-auto pt-6 pb-20 mt-6 mb-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary shrink-0">
     <div class="flex items-center gap-2">
       <span>&#169; 2026 <strong>BinGO</strong> &bull; CleanTrack AI &bull; All rights reserved.</span>
     </div>
@@ -551,7 +551,7 @@
 <!-- ══════════════════════════════════════════════════════
      PAGE: CITIZEN — INTERACTIVE COMMUNITY MAP
 ══════════════════════════════════════════════════════ -->
-<div id="page-citizen-map" class="page flex-col h-screen w-screen overflow-hidden select-none relative pb-24">
+<div id="page-citizen-map" class="page flex-col w-screen select-none relative" style="height:100dvh;height:100vh;">
   <!-- Top Bar -->
   <div class="sticky top-0 w-full p-3 z-30 bg-surface/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
     <div class="flex items-center gap-2">
@@ -577,8 +577,8 @@
   </div>
 
   <!-- Interactive Leaflet Map Container -->
-  <div class="relative flex-1 w-full h-full">
-    <div id="citizen-leaflet-map" class="w-full h-full z-0 bg-[#0a0e14]"></div>
+  <div class="relative w-full" style="flex:1 1 0%;min-height:0;">
+    <div id="citizen-leaflet-map" class="w-full bg-[#0a0e14]" style="position:absolute;inset:0;"></div>
     
     <!-- Floating Report Waste Button -->
     <div class="absolute bottom-4 left-0 right-0 px-4 z-20 flex justify-center pointer-events-none">
@@ -805,7 +805,7 @@
   </nav>
 
   <!-- Main Content Area -->
-  <main class="flex-1 md:ml-[240px] relative w-full h-screen overflow-y-auto pb-32 md:pb-6 flex flex-col md:flex-row">
+  <main class="flex-1 md:ml-[240px] relative w-full overflow-y-auto pb-32 md:pb-6 flex flex-col md:flex-row md:h-screen">
     <!-- Top Mobile Navigation Header -->
     <div class="md:hidden sticky top-0 z-30 p-3 bg-surface/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
       <button onclick="navigate('page-landing')" class="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary font-bold">
@@ -817,22 +817,20 @@
       </button>
     </div>
 
-    <!-- Map Canvas (Left on desktop, top/bg on mobile) -->
-    <div class="relative w-full md:w-3/5 lg:w-2/3 h-64 md:h-full z-0 shrink-0"
-      style="background: radial-gradient(circle at top right, rgba(123, 219, 128, 0.15), transparent 50%), radial-gradient(circle at bottom left, rgba(0, 114, 227, 0.1), transparent 50%), linear-gradient(to bottom right, #0a0e14, #10141a);">
-      <!-- Floating Map Controls -->
-      <div class="absolute right-4 top-4 flex flex-col gap-2 z-10">
-        <button onclick="showToast('Live GPS location locked on incident.', 'info')" class="w-10 h-10 rounded-full bg-surface-raised/80 backdrop-blur-xl border border-white/10 flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors shadow-lg">
+    <!-- Live Incident Leaflet Map (Left on desktop, top on mobile) -->
+    <div class="relative w-full md:w-3/5 lg:w-2/3 shrink-0" style="height:260px;" id="tracking-map-panel">
+      <!-- Leaflet Map fills the panel -->
+      <div id="tracking-live-map" class="w-full h-full bg-[#0a0e14]"></div>
+      <!-- Map Controls overlay -->
+      <div class="absolute right-3 top-3 flex flex-col gap-2 z-10">
+        <button onclick="if(trackingLiveMap){trackingLiveMap.setView([userLocation.lat||40.758,userLocation.lng||-73.9855],15);}" class="w-10 h-10 rounded-full bg-surface-raised/80 backdrop-blur-xl border border-white/10 flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors shadow-lg">
           <span class="material-symbols-outlined text-[18px]">my_location</span>
         </button>
       </div>
-      <!-- Report Location Marker -->
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-        <div class="w-12 h-12 bg-surface-raised/60 backdrop-blur-xl border border-warning/50 rounded-full flex items-center justify-center shadow-[0_0_24px_rgba(210,153,34,0.4)] z-10 timeline-pulse">
-          <span class="material-symbols-outlined text-warning">warning</span>
-        </div>
-        <div class="w-1 h-6 bg-gradient-to-b from-warning/50 to-transparent"></div>
-        <div class="w-4 h-1 bg-warning/30 rounded-full blur-[2px]"></div>
+      <!-- Legend overlay -->
+      <div class="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md rounded-lg px-2.5 py-1.5 text-[10px] font-label-mono flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-warning inline-block shadow-[0_0_6px_rgba(210,153,34,0.9)]"></span>
+        <span class="text-warning font-bold">INCIDENT LOCATION</span>
       </div>
     </div>
 
@@ -2252,8 +2250,10 @@ async function reverseGeocode(lat, lng) {
 }
 
 // Fallback silent IP-based location auto-detection if GPS is blocked
+// Only runs if we don't already have a precise GPS fix
 async function detectLocationSilently() {
-  if (userLocation && userLocation.address && userLocation.address.includes(',')) return;
+  // If we already have a GPS address (not default fallback), skip IP geolocation
+  if (userLocation && userLocation.accuracy && userLocation.accuracy < 200 && userLocation.address) return;
   
   let detected = false;
   // Provider 1: ipwho.is (CORS enabled, fast)
@@ -2261,9 +2261,12 @@ async function detectLocationSilently() {
     const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const d = await res.json();
-      if (d && d.latitude && d.longitude) {
+      if (d && d.latitude && d.longitude && d.success) {
         const cityStr = d.city ? `${d.city}, ${d.region || d.country_code || ''}` : 'Local Sector';
-        updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
+        // Only update coordinates if we don't have GPS-level accuracy
+        if (!userLocation.accuracy || userLocation.accuracy >= 200) {
+          updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
+        }
         detected = true;
       }
     }
@@ -2276,8 +2279,10 @@ async function detectLocationSilently() {
       if (res.ok) {
         const d = await res.json();
         if (d && d.latitude && d.longitude) {
-          const cityStr = d.locality || d.city ? `${d.locality || d.city}, ${d.principalSubdivision || ''}` : 'Local Sector';
-          updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
+          const cityStr = (d.locality || d.city) ? `${d.locality || d.city}, ${d.principalSubdivision || ''}` : 'Local Sector';
+          if (!userLocation.accuracy || userLocation.accuracy >= 200) {
+            updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
+          }
           detected = true;
         }
       }
@@ -2285,7 +2290,8 @@ async function detectLocationSilently() {
   }
 
   if (!detected && (!userLocation || !userLocation.address)) {
-    updateUserLocationDisplay(40.7580, -73.9855, 5, 'Sector 4, Broadway Corridor');
+    // Keep generic placeholder — don't override with wrong random city
+    updateUserLocationDisplay(userLocation.lat || 40.7580, userLocation.lng || -73.9855, 5000, userLocation.address || 'Local Area (GPS Required)');
   }
 }
 
@@ -2313,36 +2319,51 @@ const MOCK_CITIZEN_ASSETS = [
   { id:'HOT-2', type:'hotspots', lat:40.7595, lng:-73.9855, name:'Cardboard Clutter Hotspot', severity:'Medium', address:'Garment Corner' },
 ];
 
-function initCitizenMap() {
-  const container = document.getElementById('citizen-leaflet-map');
-  if (!container || typeof L === 'undefined') return;
-
-  const lat = userLocation.lat || 40.7580;
-  const lng = userLocation.lng || -73.9855;
-
-  if (!citizenMap) {
-    citizenMap = L.map('citizen-leaflet-map', { zoomControl: true }).setView([lat, lng], 15);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CartoDB &bull; BinGO AI',
-      maxZoom: 19
-    }).addTo(citizenMap);
-
-    // Add user marker with pulsing ring
-    const userIcon = L.divIcon({
-      className: 'custom-user-pin',
-      html: `<div class="w-6 h-6 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-white"></div></div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
-    });
-    L.marker([lat, lng], { icon: userIcon }).addTo(citizenMap).bindPopup(`<b>📍 You Are Here</b><br>${userLocation.address || 'Current Position'}`);
-
-    renderCitizenMapAssets('all');
-  } else {
-    citizenMap.setView([lat, lng], 15);
+function ensureLeafletReady(callback, maxTries = 15) {
+  if (typeof L !== 'undefined') {
+    callback();
+  } else if (maxTries > 0) {
+    setTimeout(() => ensureLeafletReady(callback, maxTries - 1), 150);
   }
+}
 
-  setTimeout(() => { if (citizenMap) citizenMap.invalidateSize(); }, 150);
-  setTimeout(() => { if (citizenMap) citizenMap.invalidateSize(); }, 400);
+function getUniversalTileLayer() {
+  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors &bull; BinGO AI',
+    maxZoom: 19
+  });
+}
+
+function initCitizenMap() {
+  ensureLeafletReady(() => {
+    const container = document.getElementById('citizen-leaflet-map');
+    if (!container) return;
+
+    const lat = userLocation.lat || 40.7580;
+    const lng = userLocation.lng || -73.9855;
+
+    if (!citizenMap) {
+      citizenMap = L.map('citizen-leaflet-map', { zoomControl: true }).setView([lat, lng], 15);
+      getUniversalTileLayer().addTo(citizenMap);
+
+      // Add user marker with pulsing ring
+      const userIcon = L.divIcon({
+        className: 'custom-user-pin',
+        html: `<div class="w-7 h-7 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      L.marker([lat, lng], { icon: userIcon }).addTo(citizenMap).bindPopup(`<b>📍 You Are Here</b><br>${userLocation.address || 'Current Position'}`);
+
+      renderCitizenMapAssets('all');
+    } else {
+      citizenMap.setView([lat, lng], 15);
+    }
+
+    [100, 300, 600, 1200].forEach(delay => {
+      setTimeout(() => { if (citizenMap) citizenMap.invalidateSize(); }, delay);
+    });
+  });
 }
 
 function renderCitizenMapAssets(filterType) {
@@ -2358,32 +2379,32 @@ function renderCitizenMapAssets(filterType) {
 
     if (asset.type === 'bins') {
       const isFull = asset.fill >= 80;
-      iconHtml = `<div class="w-8 h-8 rounded-full ${isFull ? 'bg-danger/20 border-2 border-danger' : 'bg-primary/20 border-2 border-primary'} flex items-center justify-center text-white text-xs font-bold shadow-lg"><span class="material-symbols-outlined text-[16px] ${isFull ? 'text-danger' : 'text-primary'}">${isFull ? 'delete_forever' : 'delete'}</span></div>`;
+      iconHtml = `<div class="w-8 h-8 rounded-full ${isFull ? 'bg-danger text-white border-2 border-white shadow-lg' : 'bg-primary text-[#05070a] border-2 border-white shadow-lg'} flex items-center justify-center text-xs font-bold"><span class="material-symbols-outlined text-[18px]">${isFull ? 'delete_forever' : 'delete'}</span></div>`;
       popupContent = `
-        <div class="text-xs space-y-1">
+        <div class="text-xs space-y-1 p-1">
           <div class="font-bold text-primary text-sm">${asset.name}</div>
           <div class="text-[11px] text-text-secondary">${asset.address}</div>
           <div class="flex items-center justify-between pt-1">
             <span>Fill Level:</span>
             <span class="font-bold font-label-mono ${isFull ? 'text-danger' : 'text-primary'}">${asset.fill}% (${asset.status})</span>
           </div>
-          <button onclick="navigate('page-submit')" class="w-full mt-2 py-1 bg-primary text-[#05070a] font-bold text-[11px] rounded flex items-center justify-center gap-1">
-            <span class="material-symbols-outlined text-[13px]">camera</span> Report at this Bin
+          <button onclick="navigate('page-submit')" class="w-full mt-2 py-1.5 bg-primary text-[#05070a] font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 shadow">
+            <span class="material-symbols-outlined text-[14px]">camera</span> Report at this Bin
           </button>
         </div>`;
     } else if (asset.type === 'cleanups') {
-      iconHtml = `<div class="w-8 h-8 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center text-accent shadow-lg"><span class="material-symbols-outlined text-[16px]">volunteer_activism</span></div>`;
+      iconHtml = `<div class="w-8 h-8 rounded-full bg-accent text-white border-2 border-white shadow-lg flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">volunteer_activism</span></div>`;
       popupContent = `
-        <div class="text-xs space-y-1">
+        <div class="text-xs space-y-1 p-1">
           <div class="font-bold text-accent text-sm">${asset.name}</div>
           <div class="text-[11px] text-text-secondary">${asset.address}</div>
           <div class="text-[11px] text-text-primary">Volunteers: <strong>${asset.volunteers} joined</strong></div>
           <div class="text-[10px] text-success font-bold">${asset.status}</div>
         </div>`;
     } else {
-      iconHtml = `<div class="w-8 h-8 rounded-full bg-danger/30 border-2 border-danger flex items-center justify-center text-danger pin-danger shadow-lg"><span class="material-symbols-outlined text-[16px]">warning</span></div>`;
+      iconHtml = `<div class="w-8 h-8 rounded-full bg-danger text-white border-2 border-white shadow-lg flex items-center justify-center pin-danger"><span class="material-symbols-outlined text-[18px]">warning</span></div>`;
       popupContent = `
-        <div class="text-xs space-y-1">
+        <div class="text-xs space-y-1 p-1">
           <div class="font-bold text-danger text-sm">${asset.name}</div>
           <div class="text-[11px] text-text-secondary">${asset.address}</div>
           <div class="text-[10px] font-bold text-danger">Status: Escalated for Municipal Pickup</div>
@@ -2426,51 +2447,51 @@ function initDashboard() {
 }
 
 function initAdminTacticalMap() {
-  const container = document.getElementById('admin-tactical-map');
-  if (!container || typeof L === 'undefined') return;
+  ensureLeafletReady(() => {
+    const container = document.getElementById('admin-tactical-map');
+    if (!container) return;
 
-  const lat = userLocation.lat || 40.7580;
-  const lng = userLocation.lng || -73.9855;
+    const lat = userLocation.lat || 40.7580;
+    const lng = userLocation.lng || -73.9855;
 
-  if (!adminMap) {
-    adminMap = L.map('admin-tactical-map', { zoomControl: false }).setView([lat, lng], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CartoDB &bull; BinGO Tactical AI',
-      maxZoom: 19
-    }).addTo(adminMap);
+    if (!adminMap) {
+      adminMap = L.map('admin-tactical-map', { zoomControl: true }).setView([lat, lng], 14);
+      getUniversalTileLayer().addTo(adminMap);
 
-    // Critical Waste Marker (#REP-8992)
-    const critIcon = L.divIcon({
-      className: 'tactical-crit-pin',
-      html: `<button onclick="selectDashboardPin('critical')" class="w-10 h-10 rounded-full bg-danger/30 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.9)] cursor-pointer"><span class="material-symbols-outlined text-[20px] font-bold">warning</span></button>`,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+      // Critical Waste Marker (#REP-8992)
+      const critIcon = L.divIcon({
+        className: 'tactical-crit-pin',
+        html: `<button onclick="selectDashboardPin('critical')" class="w-10 h-10 rounded-full bg-danger text-white border-2 border-white flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.9)] cursor-pointer"><span class="material-symbols-outlined text-[20px] font-bold">warning</span></button>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      });
+      L.marker([40.7570, -73.9890], { icon: critIcon }).addTo(adminMap).on('click', () => selectDashboardPin('critical'));
+
+      // High Urgency Marker (#REP-8993)
+      const warnIcon = L.divIcon({
+        className: 'tactical-warn-pin',
+        html: `<button onclick="selectDashboardPin('warning')" class="w-9 h-9 rounded-full bg-warning text-white border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.8)] cursor-pointer"><span class="material-symbols-outlined text-[18px]">report</span></button>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+      L.marker([40.7128, -74.0060], { icon: warnIcon }).addTo(adminMap).on('click', () => selectDashboardPin('warning'));
+
+      // Fleet Unit 7 Marker
+      const unitIcon = L.divIcon({
+        className: 'tactical-unit-pin',
+        html: `<button onclick="selectDashboardPin('unit')" class="w-8 h-8 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)] cursor-pointer"><span class="material-symbols-outlined text-white text-[14px]">local_shipping</span></button>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+      L.marker([40.7484, -73.9857], { icon: unitIcon }).addTo(adminMap).on('click', () => selectDashboardPin('unit'));
+    } else {
+      adminMap.setView([lat, lng], 14);
+    }
+
+    [100, 300, 600, 1200].forEach(delay => {
+      setTimeout(() => { if (adminMap) adminMap.invalidateSize(); }, delay);
     });
-    L.marker([40.7570, -73.9890], { icon: critIcon }).addTo(adminMap).on('click', () => selectDashboardPin('critical'));
-
-    // High Urgency Marker (#REP-8993)
-    const warnIcon = L.divIcon({
-      className: 'tactical-warn-pin',
-      html: `<button onclick="selectDashboardPin('warning')" class="w-9 h-9 rounded-full bg-warning/30 border-2 border-warning text-warning flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.8)] cursor-pointer"><span class="material-symbols-outlined text-[18px]">report</span></button>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
-    });
-    L.marker([40.7128, -74.0060], { icon: warnIcon }).addTo(adminMap).on('click', () => selectDashboardPin('warning'));
-
-    // Fleet Unit 7 Marker
-    const unitIcon = L.divIcon({
-      className: 'tactical-unit-pin',
-      html: `<button onclick="selectDashboardPin('unit')" class="w-8 h-8 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)] cursor-pointer"><span class="material-symbols-outlined text-white text-[14px]">local_shipping</span></button>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-    L.marker([40.7484, -73.9857], { icon: unitIcon }).addTo(adminMap).on('click', () => selectDashboardPin('unit'));
-  } else {
-    adminMap.setView([lat, lng], 14);
-  }
-
-  setTimeout(() => { if (adminMap) adminMap.invalidateSize(); }, 150);
-  setTimeout(() => { if (adminMap) adminMap.invalidateSize(); }, 400);
+  });
 }
 
 // ── Tracking Page & Live Mini-Map ────────────────────────────────────────────
@@ -2497,32 +2518,32 @@ function toggleTrackingMedia(tab) {
 }
 
 function initTrackingMiniMap() {
-  const container = document.getElementById('tracking-mini-map');
-  if (!container || typeof L === 'undefined') return;
+  ensureLeafletReady(() => {
+    const container = document.getElementById('tracking-mini-map');
+    if (!container) return;
 
-  const lat = userLocation.lat || 40.7580;
-  const lng = userLocation.lng || -73.9855;
+    const lat = userLocation.lat || 40.7580;
+    const lng = userLocation.lng || -73.9855;
 
-  if (!trackingMiniMap) {
-    trackingMiniMap = L.map('tracking-mini-map', { zoomControl: false }).setView([lat, lng], 15);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CartoDB &bull; BinGO',
-      maxZoom: 19
-    }).addTo(trackingMiniMap);
+    if (!trackingMiniMap) {
+      trackingMiniMap = L.map('tracking-mini-map', { zoomControl: false }).setView([lat, lng], 15);
+      getUniversalTileLayer().addTo(trackingMiniMap);
 
-    const incidentIcon = L.divIcon({
-      className: 'custom-incident-pin',
-      html: `<div class="w-8 h-8 rounded-full bg-primary/30 border-2 border-primary text-primary flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)]"><span class="material-symbols-outlined text-[16px]">delete</span></div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
+      const incidentIcon = L.divIcon({
+        className: 'custom-incident-pin',
+        html: `<div class="w-8 h-8 rounded-full bg-primary/30 border-2 border-primary text-primary flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)]"><span class="material-symbols-outlined text-[16px]">delete</span></div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+      L.marker([lat, lng], { icon: incidentIcon }).addTo(trackingMiniMap).bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.address || 'Incident Location'}`);
+    } else {
+      trackingMiniMap.setView([lat, lng], 15);
+    }
+
+    [100, 300, 600].forEach(delay => {
+      setTimeout(() => { if (trackingMiniMap) trackingMiniMap.invalidateSize(); }, delay);
     });
-    L.marker([lat, lng], { icon: incidentIcon }).addTo(trackingMiniMap).bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.address || 'Incident Location'}`);
-  } else {
-    trackingMiniMap.setView([lat, lng], 15);
-  }
-
-  setTimeout(() => { if (trackingMiniMap) trackingMiniMap.invalidateSize(); }, 150);
-  setTimeout(() => { if (trackingMiniMap) trackingMiniMap.invalidateSize(); }, 400);
+  });
 }
 
 function selectDashboardPin(type) {
@@ -2667,6 +2688,55 @@ async function submitReport() {
 }
 
 // ── Tracking Page ────────────────────────────────────────────────────────────
+let trackingLiveMap = null;
+
+function initTrackingLiveMap() {
+  ensureLeafletReady(() => {
+    const container = document.getElementById('tracking-live-map');
+    if (!container) return;
+
+    const lat = userLocation.lat || 40.7580;
+    const lng = userLocation.lng || -73.9855;
+
+    if (!trackingLiveMap) {
+      trackingLiveMap = L.map('tracking-live-map', { zoomControl: true, attributionControl: false }).setView([lat, lng], 15);
+      getUniversalTileLayer().addTo(trackingLiveMap);
+
+      // User location pulse marker
+      const userIcon = L.divIcon({
+        className: 'custom-user-pin',
+        html: `<div class="w-7 h-7 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14]
+      });
+      L.marker([lat, lng], { icon: userIcon }).addTo(trackingLiveMap).bindPopup(`<b>📍 Incident Location</b><br>${userLocation.address || 'Reported Waste Site'}`);
+
+      // Animated warning incident pin
+      const incidentIcon = L.divIcon({
+        className: 'custom-incident-pin',
+        html: `<div class="w-10 h-10 rounded-full bg-warning/30 border-2 border-warning flex items-center justify-center shadow-[0_0_20px_rgba(210,153,34,0.9)]" style="animation:pulse-green 1.5s infinite"><span class="material-symbols-outlined text-warning text-[20px]">warning</span></div>`,
+        iconSize: [40, 40], iconAnchor: [20, 20]
+      });
+      L.marker([lat + 0.0002, lng - 0.0002], { icon: incidentIcon }).addTo(trackingLiveMap)
+        .bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.address || 'Incident'}`);
+
+      // Add fleet vehicle marker
+      const fleetIcon = L.divIcon({
+        className: 'custom-fleet-pin',
+        html: `<div class="w-9 h-9 rounded-full bg-primary border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(123,219,128,0.9)]"><span class="material-symbols-outlined text-[#05070a] text-[16px]">local_shipping</span></div>`,
+        iconSize: [36, 36], iconAnchor: [18, 18]
+      });
+      L.marker([lat - 0.003, lng + 0.004], { icon: fleetIcon }).addTo(trackingLiveMap)
+        .bindPopup('<b>🚛 Unit #07 — EN ROUTE</b><br>ETA: ~6 mins');
+    } else {
+      trackingLiveMap.setView([lat, lng], 15);
+    }
+
+    [100, 300, 600, 1200].forEach(delay => {
+      setTimeout(() => { if (trackingLiveMap) trackingLiveMap.invalidateSize(); }, delay);
+    });
+  });
+}
+
 function initTrackingPage() {
   const id = currentReportId ? (currentReportId.length > 8 ? currentReportId.substring(0, 8) : currentReportId) : '8492-AX';
   const repIdEl = document.getElementById('tracking-report-id');
@@ -2692,6 +2762,8 @@ function initTrackingPage() {
     }
     previewImg.onerror = () => { previewImg.src = 'assets/smart_bin_3d.png'; };
   }
+  // Initialize live Leaflet map on tracking page
+  initTrackingLiveMap();
 }
 
 const WASTE_CATEGORIES = {
@@ -2816,9 +2888,12 @@ function determineWasteCategory(desc = '', photoFile = null) {
   if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble')) {
     return 'mixed';
   }
-  // Random smart pick among core waste types if unspecified
-  const types = ['plastic', 'cardboard', 'organic', 'metal', 'mixed'];
-  return types[Math.floor(Math.random() * types.length)];
+  // If description mentions generic garbage/waste words, classify as mixed
+  if (d.includes('waste') || d.includes('rubbish') || d.includes('litter') || d.includes('dirty') || d.includes('garbage') || d.includes('mess')) {
+    return 'mixed';
+  }
+  // If no description was provided or unclear, do not randomly classify — return 'unknown' mapped to mixed
+  return 'mixed';
 }
 
 async function pollReportStatus(reportId) {
@@ -2905,12 +2980,7 @@ function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
 }
 
 // ── Admin Command Center ─────────────────────────────────────────────────────
-function initDashboard() {
-  loadDashboardStats();
-  if (getAdminJwt() && (!wsConnection || wsConnection.readyState > 1)) {
-    connectDashboardWs();
-  }
-}
+// NOTE: initDashboard is defined earlier (includes initAdminTacticalMap). This duplicate is removed.
 
 async function loadDashboardStats() {
   if (isDemoMode()) {
@@ -3231,7 +3301,7 @@ function navigate(pageId) {
     if (pageId === 'page-citizen-map') { initCitizenMap(); }
     if (pageId === 'page-dashboard')   { initDashboard(); }
     if (pageId === 'page-reports')     { initReportsQueue(); }
-    if (pageId === 'page-tracking')    { initTrackingPage(); }
+    if (pageId === 'page-tracking')    { initTrackingPage(); initTrackingLiveMap(); }
     if (pageId === 'page-submit')      { initSubmitPage(); }
     if (pageId === 'page-hotspots')    { initHotspotsPage(); }
     if (pageId === 'page-fleet')       { initFleetPage(); }
