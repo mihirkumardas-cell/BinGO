@@ -11,6 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link rel="icon" type="image/jpeg" href="assets/bingo_logo.jpg"/>
 <link rel="apple-touch-icon" href="assets/bingo_logo.jpg"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -216,6 +218,43 @@
   }
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
+
+  /* ── Leaflet Dark Theme & Custom Markers ── */
+  .leaflet-container {
+    background-color: #05070a !important;
+    font-family: 'Inter', sans-serif !important;
+  }
+  .leaflet-tile {
+    filter: brightness(0.7) invert(1) contrast(1.8) hue-rotate(185deg) saturate(0.4) !important;
+  }
+  .leaflet-popup-content-wrapper {
+    background: rgba(22, 27, 34, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(123, 219, 128, 0.3) !important;
+    color: #E6EDF3 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  }
+  .leaflet-popup-tip {
+    background: rgba(22, 27, 34, 0.95) !important;
+  }
+  .leaflet-control-zoom {
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    background: rgba(10, 14, 20, 0.85) !important;
+  }
+  .leaflet-control-zoom a {
+    background: rgba(10, 14, 20, 0.85) !important;
+    color: #7bdb80 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  }
+  .leaflet-control-attribution {
+    background: rgba(0,0,0,0.7) !important;
+    color: #8B949E !important;
+    font-size: 9px !important;
+  }
+  .leaflet-control-attribution a { color: #7bdb80 !important; }
 </style>
 </head>
 <body class="bg-background text-text-primary h-screen w-screen overflow-hidden font-body-md select-none">
@@ -511,9 +550,73 @@
 
 
 <!-- ══════════════════════════════════════════════════════
+     PAGE: CITIZEN — INTERACTIVE COMMUNITY MAP
+══════════════════════════════════════════════════════ -->
+<div id="page-citizen-map" class="page flex-col h-screen w-screen overflow-hidden select-none relative pb-24">
+  <!-- Top Bar -->
+  <div class="sticky top-0 w-full p-3 z-30 bg-surface/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <button onclick="navigate('page-landing')" class="p-1.5 rounded-lg bg-white/5 text-text-primary hover:bg-white/10">
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </button>
+      <div class="flex items-center gap-2">
+        <img src="assets/bingo_logo.jpg" class="w-6 h-6 rounded-md object-cover border border-primary/40"/>
+        <span class="font-bold text-primary text-sm">Smart Bins &amp; Community Map</span>
+      </div>
+    </div>
+    <button onclick="openLocationPickerModal()" class="text-xs bg-primary/20 text-primary border border-primary/40 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
+      <span class="material-symbols-outlined text-[14px]">pin_drop</span> <span id="map-loc-btn-text">Sector 4</span>
+    </button>
+  </div>
+
+  <!-- Filter Chips Strip -->
+  <div class="bg-black/70 backdrop-blur-md px-3 py-2 border-b border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none z-20">
+    <button onclick="filterCitizenMap('all')" id="cmap-filter-all" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary text-[#05070a] shrink-0">All Assets (12)</button>
+    <button onclick="filterCitizenMap('bins')" id="cmap-filter-bins" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-text-secondary hover:text-text-primary shrink-0">Smart Bins (6)</button>
+    <button onclick="filterCitizenMap('cleanups')" id="cmap-filter-cleanups" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-text-secondary hover:text-text-primary shrink-0">Cleanups (3)</button>
+    <button onclick="filterCitizenMap('hotspots')" id="cmap-filter-hotspots" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-text-secondary hover:text-text-primary shrink-0">Hotspots (3)</button>
+  </div>
+
+  <!-- Interactive Leaflet Map Container -->
+  <div class="relative flex-1 w-full h-full">
+    <div id="citizen-leaflet-map" class="w-full h-full z-0 bg-[#0a0e14]"></div>
+    
+    <!-- Floating Report Waste Button -->
+    <div class="absolute bottom-4 left-0 right-0 px-4 z-20 flex justify-center pointer-events-none">
+      <button onclick="navigate('page-submit')" class="pointer-events-auto bg-gradient-to-r from-primary to-green-600 text-[#05070a] font-bold text-xs sm:text-sm py-3 px-6 rounded-full shadow-[0_0_25px_rgba(123,219,128,0.5)] flex items-center gap-2 active:scale-95 transition-transform">
+        <span class="material-symbols-outlined text-[20px]">photo_camera</span>
+        Report Waste at Current Location
+      </button>
+    </div>
+  </div>
+
+  <!-- Citizen Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">map</span>
+      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Map</span>
+    </button>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">add_circle</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Report</span>
+    </button>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">history</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">person</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
+    </button>
+  </nav>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
      PAGE: CITIZEN — SUBMIT REPORT (MOBILE FIRST)
 ══════════════════════════════════════════════════════ -->
-<div id="page-submit" class="page flex-col h-screen w-screen overflow-hidden select-none relative">
+<div id="page-submit" class="page flex-col h-screen w-screen overflow-hidden select-none relative pb-20">
   <!-- Mock Camera Feed Background -->
   <div class="absolute inset-0 bg-cover bg-center"
     style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAAelU7xQIjFHYVX84hTBJd2JFspWsBn7cS-tuo9TaAEVtxt5rGWwq98lKT0HgH1AkdpJdsDIYOXbgxKsU4rDr8xj-NapIo-Z6dPspagXcpY1TlqsN2-OjJk8YJQ-X9xGHvF_b_8goNJXUgPVL8_-RCOcHRI0rN3FpZq_fauMRvJrkpy2sDUiROGDRO2TwzG93PxfhZYUI007SGwd8tdt46qjqcVgtnWvZhg_1kHEPkaXe6sTjYCPw')">
@@ -521,18 +624,18 @@
   <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/70"></div>
 
   <!-- Top Bar with Back Button -->
-  <div class="absolute top-0 w-full p-4 flex justify-between items-center z-20 bg-gradient-to-b from-background/90 to-transparent pt-4 sm:pt-6">
+  <div class="absolute top-0 w-full p-3 flex justify-between items-center z-20 bg-gradient-to-b from-background/90 to-transparent pt-3 sm:pt-6">
     <button onclick="navigate('page-landing')"
-      class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-text-primary hover:bg-surface/80 transition-colors shadow-lg active:scale-95">
+      class="w-9 h-9 flex items-center justify-center rounded-full glass-card text-text-primary hover:bg-surface/80 transition-colors shadow-lg active:scale-95">
       <span class="material-symbols-outlined text-[20px]">arrow_back</span>
     </button>
-    <div class="font-headline-md text-base sm:text-headline-md font-black text-primary flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg overflow-hidden border border-primary/40 shadow-[0_0_10px_rgba(123,219,128,0.4)] shrink-0">
+    <div class="font-headline-md text-sm sm:text-headline-md font-black text-primary flex items-center gap-2">
+      <div class="w-6 h-6 rounded-lg overflow-hidden border border-primary/40 shadow-[0_0_10px_rgba(123,219,128,0.4)] shrink-0">
         <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
       </div>
       <span>BinGO AI Scanner</span>
     </div>
-    <button onclick="navigate('page-settings')" class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-text-primary hover:bg-surface/80 transition-colors shadow-lg active:scale-95">
+    <button onclick="navigate('page-settings')" class="w-9 h-9 flex items-center justify-center rounded-full glass-card text-text-primary hover:bg-surface/80 transition-colors shadow-lg active:scale-95">
       <span class="material-symbols-outlined text-[20px]">settings</span>
     </button>
   </div>
@@ -540,27 +643,27 @@
   <!-- Camera Viewfinder Area -->
   <main class="relative flex-1 w-full h-full flex flex-col items-center justify-center px-4">
     <!-- Viewfinder Reticle -->
-    <div id="ai-overlay" class="flex flex-col items-center justify-center z-10 pointer-events-none mt-[-40px]">
-      <div class="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center viewfinder">
+    <div id="ai-overlay" class="flex flex-col items-center justify-center z-10 pointer-events-none mt-[-50px]">
+      <div class="relative w-40 h-40 sm:w-52 sm:h-52 flex items-center justify-center viewfinder">
         <div class="absolute inset-[-10px] rounded-full border border-primary/20" style="animation: pulse-green 3s infinite;"></div>
         <div class="absolute inset-0 rounded-full border-2 border-primary/40" style="animation: pulse-green 2s infinite;"></div>
         <div class="absolute inset-3 rounded-full border border-primary/80 shadow-[0_0_15px_rgba(123,219,128,0.4)]"></div>
-        <span class="material-symbols-outlined text-primary text-5xl drop-shadow-[0_0_8px_rgba(123,219,128,0.8)]"
+        <span class="material-symbols-outlined text-primary text-4xl sm:text-5xl drop-shadow-[0_0_8px_rgba(123,219,128,0.8)]"
           style="animation: pulse-green 2s infinite;">document_scanner</span>
       </div>
-      <div id="ai-status-pill" class="mt-6 px-4 py-2 glass-card rounded-full border border-primary/30 shadow-[0_0_20px_rgba(123,219,128,0.25)]">
-        <p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-wider uppercase text-[11px]">
-          <span class="material-symbols-outlined text-sm" style="animation: spin-slow 3s linear infinite;">memory</span>
+      <div id="ai-status-pill" class="mt-4 px-3.5 py-1.5 glass-card rounded-full border border-primary/30 shadow-[0_0_20px_rgba(123,219,128,0.25)]">
+        <p class="font-label-mono text-label-mono text-primary flex items-center gap-1.5 tracking-wider uppercase text-[10px] sm:text-[11px]">
+          <span class="material-symbols-outlined text-xs" style="animation: spin-slow 3s linear infinite;">memory</span>
           Point camera at waste &amp; capture
         </p>
       </div>
     </div>
 
     <!-- Bottom Controls Overlay -->
-    <div class="absolute bottom-6 left-0 right-0 w-full px-4 z-20 flex flex-col items-center gap-3 max-w-md mx-auto">
+    <div class="absolute bottom-20 left-0 right-0 w-full px-4 z-20 flex flex-col items-center gap-2 max-w-md mx-auto">
       <!-- Clickable Location Bar -->
-      <button onclick="openLocationPickerModal()" class="w-full flex items-center gap-2.5 glass-card p-3 rounded-xl border-l-4 border-l-primary hover:bg-white/10 transition-colors shadow-lg text-left active:scale-[0.99]">
-        <span class="material-symbols-outlined text-primary text-xl shrink-0">location_on</span>
+      <button onclick="openLocationPickerModal()" class="w-full flex items-center gap-2 glass-card p-2.5 rounded-xl border-l-4 border-l-primary hover:bg-white/10 transition-colors shadow-lg text-left active:scale-[0.99]">
+        <span class="material-symbols-outlined text-primary text-lg shrink-0">location_on</span>
         <div class="flex-grow min-w-0">
           <p id="location-display" class="font-label-sm text-xs text-text-primary truncate tracking-wide font-semibold">📍 Sector 4, Broadway Corridor</p>
           <p id="coords-display" class="font-label-mono text-[10px] text-text-secondary opacity-90 truncate">LAT: 40.7580° &bull; LON: -73.9855° &bull; Tap to change / GPS</p>
@@ -569,20 +672,20 @@
       </button>
 
       <!-- Main Action Buttons Row -->
-      <div class="w-full flex justify-around items-center px-4 py-1">
+      <div class="w-full flex justify-around items-center px-4 py-0.5">
         <!-- Notes / Describe Button -->
-        <button onclick="openNotesModal()" class="flex flex-col items-center gap-1.5 text-text-secondary hover:text-text-primary transition-colors group active:scale-95">
-          <div class="w-12 h-12 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50 shadow-md">
-            <span class="material-symbols-outlined text-[22px] text-primary-light">edit_note</span>
+        <button onclick="openNotesModal()" class="flex flex-col items-center gap-1 text-text-secondary hover:text-text-primary transition-colors group active:scale-95">
+          <div class="w-11 h-11 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50 shadow-md">
+            <span class="material-symbols-outlined text-[20px] text-primary-light">edit_note</span>
           </div>
-          <span class="font-label-sm text-[10px] uppercase tracking-wider font-semibold">Details</span>
+          <span class="font-label-sm text-[9px] uppercase tracking-wider font-semibold">Details</span>
         </button>
 
         <!-- Camera Capture Button -->
         <label class="relative group cursor-pointer active:scale-95 transition-transform duration-150">
           <input id="photo-input" type="file" accept="image/*" capture="environment" class="hidden" onchange="onPhotoSelected(this)"/>
           <div class="absolute inset-[-8px] bg-primary/30 rounded-full blur-xl group-hover:bg-primary/50 transition-colors duration-300" style="animation: pulse-green 2.5s infinite;"></div>
-          <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full border-[3px] border-primary/60 glass-card flex items-center justify-center shadow-[0_0_30px_rgba(123,219,128,0.5)] group-hover:border-primary transition-colors">
+          <div class="relative w-18 h-18 sm:w-22 sm:h-22 rounded-full border-[3px] border-primary/60 glass-card flex items-center justify-center shadow-[0_0_30px_rgba(123,219,128,0.5)] group-hover:border-primary transition-colors p-1">
             <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-green-700 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
               <span class="material-symbols-outlined text-white text-3xl sm:text-4xl" style="font-variation-settings:'FILL' 1;">camera</span>
             </div>
@@ -590,15 +693,36 @@
         </label>
 
         <!-- Location Preset Button -->
-        <button onclick="openLocationPickerModal()" class="flex flex-col items-center gap-1.5 text-text-secondary hover:text-text-primary transition-colors group active:scale-95">
-          <div class="w-12 h-12 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50 shadow-md">
-            <span class="material-symbols-outlined text-[22px] text-accent">map</span>
+        <button onclick="openLocationPickerModal()" class="flex flex-col items-center gap-1 text-text-secondary hover:text-text-primary transition-colors group active:scale-95">
+          <div class="w-11 h-11 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50 shadow-md">
+            <span class="material-symbols-outlined text-[20px] text-accent">map</span>
           </div>
-          <span class="font-label-sm text-[10px] uppercase tracking-wider font-semibold">Location</span>
+          <span class="font-label-sm text-[9px] uppercase tracking-wider font-semibold">Location</span>
         </button>
       </div>
     </div>
   </main>
+
+  <!-- Citizen Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">map</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
+    </button>
+    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">add_circle</span>
+      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Report</span>
+    </button>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">history</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">person</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
+    </button>
+  </nav>
 
   <!-- NOTES / REPORT DETAILS MODAL (POPUP BOTTOM SHEET) -->
   <div id="notes-panel" class="fixed inset-0 z-[9990] bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
@@ -617,7 +741,7 @@
       <div class="mb-3 p-2.5 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between text-xs">
         <div class="flex items-center gap-2 truncate">
           <span class="material-symbols-outlined text-primary text-[18px] shrink-0">pin_drop</span>
-          <span id="notes-location-tag" class="truncate font-medium text-text-primary">742 Broadway St, Sector 4</span>
+          <span id="notes-location-tag" class="truncate font-medium text-text-primary">Sector 4, Broadway Corridor</span>
         </div>
         <button onclick="openLocationPickerModal()" class="text-[11px] text-primary font-bold hover:underline shrink-0 ml-2">Change</button>
       </div>
@@ -811,7 +935,7 @@
 
   <!-- Bottom Navigation Bar (Mobile only) — matches screen(3).png -->
   <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
-    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
       <span class="material-symbols-outlined text-[24px]">map</span>
       <span class="font-label-sm text-[10px] mt-0.5">Map</span>
     </button>
@@ -898,13 +1022,13 @@
 
   <!-- Main Map Canvas & Overlays -->
   <main class="flex-1 relative md:ml-sidebar-width h-full w-full bg-transparent overflow-y-auto pb-28 md:pb-0 flex flex-col justify-between">
-    <!-- Map Background -->
-    <div class="absolute inset-0 w-full h-full z-[-1]">
-      <img class="w-full h-full object-cover grayscale mix-blend-overlay opacity-30" alt="Cyber Tactical Map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVKJEs1KlMJWiLE9ppouKT0Uv4Vf-kUXhsnei4F3ADHhmx2WndnxlD7HmJ4MVXOwxCLdXVLipetnrczeV8Ea7QIRE67VgJfrQJKLhIlXAoWWLuiY81myl8qVTqvJJWfk47kID7PfumrwM-cazccIZV-0-f0b2AYAuoceG7wxZvjzrtg9P6vIJ6VakRg1du_6ryK5hcvt_A8DkU_P97QNmIizcdl6IWKMEedEdDIE2KvJy2qn8J49A"/>
+    <!-- Interactive Tactical Map Container -->
+    <div class="absolute inset-0 w-full h-full z-0">
+      <div id="admin-tactical-map" class="w-full h-full bg-[#0a0e14]"></div>
     </div>
 
-    <!-- Top Stats Bar -->
-    <div class="p-3 sm:p-6 z-10 w-full">
+    <!-- Top Stats Bar Overlay -->
+    <div class="p-3 sm:p-6 z-10 w-full relative">
       <div class="flex gap-2 sm:gap-4 overflow-x-auto pb-2 scrollbar-none fade-in-up">
         <div class="glass-panel rounded-xl p-3 flex items-center gap-3 shrink-0 min-w-[130px]">
           <div class="flex flex-col">
@@ -935,24 +1059,6 @@
             <span class="material-symbols-outlined text-[16px]">list</span> Queue
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Map Interactive Pins -->
-    <div class="relative flex-1 min-h-[220px]">
-      <div class="absolute top-1/4 left-1/4 group cursor-pointer" onclick="selectDashboardPin('critical')">
-        <button class="w-9 h-9 rounded-full bg-danger/30 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.8)] transform hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[18px] font-bold">warning</span>
-        </button>
-      </div>
-      <div class="absolute top-1/2 left-2/3 cursor-pointer" onclick="selectDashboardPin('warning')">
-        <button class="w-8 h-8 rounded-full bg-warning/30 border border-warning text-warning flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.6)] hover:bg-warning/40 transition-colors">
-          <span class="material-symbols-outlined text-[16px]">report</span>
-        </button>
-      </div>
-      <div class="absolute bottom-1/4 left-1/2 cursor-pointer" onclick="selectDashboardPin('unit')">
-        <button class="w-6 h-6 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.8)]">
-        </button>
       </div>
     </div>
 
@@ -1713,6 +1819,27 @@
       </div>
     </div>
   </main>
+
+  <!-- Citizen Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 w-full z-40 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-citizen-map')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">map</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
+    </button>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">add_circle</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Report</span>
+    </button>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">history</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Activity</span>
+    </button>
+    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">person</span>
+      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Profile</span>
+    </button>
+  </nav>
 </div>
 
 
@@ -1974,7 +2101,7 @@ function closeNotesModal() {
   if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
 
-// ── Location Picker Dialog & Mobile-Safe Geolocation ─────────────────────────
+// ── Location Picker Dialog & Multi-Provider Geolocation ─────────────────────
 function openLocationPickerModal() {
   const modal = document.getElementById('location-picker-modal');
   const input = document.getElementById('manual-address-input');
@@ -1990,6 +2117,8 @@ function setPresetLocation(lat, lng, address) {
   updateUserLocationDisplay(lat, lng, 5, address);
   closeLocationPickerModal();
   showToast(`📍 Location set: ${address}`, 'success');
+  if (citizenMap) citizenMap.setView([lat, lng], 15);
+  if (adminMap) adminMap.setView([lat, lng], 14);
 }
 
 function applyManualAddress() {
@@ -2018,18 +2147,20 @@ function requestGpsWithFeedback() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const acc = pos.coords.accuracy;
-        updateUserLocationDisplay(lat, lng, acc);
+        updateUserLocationDisplay(lat, lng, acc, `GPS: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°`);
         await reverseGeocode(lat, lng);
-        showToast(`📍 GPS Locked: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°`, 'success');
+        showToast(`📍 GPS Locked: ${userLocation.address}`, 'success');
+        if (citizenMap) citizenMap.setView([lat, lng], 15);
+        if (adminMap) adminMap.setView([lat, lng], 14);
       },
       err => {
         console.warn('GPS permission or hardware unavailable:', err.message);
-        showToast(`📍 Device location: ${userLocation.address}. You can also type any address.`, 'info');
+        showToast(`📍 Using current location (${userLocation.address || 'Sector 4'}). You can tap to type custom address.`, 'info');
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
     );
   } catch (e) {
-    showToast(`📍 Location active: ${userLocation.address}`, 'info');
+    showToast(`📍 Location active: ${userLocation.address || 'Sector 4, Broadway Corridor'}`, 'info');
   }
 }
 
@@ -2042,12 +2173,14 @@ function updateUserLocationDisplay(lat, lng, accuracy = null, address = null) {
   const locEl = document.getElementById('location-display');
   const coordsEl = document.getElementById('coords-display');
   const notesTag = document.getElementById('notes-location-tag');
+  const mapBtnText = document.getElementById('map-loc-btn-text');
 
   const formattedCoords = `LAT: ${lat.toFixed(4)}° &bull; LON: ${lng.toFixed(4)}°${accuracy ? ` (&plusmn;${Math.round(accuracy)}m)` : ''} &bull; Tap to change / GPS`;
   
   if (coordsEl) coordsEl.innerHTML = formattedCoords;
   if (locEl) locEl.textContent = `📍 ${userLocation.address || 'Sector 4, Broadway Corridor'}`;
   if (notesTag) notesTag.textContent = userLocation.address || `${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W`;
+  if (mapBtnText) mapBtnText.textContent = (userLocation.address || 'Sector 4').split(',')[0];
 }
 
 async function reverseGeocode(lat, lng) {
@@ -2065,37 +2198,281 @@ async function reverseGeocode(lat, lng) {
       userLocation.address = displayStr;
       const locEl = document.getElementById('location-display');
       if (locEl) locEl.textContent = `📍 ${displayStr}`;
+      const notesTag = document.getElementById('notes-location-tag');
+      if (notesTag) notesTag.textContent = displayStr;
+      const mapBtnText = document.getElementById('map-loc-btn-text');
+      if (mapBtnText) mapBtnText.textContent = displayStr.split(',')[0];
       return displayStr;
     }
   } catch {}
   return userLocation.address || 'Sector 4, Broadway Corridor';
 }
 
-// Silent IP-based location auto-detection on startup (zero permissions required)
+// Multi-provider silent IP-based location auto-detection on startup (zero permissions required)
 async function detectLocationSilently() {
+  let detected = false;
+  // Provider 1: ipwho.is (CORS enabled, fast, global)
   try {
-    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2000) });
+    const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
-      const data = await res.json();
-      if (data.latitude && data.longitude) {
-        const city = data.city ? `${data.city}, ${data.region_code || data.country_name}` : 'Local Urban Sector';
-        updateUserLocationDisplay(data.latitude, data.longitude, null, city);
-        return;
+      const d = await res.json();
+      if (d && d.latitude && d.longitude) {
+        const cityStr = d.city ? `${d.city}, ${d.region || d.country_code || ''}` : 'Local Sector';
+        updateUserLocationDisplay(d.latitude, d.longitude, 10, cityStr);
+        detected = true;
       }
     }
   } catch {}
-  // Default active location
-  updateUserLocationDisplay(40.7580, -73.9855, 5, 'Sector 4, Broadway Corridor');
+
+  // Provider 2: BigDataCloud Reverse Geocode Client (free, open CORS)
+  if (!detected) {
+    try {
+      const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client', { signal: AbortSignal.timeout(2000) });
+      if (res.ok) {
+        const d = await res.json();
+        if (d && d.latitude && d.longitude) {
+          const cityStr = d.locality || d.city ? `${d.locality || d.city}, ${d.principalSubdivision || ''}` : 'Local Sector';
+          updateUserLocationDisplay(d.latitude, d.longitude, 10, cityStr);
+          detected = true;
+        }
+      }
+    } catch {}
+  }
+
+  // Provider 3: ipapi.co
+  if (!detected) {
+    try {
+      const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2000) });
+      if (res.ok) {
+        const d = await res.json();
+        if (d && d.latitude && d.longitude) {
+          const cityStr = d.city ? `${d.city}, ${d.region_code || ''}` : 'Sector 4 Grid';
+          updateUserLocationDisplay(d.latitude, d.longitude, 10, cityStr);
+          detected = true;
+        }
+      }
+    } catch {}
+  }
+
+  if (!detected && (!userLocation || !userLocation.address)) {
+    updateUserLocationDisplay(40.7580, -73.9855, 5, 'Sector 4, Broadway Corridor');
+  }
 }
 
 function initSubmitPage() {
-  // Ensure location display is populated immediately without prompting for permissions
   updateUserLocationDisplay(
     userLocation.lat || 40.7580,
     userLocation.lng || -73.9855,
     userLocation.accuracy,
     userLocation.address || 'Sector 4, Broadway Corridor'
   );
+}
+
+// ── Citizen Interactive Leaflet Map ──────────────────────────────────────────
+let citizenMap = null;
+let citizenMapMarkers = [];
+
+const MOCK_CITIZEN_ASSETS = [
+  { id:'BIN-1', type:'bins', lat:40.7585, lng:-73.9850, name:'Smart Bin #01', fill:85, status:'Near Full', address:'42nd & Broadway' },
+  { id:'BIN-2', type:'bins', lat:40.7575, lng:-73.9860, name:'Smart Bin #02', fill:30, status:'Normal', address:'43rd & 7th Ave' },
+  { id:'BIN-3', type:'bins', lat:40.7590, lng:-73.9840, name:'Smart Bin #03', fill:50, status:'Normal', address:'Broadway Plaza' },
+  { id:'BIN-4', type:'bins', lat:40.7565, lng:-73.9870, name:'Smart Bin #04', fill:92, status:'Critical Overflow', address:'8th Ave Station' },
+  { id:'REC-1', type:'cleanups', lat:40.7570, lng:-73.9830, name:'Community Cleanup Hub', volunteers:12, status:'Active Today', address:'Bryant Park East' },
+  { id:'REC-2', type:'cleanups', lat:40.7600, lng:-73.9880, name:'Volunteer Waste Drive', volunteers:8, status:'Starting 2PM', address:'Civic Center Alley' },
+  { id:'HOT-1', type:'hotspots', lat:40.7570, lng:-73.9890, name:'Hazardous Spill Hotspot', severity:'Critical', address:'42nd St & 8th Ave' },
+  { id:'HOT-2', type:'hotspots', lat:40.7595, lng:-73.9855, name:'Cardboard Clutter Hotspot', severity:'Medium', address:'Garment Corner' },
+];
+
+function initCitizenMap() {
+  const container = document.getElementById('citizen-leaflet-map');
+  if (!container || typeof L === 'undefined') return;
+
+  const lat = userLocation.lat || 40.7580;
+  const lng = userLocation.lng || -73.9855;
+
+  if (!citizenMap) {
+    citizenMap = L.map('citizen-leaflet-map', { zoomControl: true }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; CartoDB &bull; BinGO AI',
+      maxZoom: 19
+    }).addTo(citizenMap);
+
+    // Add user marker with pulsing ring
+    const userIcon = L.divIcon({
+      className: 'custom-user-pin',
+      html: `<div class="w-6 h-6 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-white"></div></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    L.marker([lat, lng], { icon: userIcon }).addTo(citizenMap).bindPopup(`<b>📍 You Are Here</b><br>${userLocation.address || 'Sector 4'}`);
+
+    renderCitizenMapAssets('all');
+  } else {
+    citizenMap.setView([lat, lng], 15);
+  }
+
+  setTimeout(() => citizenMap.invalidateSize(), 250);
+}
+
+function renderCitizenMapAssets(filterType) {
+  if (!citizenMap || typeof L === 'undefined') return;
+  citizenMapMarkers.forEach(m => citizenMap.removeLayer(m));
+  citizenMapMarkers = [];
+
+  const filtered = filterType === 'all' ? MOCK_CITIZEN_ASSETS : MOCK_CITIZEN_ASSETS.filter(a => a.type === filterType);
+
+  filtered.forEach(asset => {
+    let iconHtml = '';
+    let popupContent = '';
+
+    if (asset.type === 'bins') {
+      const isFull = asset.fill >= 80;
+      const color = isFull ? 'bg-danger border-danger text-danger' : 'bg-primary border-primary text-primary';
+      iconHtml = `<div class="w-8 h-8 rounded-full ${isFull ? 'bg-danger/20 border-2 border-danger' : 'bg-primary/20 border-2 border-primary'} flex items-center justify-center text-white text-xs font-bold shadow-lg"><span class="material-symbols-outlined text-[16px]">${isFull ? 'delete_forever' : 'delete'}</span></div>`;
+      popupContent = `
+        <div class="text-xs space-y-1">
+          <div class="font-bold text-primary text-sm">${asset.name}</div>
+          <div class="text-[11px] text-text-secondary">${asset.address}</div>
+          <div class="flex items-center justify-between pt-1">
+            <span>Fill Level:</span>
+            <span class="font-bold font-label-mono ${isFull ? 'text-danger' : 'text-primary'}">${asset.fill}% (${asset.status})</span>
+          </div>
+          <button onclick="navigate('page-submit')" class="w-full mt-2 py-1 bg-primary text-[#05070a] font-bold text-[11px] rounded flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">camera</span> Report at this Bin
+          </button>
+        </div>`;
+    } else if (asset.type === 'cleanups') {
+      iconHtml = `<div class="w-8 h-8 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center text-accent shadow-lg"><span class="material-symbols-outlined text-[16px]">volunteer_activism</span></div>`;
+      popupContent = `
+        <div class="text-xs space-y-1">
+          <div class="font-bold text-accent text-sm">${asset.name}</div>
+          <div class="text-[11px] text-text-secondary">${asset.address}</div>
+          <div class="text-[11px] text-text-primary">Volunteers: <strong>${asset.volunteers} joined</strong></div>
+          <div class="text-[10px] text-success font-bold">${asset.status}</div>
+        </div>`;
+    } else {
+      iconHtml = `<div class="w-8 h-8 rounded-full bg-danger/30 border-2 border-danger flex items-center justify-center text-danger pin-danger shadow-lg"><span class="material-symbols-outlined text-[16px]">warning</span></div>`;
+      popupContent = `
+        <div class="text-xs space-y-1">
+          <div class="font-bold text-danger text-sm">${asset.name}</div>
+          <div class="text-[11px] text-text-secondary">${asset.address}</div>
+          <div class="text-[10px] font-bold text-danger">Status: Escalated for Municipal Pickup</div>
+        </div>`;
+    }
+
+    const customIcon = L.divIcon({
+      className: 'custom-asset-pin',
+      html: iconHtml,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const marker = L.marker([asset.lat, asset.lng], { icon: customIcon }).addTo(citizenMap).bindPopup(popupContent);
+    citizenMapMarkers.push(marker);
+  });
+}
+
+function filterCitizenMap(type) {
+  ['all', 'bins', 'cleanups', 'hotspots'].forEach(t => {
+    const btn = document.getElementById('cmap-filter-' + t);
+    if (btn) {
+      btn.className = t === type
+        ? 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary text-[#05070a] shrink-0'
+        : 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-text-secondary hover:text-text-primary shrink-0';
+    }
+  });
+  renderCitizenMapAssets(type);
+}
+
+// ── Admin Command Center Tactical Leaflet Map ─────────────────────────────────
+let adminMap = null;
+
+function initDashboard() {
+  loadDashboardStats();
+  initAdminTacticalMap();
+  if (getAdminJwt() && (!wsConnection || wsConnection.readyState > 1)) {
+    connectDashboardWs();
+  }
+}
+
+function initAdminTacticalMap() {
+  const container = document.getElementById('admin-tactical-map');
+  if (!container || typeof L === 'undefined') return;
+
+  const lat = userLocation.lat || 40.7580;
+  const lng = userLocation.lng || -73.9855;
+
+  if (!adminMap) {
+    adminMap = L.map('admin-tactical-map', { zoomControl: false }).setView([lat, lng], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; CartoDB &bull; BinGO Tactical AI',
+      maxZoom: 19
+    }).addTo(adminMap);
+
+    // Critical Waste Marker (#REP-8992)
+    const critIcon = L.divIcon({
+      className: 'tactical-crit-pin',
+      html: `<button onclick="selectDashboardPin('critical')" class="w-10 h-10 rounded-full bg-danger/30 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.9)] cursor-pointer"><span class="material-symbols-outlined text-[20px] font-bold">warning</span></button>`,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+    L.marker([40.7570, -73.9890], { icon: critIcon }).addTo(adminMap).on('click', () => selectDashboardPin('critical'));
+
+    // High Urgency Marker (#REP-8993)
+    const warnIcon = L.divIcon({
+      className: 'tactical-warn-pin',
+      html: `<button onclick="selectDashboardPin('warning')" class="w-9 h-9 rounded-full bg-warning/30 border-2 border-warning text-warning flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.8)] cursor-pointer"><span class="material-symbols-outlined text-[18px]">report</span></button>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    L.marker([40.7128, -74.0060], { icon: warnIcon }).addTo(adminMap).on('click', () => selectDashboardPin('warning'));
+
+    // Fleet Unit 7 Marker
+    const unitIcon = L.divIcon({
+      className: 'tactical-unit-pin',
+      html: `<button onclick="selectDashboardPin('unit')" class="w-8 h-8 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)] cursor-pointer"><span class="material-symbols-outlined text-white text-[14px]">local_shipping</span></button>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    L.marker([40.7484, -73.9857], { icon: unitIcon }).addTo(adminMap).on('click', () => selectDashboardPin('unit'));
+  } else {
+    adminMap.setView([lat, lng], 14);
+  }
+
+  setTimeout(() => adminMap.invalidateSize(), 250);
+}
+
+function selectDashboardPin(type) {
+  const drawer = document.getElementById('detail-drawer');
+  if (drawer) drawer.classList.remove('hidden');
+  
+  const drawerPhoto = document.getElementById('drawer-photo');
+  if (drawerPhoto) {
+    if (type === 'critical') {
+      drawerPhoto.src = 'assets/industrial_spill.png';
+    } else if (type === 'warning') {
+      drawerPhoto.src = 'assets/cardboard_thumb.png';
+    } else {
+      drawerPhoto.src = 'assets/smart_bin_3d.png';
+    }
+    drawerPhoto.onerror = () => { drawerPhoto.src = 'assets/industrial_spill.png'; };
+  }
+
+  if (type === 'critical') {
+    document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: CRITICAL';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-[10px] border border-danger/30 font-bold';
+    document.getElementById('drawer-rep-id').textContent = '#REP-8992';
+    document.getElementById('drawer-title').textContent = 'Industrial Waste Spill';
+    document.getElementById('drawer-location').textContent = '42nd St & 8th Ave';
+    document.getElementById('drawer-coords').textContent = '40.757° N, 73.989° W';
+  } else if (type === 'warning') {
+    document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: HIGH';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-warning/20 text-warning font-label-mono text-[10px] border border-warning/30 font-bold';
+    document.getElementById('drawer-rep-id').textContent = '#REP-8993';
+    document.getElementById('drawer-title').textContent = 'Overflowing Dumpster';
+    document.getElementById('drawer-location').textContent = 'Downtown Square';
+    document.getElementById('drawer-coords').textContent = '40.712° N, 74.006° W';
+  }
 }
 
 function onPhotoSelected(input) {
@@ -2603,15 +2980,16 @@ function navigate(pageId) {
   const page = document.getElementById(pageId);
   if (page) {
     page.classList.add('active');
-    if (pageId === 'page-dashboard') { initDashboard(); }
-    if (pageId === 'page-reports')   { initReportsQueue(); }
-    if (pageId === 'page-tracking')  { initTrackingPage(); }
-    if (pageId === 'page-submit')    { initSubmitPage(); }
-    if (pageId === 'page-hotspots')  { initHotspotsPage(); }
-    if (pageId === 'page-fleet')     { initFleetPage(); }
-    if (pageId === 'page-analytics') { initAnalyticsPage(); }
-    if (pageId === 'page-settings')  { initSettingsPage(); }
-    if (pageId === 'page-profile')   { initProfilePage(); }
+    if (pageId === 'page-citizen-map') { initCitizenMap(); }
+    if (pageId === 'page-dashboard')   { initDashboard(); }
+    if (pageId === 'page-reports')     { initReportsQueue(); }
+    if (pageId === 'page-tracking')    { initTrackingPage(); }
+    if (pageId === 'page-submit')      { initSubmitPage(); }
+    if (pageId === 'page-hotspots')    { initHotspotsPage(); }
+    if (pageId === 'page-fleet')       { initFleetPage(); }
+    if (pageId === 'page-analytics')   { initAnalyticsPage(); }
+    if (pageId === 'page-settings')    { initSettingsPage(); }
+    if (pageId === 'page-profile')     { initProfilePage(); }
   }
 }
 
