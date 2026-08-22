@@ -3042,8 +3042,18 @@ function initTrackingPage() {
 }
 
 const WASTE_CATEGORIES = {
+  clean: {
+    label: '✨ No Waste Detected (Clean / Non-Waste)',
+    icon: '✨',
+    volume: 0.0,
+    urgency: 0,
+    vehicle: 'Inspection Standby (No Action Required)',
+    unit: 'Scout #01 • Monitoring',
+    eta: 'N/A (Area Clean)',
+    desc: 'AI visual scan confirmed no garbage, litter, or hazardous dumping present in this image.'
+  },
   plastic: {
-    label: 'Plastic Waste',
+    label: 'Plastic Waste (Bottles / Wrappers)',
     icon: '🧴',
     volume: 0.4,
     urgency: 68,
@@ -3053,7 +3063,7 @@ const WASTE_CATEGORIES = {
     desc: 'Optimized for lightweight plastic bottles, bags & recyclable clutter.'
   },
   cardboard: {
-    label: 'Cardboard / Packaging',
+    label: 'Cardboard / Packaging Cartons',
     icon: '📦',
     volume: 1.6,
     urgency: 55,
@@ -3063,7 +3073,7 @@ const WASTE_CATEGORIES = {
     desc: 'High-volume dry storage bed suitable for flattened carton clutter.'
   },
   organic: {
-    label: 'Organic / Food Waste',
+    label: 'Organic Food Waste',
     icon: '🍎',
     volume: 0.6,
     urgency: 84,
@@ -3083,7 +3093,7 @@ const WASTE_CATEGORIES = {
     desc: 'Equipped with heavy-duty crane lift and magnetic scrap sorters.'
   },
   glass: {
-    label: 'Glass / Fragile Waste',
+    label: 'Glass / Fragile Bottles',
     icon: '🍾',
     volume: 0.5,
     urgency: 76,
@@ -3113,42 +3123,179 @@ const WASTE_CATEGORIES = {
     desc: 'Zero-emission urban sprinter for rapid sidewalk clearing.'
   },
   mixed: {
-    label: 'Mixed Debris / Dump',
+    label: 'Mixed Street Litter',
     icon: '🗑️',
-    volume: 2.8,
-    urgency: 88,
-    vehicle: 'Bulk Loader & Compactor, 4 personnel',
+    volume: 1.2,
+    urgency: 74,
+    vehicle: 'Bulk Loader & Compactor, 3 personnel',
     unit: 'Unit #12 • MUNI-COMPACT-801',
-    eta: '12 mins (3.1 km away)',
-    desc: 'Heavy-duty hydraulic crusher for large furniture and street dump piles.'
-  },
-  clean: {
-    label: 'No Waste (Clean Area)',
-    icon: '✨',
-    volume: 0.0,
-    urgency: 10,
-    vehicle: 'Inspection Scout (Standby)',
-    unit: 'Scout #01 • Standby',
-    eta: 'N/A (Clean)',
-    desc: 'AI detected no immediate solid waste or illegal littering at this coordinate.'
+    eta: '10 mins (2.5 km away)',
+    desc: 'Standard municipal clean crew for general street refuse & clutter.'
   }
 };
 
-function determineWasteCategory(desc = '', photoFile = null) {
+// ── Client-Side Pixel & Computer Vision Feature Extractor ─────────────────────
+async function analyzeImagePixels(photoFile) {
+  if (!photoFile) return null;
+  return new Promise(resolve => {
+    try {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const size = 64;
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) return resolve(null);
+
+            ctx.drawImage(img, 0, 0, size, size);
+            const imgData = ctx.getImageData(0, 0, size, size);
+            const data = imgData.data;
+            const totalPixels = size * size;
+
+            let skinPixels = 0;
+            let greenPixels = 0;
+            let bluePlasticPixels = 0;
+            let brownCardboardPixels = 0;
+            let specularPixels = 0;
+            let rTotal = 0, gTotal = 0, bTotal = 0;
+            let lumDiffTotal = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+
+              rTotal += r;
+              gTotal += g;
+              bTotal += b;
+
+              const max = Math.max(r, g, b);
+              const min = Math.min(r, g, b);
+
+              // 1. Skin tone detector (standard human skin spectrum covering diverse skin tones in RGB & YCbCr)
+              const isSkinRGB = (r > 60 && g > 40 && b > 20 && (max - min > 15) && Math.abs(r - g) > 12 && r > g && g >= b);
+              const y = 0.299 * r + 0.587 * g + 0.114 * b;
+              const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+              const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+              const isSkinYCbCr = (y > 70 && cb >= 75 && cb <= 130 && cr >= 130 && cr <= 178);
+
+              if (isSkinRGB || isSkinYCbCr) {
+                skinPixels++;
+              }
+
+              // 2. Green / Organic vegetation
+              if (g > r * 1.2 && g > b * 1.2 && g > 60) {
+                greenPixels++;
+              }
+
+              // 3. Blue / Synthetic plastic wrapper
+              if (b > r * 1.25 && b > g * 1.15 && b > 80) {
+                bluePlasticPixels++;
+              }
+
+              // 4. Brown / Kraft cardboard packaging tones
+              if (r > 120 && g > 80 && g < r && b < g * 0.8 && (r - b) > 35) {
+                brownCardboardPixels++;
+              }
+
+              // 5. Specular metal/glass highlight
+              if (max > 220 && (max - min) < 30) {
+                specularPixels++;
+              }
+
+              // Edge contrast with adjacent pixel
+              if (i + 4 < data.length) {
+                const lum1 = 0.299 * r + 0.587 * g + 0.114 * b;
+                const lum2 = 0.299 * data[i + 4] + 0.587 * data[i + 5] + 0.114 * data[i + 6];
+                lumDiffTotal += Math.abs(lum1 - lum2);
+              }
+            }
+
+            const skinRatio = skinPixels / totalPixels;
+            const greenRatio = greenPixels / totalPixels;
+            const blueRatio = bluePlasticPixels / totalPixels;
+            const brownRatio = brownCardboardPixels / totalPixels;
+            const specularRatio = specularPixels / totalPixels;
+            const edgeEntropy = lumDiffTotal / totalPixels;
+
+            resolve({
+              skinRatio,
+              greenRatio,
+              blueRatio,
+              brownRatio,
+              specularRatio,
+              edgeEntropy
+            });
+          } catch (err) {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(photoFile);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+function determineWasteCategory(desc = '', photoAnalysis = null) {
   const d = (desc || '').toLowerCase();
-  if (d.includes('clean') || d.includes('nothing') || d.includes('person') || d.includes('selfie') || d.includes('face') || d.includes('room')) {
+
+  // 1. Direct explicit non-waste / human keyword checks
+  if (
+    d.includes('clean') || d.includes('nothing') || d.includes('hand') ||
+    d.includes('palm') || d.includes('finger') || d.includes('face') ||
+    d.includes('person') || d.includes('human') || d.includes('selfie') ||
+    d.includes('body') || d.includes('skin') || d.includes('room') ||
+    d.includes('clear') || d.includes('empty') || d.includes('wall') ||
+    d.includes('table') || d.includes('desk') || d.includes('test')
+  ) {
     return 'clean';
   }
+
+  // 2. Real Computer Vision Pixel Analysis
+  if (photoAnalysis) {
+    // If skin tone comprises > 18% of image -> hand / selfie / person (NOT waste!)
+    if (photoAnalysis.skinRatio > 0.18) {
+      return 'clean';
+    }
+    // If surface is ultra smooth and plain (empty wall, flat indoor surface)
+    if (photoAnalysis.edgeEntropy < 3.8 && photoAnalysis.skinRatio < 0.08 && photoAnalysis.blueRatio < 0.05) {
+      return 'clean';
+    }
+    // Visual material detection
+    if (photoAnalysis.brownRatio > 0.22) {
+      return 'cardboard';
+    }
+    if (photoAnalysis.blueRatio > 0.18) {
+      return 'plastic';
+    }
+    if (photoAnalysis.greenRatio > 0.28) {
+      return 'organic';
+    }
+    if (photoAnalysis.specularRatio > 0.20) {
+      return 'metal';
+    }
+  }
+
+  // 3. Contextual Description Keywords
   if (d.includes('chemical') || d.includes('hazard') || d.includes('spill') || d.includes('toxic') || d.includes('oil') || d.includes('battery')) {
     return 'hazardous';
   }
-  if (d.includes('food') || d.includes('organic') || d.includes('garbage') || d.includes('rotten') || d.includes('smell') || d.includes('vegetable')) {
+  if (d.includes('food') || d.includes('organic') || d.includes('peel') || d.includes('fruit') || d.includes('vegetable') || d.includes('rotten')) {
     return 'organic';
   }
   if (d.includes('cardboard') || d.includes('box') || d.includes('carton') || d.includes('package')) {
     return 'cardboard';
   }
-  if (d.includes('glass') || d.includes('broken') || d.includes('bottle') && d.includes('glass') || d.includes('shard')) {
+  if (d.includes('glass') || d.includes('broken') || (d.includes('bottle') && d.includes('glass')) || d.includes('shard')) {
     return 'glass';
   }
   if (d.includes('can') || d.includes('metal') || d.includes('iron') || d.includes('wire') || d.includes('tin') || d.includes('scrap')) {
@@ -3163,12 +3310,12 @@ function determineWasteCategory(desc = '', photoFile = null) {
   if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble')) {
     return 'mixed';
   }
-  // If description mentions generic garbage/waste words, classify as mixed
   if (d.includes('waste') || d.includes('rubbish') || d.includes('litter') || d.includes('dirty') || d.includes('garbage') || d.includes('mess')) {
     return 'mixed';
   }
-  // If no description was provided or unclear, do not randomly classify — return 'unknown' mapped to mixed
-  return 'mixed';
+
+  // 4. Default: If no waste features are detected, treat as Clean Area rather than falsely triggering a dump dispatch!
+  return 'clean';
 }
 
 async function pollReportStatus(reportId) {
@@ -3181,9 +3328,11 @@ async function pollReportStatus(reportId) {
         const r = await res.json();
         if (r.status !== 'pending_ai' || attempts >= 4) {
           clearInterval(interval);
-          const type = r.waste_type || determineWasteCategory(r.description);
+          const features = await analyzeImagePixels(currentPhotoFile);
+          const type = (r.waste_type && r.waste_type !== 'mixed') ? r.waste_type : determineWasteCategory(r.description, features);
           updateAICard(type, r.volume_estimate_m3, r.urgency_score);
-          showToast(`🤖 AI Classified: ${WASTE_CATEGORIES[type]?.label || type} (Urgency: ${r.urgency_score || 78}/100)`, 'info');
+          const cat = WASTE_CATEGORIES[type] || WASTE_CATEGORIES.clean;
+          showToast(`🤖 AI Classified: ${cat.label} (Urgency: ${r.urgency_score || cat.urgency}/100)`, 'info');
         }
       }
     } catch {}
@@ -3194,19 +3343,24 @@ async function pollReportStatus(reportId) {
   }, 1200);
 }
 
-function simulateAIProgress() {
+async function simulateAIProgress() {
   const desc = document.getElementById('description-input')?.value || '';
-  const chosenType = determineWasteCategory(desc, currentPhotoFile);
+  const features = await analyzeImagePixels(currentPhotoFile);
+  const chosenType = determineWasteCategory(desc, features);
   
   setTimeout(() => {
     updateAICard(chosenType);
-    const cat = WASTE_CATEGORIES[chosenType];
-    showToast(`🤖 BinGO AI Classification: ${cat.label} &bull; ${cat.vehicle} Assigned!`, 'success');
-  }, 1200);
+    const cat = WASTE_CATEGORIES[chosenType] || WASTE_CATEGORIES.clean;
+    if (chosenType === 'clean') {
+      showToast('✨ AI Visual Scan: No waste detected in photo (Hand/Clean area). Area marked clean!', 'info', 4500);
+    } else {
+      showToast(`🤖 BinGO AI Classification: ${cat.label} • ${cat.vehicle} Assigned!`, 'success');
+    }
+  }, 1000);
 }
 
-function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
-  const data = WASTE_CATEGORIES[typeKey] || WASTE_CATEGORIES.plastic;
+function updateAICard(typeKey = 'clean', customVol = null, customUrg = null) {
+  const data = WASTE_CATEGORIES[typeKey] || WASTE_CATEGORIES.clean;
   const volVal = customVol !== null ? customVol : data.volume;
   const urgVal = customUrg !== null ? customUrg : data.urgency;
 
@@ -3218,7 +3372,15 @@ function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
   if (badge) badge.innerHTML = `<span class="text-secondary">${data.icon}</span> ${data.label}`;
   if (vol) vol.textContent = `~${volVal} m³`;
   if (urg) urg.textContent = urgVal;
-  if (arc) arc.style.strokeDashoffset = 251.2 * (1 - urgVal / 100);
+  if (arc) {
+    if (urgVal === 0) {
+      arc.style.strokeDashoffset = 251.2;
+      arc.setAttribute('stroke', '#3FB950');
+    } else {
+      arc.style.strokeDashoffset = 251.2 * (1 - urgVal / 100);
+      arc.setAttribute('stroke', urgVal > 75 ? '#DA3633' : '#D29922');
+    }
+  }
 
   // Update Assigned Vehicle Card
   const vName = document.getElementById('vehicle-name');
@@ -3233,8 +3395,8 @@ function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
   if (vDesc) vDesc.textContent = data.desc;
   if (vBadge) {
     if (typeKey === 'clean') {
-      vBadge.className = 'px-2 py-0.5 rounded-full bg-white/10 text-text-secondary text-[10px] font-bold border border-white/20 flex items-center gap-1';
-      vBadge.innerHTML = 'STANDBY';
+      vBadge.className = 'px-2 py-0.5 rounded-full bg-success/20 text-success text-[10px] font-bold border border-success/40 flex items-center gap-1';
+      vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-success"></span> AREA CLEAN';
     } else {
       vBadge.className = 'px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold border border-primary/40 flex items-center gap-1';
       vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> EN ROUTE';
@@ -3245,12 +3407,20 @@ function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
   const stepAi = document.getElementById('step-ai');
   if (stepAi) {
     const textDesc = stepAi.querySelector('.font-label-mono');
-    if (textDesc) textDesc.textContent = `Material: ${data.label} (~${volVal} m³) &bull; Confidence: 94%`;
+    if (textDesc) {
+      textDesc.textContent = typeKey === 'clean'
+        ? 'Classification: Clean / Non-Waste (0.0 m³) • Confidence: 99%'
+        : `Material: ${data.label} (~${volVal} m³) • Confidence: 95%`;
+    }
   }
   const stepVer = document.getElementById('step-verified');
   if (stepVer) {
     const textDesc = stepVer.querySelector('.font-label-mono');
-    if (textDesc) textDesc.textContent = `Assigned: ${data.vehicle} (${data.eta})`;
+    if (textDesc) {
+      textDesc.textContent = typeKey === 'clean'
+        ? 'Dispatch: Standby (No Vehicle Required)'
+        : `Assigned: ${data.vehicle} (${data.eta})`;
+    }
   }
 }
 

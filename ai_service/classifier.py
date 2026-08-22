@@ -33,6 +33,8 @@ logger = structlog.get_logger()
 # Map YOLO class names → CleanTrack waste types
 # Source: TACO 60-class taxonomy + Kaggle GC labels
 YOLO_TO_WASTE_TYPE = {
+    # Non-waste / Human / Environment
+    "person": "clean", "hand": "clean", "human": "clean",
     # Plastic
     "plastic_bag": "plastic", "plastic_bottle": "plastic", "plastic_cup": "plastic",
     "plastic_straw": "plastic", "plastic_utensil": "plastic", "plastic": "plastic",
@@ -54,7 +56,7 @@ YOLO_TO_WASTE_TYPE = {
     "book": "paper", "scissors": "metal", "cell phone": "hazardous",
 }
 
-DEFAULT_WASTE_TYPE = "mixed"
+DEFAULT_WASTE_TYPE = "clean"
 
 
 class WasteClassifier:
