@@ -1712,6 +1712,63 @@
         </button>
       </div>
     </div>
+
+    <!-- ── 100m Proximity Deterrence & Daily Dumper Alert System ─────────────────── -->
+    <div class="mt-8 mb-4">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-bold text-base text-text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-orange-400 text-[20px]">radar</span>
+            100m Proximity Alerts for Daily Repeat Dumpers
+          </h2>
+          <p class="text-[11px] text-text-secondary mt-0.5">
+            Auto-detects when collection vehicles are within 100m radius of flagged daily dumpers &amp; sends deterrence alerts with arrival &amp; stay duration
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="prox-monitor-badge" class="hidden px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-black border border-orange-500/30 flex items-center gap-1.5 shadow-[0_0_10px_rgba(249,115,22,0.3)]">
+            <span class="w-2 h-2 rounded-full bg-orange-400 animate-ping"></span> 100m RADAR ACTIVE
+          </span>
+          <button id="prox-monitor-btn" onclick="toggleProximityMonitor()" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-bold text-xs rounded-xl hover:opacity-90 transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+            <span class="material-symbols-outlined text-[16px]">radar</span> Run 100m Proximity Sweep
+          </button>
+        </div>
+      </div>
+
+      <!-- Watchlist and Live Proximity Radar Display -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Flagged Daily Dumpers -->
+        <div class="glass-card rounded-2xl border border-orange-500/20 overflow-hidden">
+          <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-orange-500/5">
+            <span class="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-orange-400">person_alert</span>
+              Flagged Daily Dumpers Watchlist
+            </span>
+            <span class="text-[10px] text-orange-400 font-label-mono font-bold bg-orange-500/20 px-2 py-0.5 rounded border border-orange-500/30">3 High-Frequency Profiles</span>
+          </div>
+          <div id="repeat-dumper-watchlist" class="divide-y divide-white/5 p-2 space-y-2">
+            <!-- Cards rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Live 100m Geo-Fence Trigger Feed -->
+        <div class="glass-card rounded-2xl border border-white/10 overflow-hidden flex flex-col">
+          <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-white/5">
+            <span class="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-primary">cell_tower</span>
+              Live Deterrence Dispatch &amp; SMS Feed
+            </span>
+            <span id="prox-feed-status" class="text-[10px] text-text-secondary font-label-mono">Ready to broadcast</span>
+          </div>
+          <div id="proximity-alert-feed" class="p-3 space-y-2.5 flex-1 overflow-y-auto max-h-[360px]">
+            <div class="glass-card p-5 rounded-xl border border-white/10 text-center text-xs text-text-secondary my-auto">
+              <span class="material-symbols-outlined text-[32px] text-orange-400/40 block mb-2">radar</span>
+              Click <b>&ldquo;Run 100m Proximity Sweep&rdquo;</b> to simulate vehicle telemetry approaching within 100m radius of flagged daily dumpers.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Mobile Admin Bottom Navigation Bar -->
@@ -4475,10 +4532,210 @@ async function initFleetPage() {
       </div>`;
     container.appendChild(card);
   });
+
+  renderRepeatDumperWatchlist();
 }
 
 function dispatchTeam() {
   showToast('🚚 Fleet dispatch order created and unit assigned!', 'success');
+}
+
+// ── 100m Proximity Deterrence & Daily Dumper Alert Logic ────────────────────
+const REPEAT_DUMPERS_WATCHLIST = [
+  {
+    id: 'DMP-101',
+    name: 'Vikram Sharma (Shree Timber & Debris)',
+    location: 'Old Bypass Road / Sector 12 Alley',
+    wasteType: 'Construction & Rubble',
+    frequency: 'Daily (2x/day, 11PM & 4AM)',
+    riskLevel: 'CRITICAL',
+    phone: '+91 98765 43210',
+    distanceM: 68,
+    dwellMins: 12,
+    assignedVehicle: 'Unit #07 (Waste Tipper)',
+    lastIncident: 'Yesterday, 11:40 PM',
+    violationsCount: 14
+  },
+  {
+    id: 'DMP-102',
+    name: 'Anand Verma (Royal Kitchen Caterers)',
+    location: 'Ward 7 Commercial Lane',
+    wasteType: 'Food & Organic Bulk',
+    frequency: 'Daily (Morning & Late Night)',
+    riskLevel: 'HIGH',
+    phone: '+91 98111 22334',
+    distanceM: 84,
+    dwellMins: 15,
+    assignedVehicle: 'Unit #03 (Rapid Scout Van)',
+    lastIncident: 'Today, 6:15 AM',
+    violationsCount: 9
+  },
+  {
+    id: 'DMP-103',
+    name: 'Kiran Patel (Auto Hub & Workshop)',
+    location: 'North Industrial Perimeter',
+    wasteType: 'Tires, Metal Scrap & Oil Waste',
+    frequency: 'Daily (Evening)',
+    riskLevel: 'HIGH',
+    phone: '+91 97234 56789',
+    distanceM: 142,
+    dwellMins: 8,
+    assignedVehicle: 'Unit #09 (Heavy Compactor)',
+    lastIncident: '2 days ago, 7:30 PM',
+    violationsCount: 6
+  }
+];
+
+function renderRepeatDumperWatchlist() {
+  const container = document.getElementById('repeat-dumper-watchlist');
+  if (!container) return;
+
+  container.innerHTML = REPEAT_DUMPERS_WATCHLIST.map(dumper => {
+    const isUnder100m = dumper.distanceM <= 100;
+    return `
+      <div class="glass-card p-3 rounded-xl border border-white/10 space-y-2.5 transition-all hover:border-orange-500/40">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-start gap-2.5">
+            <div class="w-8 h-8 rounded-full ${dumper.riskLevel === 'CRITICAL' ? 'bg-danger/20 text-danger border border-danger/40' : 'bg-orange-500/20 text-orange-400 border border-orange-500/40'} flex items-center justify-center font-bold text-xs shrink-0">
+              <span class="material-symbols-outlined text-[16px]">warning</span>
+            </div>
+            <div>
+              <div class="font-bold text-xs text-text-primary flex items-center gap-2">
+                ${dumper.name}
+                <span class="text-[9px] font-label-mono ${dumper.riskLevel === 'CRITICAL' ? 'bg-danger/20 text-danger' : 'bg-orange-500/20 text-orange-400'} px-1.5 py-0.5 rounded font-black">${dumper.riskLevel}</span>
+              </div>
+              <div class="text-[10px] text-text-secondary flex items-center gap-1 mt-0.5">
+                <span class="material-symbols-outlined text-[12px] text-primary">location_on</span>
+                ${dumper.location} · <span class="text-orange-400 font-bold">${dumper.frequency}</span>
+              </div>
+            </div>
+          </div>
+          <span class="text-[9px] font-label-mono text-text-secondary bg-black/40 px-2 py-0.5 rounded border border-white/5 shrink-0">
+            ${dumper.violationsCount} Violations
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[10px] bg-black/20 p-2 rounded-lg border border-white/5">
+          <div><span class="text-text-secondary">Waste Type:</span> <b class="text-text-primary">${dumper.wasteType}</b></div>
+          <div><span class="text-text-secondary">Vehicle Range:</span> <b class="${isUnder100m ? 'text-danger font-black animate-pulse' : 'text-primary'}">${dumper.distanceM}m away ${isUnder100m ? '(&lt;100m!)' : ''}</b></div>
+          <div><span class="text-text-secondary">Vehicle Dwell:</span> <b class="text-accent">~${dumper.dwellMins} mins on-site</b></div>
+          <div><span class="text-text-secondary">Target Mobile:</span> <b class="text-text-primary font-label-mono">${dumper.phone}</b></div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[9px] text-text-secondary">Assigned: ${dumper.assignedVehicle}</span>
+          <button onclick="triggerDirectProximityNotification('${dumper.id}')" class="px-2.5 py-1 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-[10px] font-bold rounded-lg border border-orange-500/30 transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">send</span> Push Deterrence SMS
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+let proxMonitorInterval = null;
+
+function toggleProximityMonitor() {
+  const badge = document.getElementById('prox-monitor-badge');
+  const btn = document.getElementById('prox-monitor-btn');
+  const feed = document.getElementById('proximity-alert-feed');
+  const status = document.getElementById('prox-feed-status');
+
+  if (badge) badge.classList.remove('hidden');
+  if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Radar Sweeping...';
+  if (status) status.innerHTML = '<span class="text-orange-400 font-bold animate-pulse">● 100m Radius Scan in Progress</span>';
+
+  showToast('📡 Radar activated: Scanning municipal fleet GPS against daily dumper coordinates...', 'info', 3500);
+
+  setTimeout(() => {
+    // Filter repeat dumpers within 100m
+    const nearDumpers = REPEAT_DUMPERS_WATCHLIST.filter(d => d.distanceM <= 100);
+
+    if (feed) {
+      feed.innerHTML = '';
+      nearDumpers.forEach((dumper, idx) => {
+        const alertCard = document.createElement('div');
+        alertCard.className = 'glass-card p-3.5 rounded-xl border border-danger/40 bg-danger/10 space-y-2.5 fade-in-up';
+        alertCard.style.animationDelay = `${idx * 200}ms`;
+        
+        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        alertCard.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-danger text-white flex items-center justify-center font-bold text-xs animate-ping">
+                <span class="material-symbols-outlined text-[14px]">cell_tower</span>
+              </div>
+              <div>
+                <div class="font-bold text-xs text-text-primary flex items-center gap-1.5">
+                  <span class="text-danger font-black">100m GEO-FENCE BREACH</span> · ${dumper.name}
+                </div>
+                <div class="text-[10px] text-text-secondary">
+                  ${dumper.assignedVehicle} is <b class="text-danger font-black text-xs">${dumper.distanceM}m away</b> (Within 100m radius)
+                </div>
+              </div>
+            </div>
+            <span class="text-[9px] font-label-mono text-text-secondary">${nowStr}</span>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-black/40 border border-danger/30 text-[11px] space-y-1">
+            <div class="font-bold text-orange-400 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">schedule</span>
+              Estimated Vehicle Dwell Time on Site: ~${dumper.dwellMins} Minutes
+            </div>
+            <div class="text-[10px] text-text-secondary">
+              Vehicle is moving at 18 km/h and will remain stationed in this 100m sector for collection and municipal surveillance.
+            </div>
+          </div>
+
+          <div class="p-2 rounded bg-black/50 border border-white/5 text-[10px] text-text-secondary">
+            <b class="text-text-primary">📱 Automated Deterrence SMS Dispatched to ${dumper.phone}:</b><br/>
+            <span class="italic text-text-primary/90">
+              &ldquo;⚠️ MUNICIPAL NOTICE: Rapid Clean ${dumper.assignedVehicle} is currently ${dumper.distanceM}m from your premises. Collection crew will remain stationed here for the next ~${dumper.dwellMins} minutes. Please deposit all daily waste into the truck directly. Illegal dumping in this alley is monitored and subject to ₹5,000 fine.&rdquo;
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between text-[9px] pt-1 text-text-secondary border-t border-white/5">
+            <span class="text-success flex items-center gap-1 font-bold">
+              <span class="material-symbols-outlined text-[12px]">check_circle</span> SMS Transmitted via Twilio Gateway
+            </span>
+            <span class="font-label-mono text-primary font-bold">Status: Citizen Deterred</span>
+          </div>
+        `;
+        feed.appendChild(alertCard);
+      });
+    }
+
+    if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Proximity Sweep Complete';
+    if (status) status.innerHTML = '<span class="text-success font-bold">● 2 Deterrence Alerts Dispatched</span>';
+
+    showToast(`🚨 100m Radius Alert: 2 vehicles detected near daily dumpers! Deterrence SMS with ${nearDumpers[0].dwellMins} min dwell time dispatched.`, 'warning', 6000);
+  }, 1200);
+}
+
+function triggerDirectProximityNotification(dumperId) {
+  const dumper = REPEAT_DUMPERS_WATCHLIST.find(d => d.id === dumperId);
+  if (!dumper) return;
+
+  const feed = document.getElementById('proximity-alert-feed');
+  if (feed) {
+    const customCard = document.createElement('div');
+    customCard.className = 'glass-card p-3 rounded-xl border border-orange-500/40 bg-orange-500/10 space-y-2 fade-in-up';
+    customCard.innerHTML = `
+      <div class="flex items-center justify-between text-xs">
+        <span class="font-bold text-orange-400 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">send</span> Direct Notice Sent to ${dumper.name}
+        </span>
+        <span class="text-[9px] font-label-mono text-text-secondary">Just now</span>
+      </div>
+      <div class="text-[10px] text-text-secondary bg-black/30 p-2 rounded">
+        &ldquo;⚠️ ${dumper.assignedVehicle} is stationed ${dumper.distanceM}m away for ~${dumper.dwellMins} mins. Daily waste must be handed to crew.&rdquo;
+      </div>
+    `;
+    feed.prepend(customCard);
+  }
+
+  showToast(`📱 Proximity deterrence notification sent to ${dumper.name} (${dumper.phone}) — Stay duration: ~${dumper.dwellMins} mins`, 'success', 5000);
 }
 
 // ── Analytics ────────────────────────────────────────────────────────────────
