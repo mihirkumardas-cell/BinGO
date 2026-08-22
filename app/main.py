@@ -31,17 +31,23 @@ async def lifespan(app: FastAPI):
     )
 
     # Verify DB connection
-    from app.core.database import engine
-    from sqlalchemy import text
-    async with engine.connect() as conn:
-        await conn.execute(text("SELECT 1"))
-    logger.info("database_connection_ok")
+    try:
+        from app.core.database import engine
+        from sqlalchemy import text
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        logger.info("database_connection_ok")
+    except Exception as e:
+        logger.error("database_connection_failed", error=str(e))
 
     # Verify Redis connection
-    from app.core.redis_client import get_redis
-    redis = await get_redis()
-    await redis.ping()
-    logger.info("redis_connection_ok")
+    try:
+        from app.core.redis_client import get_redis
+        redis = await get_redis()
+        await redis.ping()
+        logger.info("redis_connection_ok")
+    except Exception as e:
+        logger.error("redis_connection_failed", error=str(e))
 
     # Seed initial data if DB is empty
     try:
