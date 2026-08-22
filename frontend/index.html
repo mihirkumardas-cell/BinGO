@@ -359,15 +359,15 @@
   </div>
 </div>
 
-<!-- LOCATION PICKER / GPS FALLBACK MODAL -->
+<!-- LOCATION PICKER / GPS & DISTRICT SEARCH MODAL -->
 <div id="location-picker-modal" class="fixed inset-0 z-[9996] bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
-  <div class="glass-card max-w-md w-full rounded-2xl p-5 border border-primary/40 shadow-2xl fade-in-up">
-    <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+  <div class="glass-card max-w-lg w-full rounded-2xl p-5 border border-primary/40 shadow-2xl fade-in-up max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3 shrink-0">
       <div class="flex items-center gap-2.5">
         <span class="material-symbols-outlined text-primary text-2xl">pin_drop</span>
         <div>
-          <h3 class="font-headline-md text-base font-bold text-text-primary">Set Report Location</h3>
-          <p class="text-[11px] text-text-secondary">Choose GPS auto-detect or pick a sector address</p>
+          <h3 class="font-headline-md text-base font-bold text-text-primary">Set Location &amp; District</h3>
+          <p class="text-[11px] text-text-secondary">High-accuracy GPS, live search, or select state/district</p>
         </div>
       </div>
       <button onclick="closeLocationPickerModal()" class="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-white/5">
@@ -375,53 +375,75 @@
       </button>
     </div>
     
-    <div class="space-y-3">
+    <div class="space-y-3 overflow-y-auto flex-1 pr-1">
       <!-- GPS Auto-Detect Button -->
-      <button onclick="requestGpsWithFeedback()" class="w-full bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-[0_0_15px_rgba(123,219,128,0.2)]">
-        <span class="material-symbols-outlined text-[18px]">my_location</span> Acquire Live GPS Coordinates
+      <button id="modal-gps-btn" onclick="requestGpsWithFeedback()" class="w-full bg-gradient-to-r from-primary/20 to-primary/30 hover:from-primary/30 hover:to-primary/40 border border-primary/50 text-primary py-3 px-4 rounded-xl flex items-center justify-center gap-2.5 text-xs font-bold transition-all shadow-[0_0_15px_rgba(123,219,128,0.25)] active:scale-[0.98]">
+        <span class="material-symbols-outlined text-[20px]">my_location</span>
+        <span id="modal-gps-btn-text">Acquire Live Device GPS Coordinates</span>
       </button>
 
-      <!-- Manual Address Input -->
+      <!-- Live Search Any City / District / State -->
       <div>
-        <label class="block text-[11px] font-label-sm uppercase text-text-secondary mb-1">Custom Street Address / Sector</label>
+        <label class="block text-[11px] font-label-sm uppercase text-text-secondary mb-1 flex items-center justify-between">
+          <span>Search Any City, District or State</span>
+          <span class="text-[10px] text-primary">Live Geocoding</span>
+        </label>
         <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[16px]">edit_location</span>
-          <input id="manual-address-input" type="text" placeholder="e.g. 742 Broadway St, Sector 4"
-            class="w-full bg-black/40 border border-white/15 text-text-primary font-body-md text-xs rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-primary transition-all"/>
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
+          <input id="location-search-input" type="text" placeholder="Type city, district or state (e.g. Bhubaneswar, Mumbai, Delhi)..."
+            oninput="handleLocationSearchInput(this.value)"
+            class="w-full bg-black/40 border border-white/15 text-text-primary font-body-md text-xs rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:border-primary transition-all"/>
+          <button onclick="clearLocationSearch()" id="clear-search-btn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+          </button>
         </div>
+        <!-- Search Results Dropdown -->
+        <div id="location-search-results" class="hidden mt-1.5 space-y-1 max-h-48 overflow-y-auto bg-black/60 border border-white/10 rounded-xl p-1.5 text-xs"></div>
       </div>
 
-      <!-- Quick Preset Locations -->
+      <!-- Current Location Status Card -->
+      <div id="current-loc-status-card" class="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
+        <div class="text-[10px] font-label-mono text-text-secondary uppercase">Current Active Position</div>
+        <div id="modal-current-address" class="font-bold text-primary text-xs truncate">📍 Loading...</div>
+        <div id="modal-current-district-state" class="text-[11px] text-text-secondary font-label-mono">State / District info</div>
+      </div>
+
+      <!-- Quick Regional Presets -->
       <div>
-        <label class="block text-[10px] font-label-mono uppercase text-text-secondary mb-1.5">Quick Sector Presets</label>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="setPresetLocation(40.7580, -73.9855, 'Sector 4, Broadway Corridor')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-xs transition-colors">
-            <div class="font-bold text-text-primary">Broadway Corridor</div>
-            <div class="text-[10px] text-text-secondary font-label-mono">Sector 4 (40.758°N)</div>
+        <label class="block text-[10px] font-label-mono uppercase text-text-secondary mb-1.5">Popular Regions &amp; State Hubs</label>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button onclick="setPresetLocation(28.6139, 77.2090, 'Connaught Place, New Delhi District, Delhi, India')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">Delhi NCR</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">New Delhi &bull; Delhi</div>
           </button>
-          <button onclick="setPresetLocation(40.7570, -73.9890, 'Industrial Spill Zone 4A')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-xs transition-colors">
-            <div class="font-bold text-text-primary">Industrial Zone 4A</div>
-            <div class="text-[10px] text-text-secondary font-label-mono">Sector 12 (40.757°N)</div>
+          <button onclick="setPresetLocation(19.0760, 72.8777, 'Bandra Kurla Complex, Mumbai Suburban District, Maharashtra, India')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">Mumbai</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">Mumbai Suburban &bull; MH</div>
           </button>
-          <button onclick="setPresetLocation(40.7128, -74.0060, 'Downtown Civic Square')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-xs transition-colors">
-            <div class="font-bold text-text-primary">Civic Square</div>
-            <div class="text-[10px] text-text-secondary font-label-mono">Sector 1 (40.712°N)</div>
+          <button onclick="setPresetLocation(12.9716, 77.5946, 'MG Road, Bengaluru Urban District, Karnataka, India')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">Bengaluru</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">Bengaluru Urban &bull; KA</div>
           </button>
-          <button onclick="setPresetLocation(40.7484, -73.9857, 'Garment District Sector 2')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-xs transition-colors">
-            <div class="font-bold text-text-primary">Garment District</div>
-            <div class="text-[10px] text-text-secondary font-label-mono">Sector 2 (40.748°N)</div>
+          <button onclick="setPresetLocation(20.2961, 85.8245, 'Janpath, Khordha District, Odisha, India')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">Bhubaneswar</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">Khordha &bull; Odisha</div>
+          </button>
+          <button onclick="setPresetLocation(22.5726, 88.3639, 'Park Street, Kolkata District, West Bengal, India')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">Kolkata</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">Kolkata &bull; West Bengal</div>
+          </button>
+          <button onclick="setPresetLocation(40.7580, -73.9855, 'Broadway Corridor, New York County, New York, USA')" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <div class="font-bold text-text-primary">New York</div>
+            <div class="text-[10px] text-text-secondary font-label-mono">New York County &bull; NY</div>
           </button>
         </div>
       </div>
+    </div>
 
-      <div class="pt-2 flex gap-2">
-        <button onclick="applyManualAddress()" class="flex-1 bg-primary text-[#05070a] font-bold text-xs py-2.5 rounded-xl hover:opacity-90 transition-all shadow-[0_0_15px_rgba(123,219,128,0.3)]">
-          Confirm Location
-        </button>
-        <button onclick="closeLocationPickerModal()" class="px-4 bg-white/5 border border-white/10 text-text-secondary text-xs rounded-xl hover:bg-white/10">
-          Cancel
-        </button>
-      </div>
+    <div class="pt-3 border-t border-white/10 flex gap-2 shrink-0">
+      <button onclick="closeLocationPickerModal()" class="w-full bg-primary text-[#05070a] font-bold text-xs py-2.5 rounded-xl hover:opacity-90 transition-all shadow-[0_0_15px_rgba(123,219,128,0.3)]">
+        Done &amp; Update Map View
+      </button>
     </div>
   </div>
 </div>
@@ -580,6 +602,17 @@
   <div class="relative w-full" style="flex:1 1 0%;min-height:0;">
     <div id="citizen-leaflet-map" class="w-full bg-[#0a0e14]" style="position:absolute;inset:0;"></div>
     
+    <!-- Floating Region Badge -->
+    <div id="citizen-map-region-badge" onclick="openLocationPickerModal()" class="cursor-pointer absolute top-3 left-3 z-20 glass-card px-3 py-1.5 rounded-xl border border-white/15 text-[11px] font-semibold text-text-primary shadow-lg flex items-center gap-1.5 max-w-[240px] hover:border-primary/40 transition-colors">
+      <span class="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0"></span>
+      <span id="citizen-map-region-text" class="truncate">Live GPS</span>
+    </div>
+
+    <!-- Floating Re-center GPS Button -->
+    <button onclick="requestGpsWithFeedback()" title="Re-center on Exact GPS" class="absolute top-3 right-3 z-20 w-9 h-9 rounded-xl glass-card border border-primary/40 text-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-primary/20">
+      <span class="material-symbols-outlined text-[18px]">my_location</span>
+    </button>
+
     <!-- Floating Report Waste Button -->
     <div class="absolute bottom-4 left-0 right-0 px-4 z-20 flex justify-center pointer-events-none">
       <button onclick="navigate('page-submit')" class="pointer-events-auto bg-gradient-to-r from-primary to-green-600 text-[#05070a] font-bold text-xs sm:text-sm py-3 px-6 rounded-full shadow-[0_0_25px_rgba(123,219,128,0.5)] flex items-center gap-2 active:scale-95 transition-transform">
@@ -2137,34 +2170,129 @@ function closeNotesModal() {
   if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
 
-// ── Location Picker Dialog & Multi-Provider Geolocation ─────────────────────
+// ── Location & District Geocoding Engine ─────────────────────────────────────
+let searchDebounceTimer = null;
+
 function openLocationPickerModal() {
   const modal = document.getElementById('location-picker-modal');
-  const input = document.getElementById('manual-address-input');
-  if (input) input.value = userLocation.address || '';
+  const input = document.getElementById('location-search-input');
+  if (input) input.value = '';
+  const res = document.getElementById('location-search-results');
+  if (res) { res.innerHTML = ''; res.classList.add('hidden'); }
+  const clearBtn = document.getElementById('clear-search-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  
+  updateModalStatusCard();
   if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+  setTimeout(() => { if (input) input.focus(); }, 150);
 }
+
 function closeLocationPickerModal() {
   const modal = document.getElementById('location-picker-modal');
   if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
 
-function setPresetLocation(lat, lng, address) {
-  updateUserLocationDisplay(lat, lng, 5, address);
-  closeLocationPickerModal();
-  showToast(`📍 Location set: ${address}`, 'success');
-  if (citizenMap) citizenMap.setView([lat, lng], 15);
-  if (adminMap) adminMap.setView([lat, lng], 14);
+function updateModalStatusCard() {
+  const addrEl = document.getElementById('modal-current-address');
+  const distStateEl = document.getElementById('modal-current-district-state');
+  if (addrEl) addrEl.textContent = `📍 ${userLocation.shortAddress || userLocation.address || 'Active Coordinate'}`;
+  if (distStateEl) {
+    const parts = [];
+    if (userLocation.district) parts.push(`District: ${userLocation.district}`);
+    if (userLocation.state) parts.push(`State: ${userLocation.state}`);
+    if (userLocation.country) parts.push(userLocation.country);
+    distStateEl.textContent = parts.length > 0 ? parts.join(' • ') : `LAT: ${userLocation.lat?.toFixed(4)}°, LON: ${userLocation.lng?.toFixed(4)}°`;
+  }
 }
 
-function applyManualAddress() {
-  const input = document.getElementById('manual-address-input');
-  const val = input ? input.value.trim() : '';
-  if (val) {
-    updateUserLocationDisplay(userLocation.lat || 40.7580, userLocation.lng || -73.9855, null, val);
-    showToast(`📍 Location updated: ${val}`, 'success');
+function clearLocationSearch() {
+  const input = document.getElementById('location-search-input');
+  if (input) input.value = '';
+  const res = document.getElementById('location-search-results');
+  if (res) { res.innerHTML = ''; res.classList.add('hidden'); }
+  const clearBtn = document.getElementById('clear-search-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+}
+
+function handleLocationSearchInput(query) {
+  const clearBtn = document.getElementById('clear-search-btn');
+  const resContainer = document.getElementById('location-search-results');
+  if (clearBtn) clearBtn.classList.toggle('hidden', !query.trim());
+  
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  const q = query.trim();
+  if (q.length < 2) {
+    if (resContainer) { resContainer.innerHTML = ''; resContainer.classList.add('hidden'); }
+    return;
   }
+
+  if (resContainer) {
+    resContainer.classList.remove('hidden');
+    resContainer.innerHTML = `<div class="p-2 text-text-secondary text-center font-label-mono flex items-center justify-center gap-1.5"><span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Searching Nominatim OSM...</div>`;
+  }
+
+  searchDebounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(q)}&limit=6`, {
+        headers: { 'Accept-Language': 'en' },
+        signal: AbortSignal.timeout(4000)
+      });
+      if (res.ok) {
+        const items = await res.json();
+        renderLocationSearchResults(items);
+      }
+    } catch (e) {
+      if (resContainer) resContainer.innerHTML = `<div class="p-2 text-warning text-center text-xs">Search timed out. Check connection.</div>`;
+    }
+  }, 350);
+}
+
+function renderLocationSearchResults(items) {
+  const resContainer = document.getElementById('location-search-results');
+  if (!resContainer) return;
+  if (!items || items.length === 0) {
+    resContainer.innerHTML = `<div class="p-2 text-text-secondary text-center text-xs">No matching locations found. Try another city or district.</div>`;
+    return;
+  }
+  resContainer.innerHTML = '';
+  items.forEach(item => {
+    const addr = item.address || {};
+    const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || item.name;
+    const district = addr.state_district || addr.county || addr.district || '';
+    const state = addr.state || addr.region || '';
+    const country = addr.country || '';
+    
+    const div = document.createElement('div');
+    div.className = 'p-2 bg-white/5 hover:bg-primary/20 rounded-lg cursor-pointer transition-colors flex items-start gap-2 text-left';
+    div.innerHTML = `
+      <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">location_on</span>
+      <div class="min-w-0 flex-1">
+        <div class="font-bold text-text-primary text-xs truncate">${item.display_name.split(',')[0]}</div>
+        <div class="text-[10px] text-text-secondary truncate">${[district, state, country].filter(Boolean).join(', ')}</div>
+      </div>`;
+    div.onclick = () => {
+      const lat = parseFloat(item.lat);
+      const lng = parseFloat(item.lon);
+      setPresetLocation(lat, lng, item.display_name);
+    };
+    resContainer.appendChild(div);
+  });
+}
+
+function setPresetLocation(lat, lng, addressLabel) {
+  userLocation.lat = lat;
+  userLocation.lng = lng;
+  userLocation.accuracy = 5;
+  userLocation.address = addressLabel;
+  
+  reverseGeocode(lat, lng);
   closeLocationPickerModal();
+  showToast(`📍 Location set: ${addressLabel.split(',').slice(0, 2).join(',')}`, 'success');
+  
+  if (citizenMap) { citizenMap.setView([lat, lng], 15); renderCitizenMapAssets(activeFilter); citizenMap.invalidateSize(); }
+  if (adminMap) { adminMap.setView([lat, lng], 14); renderAdminMapAssets(); adminMap.invalidateSize(); }
+  if (trackingLiveMap) { trackingLiveMap.setView([lat, lng], 15); renderTrackingLiveMapMarkers(lat, lng); trackingLiveMap.invalidateSize(); }
+  if (trackingMiniMap) { trackingMiniMap.setView([lat, lng], 15); trackingMiniMap.invalidateSize(); }
 }
 
 // User-gesture / Auto accurate GPS detection (gets true device coordinates)
@@ -2173,11 +2301,15 @@ function requestGpsWithFeedback() {
 }
 
 function requestAccurateGps(silent = false) {
-  closeLocationPickerModal();
-  if (!silent) showToast('🛰️ Requesting high-accuracy device GPS...', 'info', 2500);
+  const btnText = document.getElementById('modal-gps-btn-text');
+  if (btnText && !silent) btnText.textContent = '🛰️ Acquiring Satellites Fix...';
+  if (!silent) showToast('🛰️ Requesting high-accuracy device GPS...', 'info', 3000);
 
   if (!navigator.geolocation) {
-    if (!silent) showToast('GPS hardware not available on this browser.', 'warning');
+    if (!silent) {
+      showToast('GPS hardware not available. Select your state/district below.', 'warning');
+      openLocationPickerModal();
+    }
     detectLocationSilently();
     return;
   }
@@ -2187,21 +2319,38 @@ function requestAccurateGps(silent = false) {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       const acc = pos.coords.accuracy;
+      
+      userLocation.lat = lat;
+      userLocation.lng = lng;
+      userLocation.accuracy = acc;
+      userLocation.isRealGps = true;
+
       updateUserLocationDisplay(lat, lng, acc, `📍 GPS: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°`);
       await reverseGeocode(lat, lng);
-      if (!silent) showToast(`📍 Exact GPS Location Locked: ${userLocation.address}`, 'success');
-      if (citizenMap) { citizenMap.setView([lat, lng], 15); citizenMap.invalidateSize(); }
-      if (adminMap) { adminMap.setView([lat, lng], 14); adminMap.invalidateSize(); }
+      
+      if (btnText) btnText.textContent = 'Acquire Live Device GPS Coordinates';
+      closeLocationPickerModal();
+      
+      if (!silent) {
+        const regionStr = [userLocation.district, userLocation.state].filter(Boolean).join(', ');
+        showToast(`📍 Exact GPS Locked: ${userLocation.shortAddress || userLocation.address}${regionStr ? ` (${regionStr})` : ''}`, 'success', 4000);
+      }
+      
+      if (citizenMap) { citizenMap.setView([lat, lng], 15); renderCitizenMapAssets(activeFilter); citizenMap.invalidateSize(); }
+      if (adminMap) { adminMap.setView([lat, lng], 14); renderAdminMapAssets(); adminMap.invalidateSize(); }
+      if (trackingLiveMap) { trackingLiveMap.setView([lat, lng], 15); renderTrackingLiveMapMarkers(lat, lng); trackingLiveMap.invalidateSize(); }
       if (trackingMiniMap) { trackingMiniMap.setView([lat, lng], 15); trackingMiniMap.invalidateSize(); }
     },
     err => {
       console.warn('GPS location request error:', err.message);
+      if (btnText) btnText.textContent = 'Acquire Live Device GPS Coordinates';
       if (!silent) {
-        showToast('📍 GPS permission denied. You can search or select any location.', 'info');
+        showToast('📍 GPS permission denied or weak signal. Pick or search any district/state.', 'warning', 3500);
+        openLocationPickerModal();
       }
       detectLocationSilently();
     },
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
   );
 }
 
@@ -2211,49 +2360,83 @@ function updateUserLocationDisplay(lat, lng, accuracy = null, address = null) {
   if (accuracy !== null) userLocation.accuracy = accuracy;
   if (address) userLocation.address = address;
 
+  updateAllLocationDisplays();
+}
+
+function updateAllLocationDisplays() {
+  const lat = userLocation.lat || 28.6139;
+  const lng = userLocation.lng || 77.2090;
+  const accuracy = userLocation.accuracy;
+
   const locEl = document.getElementById('location-display');
   const coordsEl = document.getElementById('coords-display');
   const notesTag = document.getElementById('notes-location-tag');
   const mapBtnText = document.getElementById('map-loc-btn-text');
+  const regionTag = document.getElementById('citizen-map-region-text');
+  const trackingLoc = document.getElementById('tracking-location');
 
-  const formattedCoords = `LAT: ${lat.toFixed(4)}° &bull; LON: ${lng.toFixed(4)}°${accuracy ? ` (&plusmn;${Math.round(accuracy)}m)` : ''} &bull; Tap to change / GPS`;
+  const districtStateStr = [userLocation.district, userLocation.state].filter(Boolean).join(', ');
+  const displayTitle = userLocation.shortAddress || userLocation.address || `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+
+  if (locEl) locEl.textContent = `📍 ${displayTitle}`;
+  if (coordsEl) {
+    coordsEl.innerHTML = `LAT: ${lat.toFixed(4)}° &bull; LON: ${lng.toFixed(4)}°${districtStateStr ? ` &bull; ${districtStateStr}` : ''}`;
+  }
+  if (notesTag) notesTag.textContent = userLocation.address || displayTitle;
+  if (mapBtnText) mapBtnText.textContent = (userLocation.district || userLocation.city || displayTitle).split(',')[0];
+  if (regionTag) regionTag.textContent = districtStateStr || displayTitle.split(',')[0];
+  if (trackingLoc) {
+    trackingLoc.innerHTML = `<span class="material-symbols-outlined text-[16px] text-primary">location_on</span> ${userLocation.address || displayTitle} <span class="text-xs text-text-secondary">(${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W)</span>`;
+  }
   
-  if (coordsEl) coordsEl.innerHTML = formattedCoords;
-  if (locEl) locEl.textContent = `📍 ${userLocation.address || `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`}`;
-  if (notesTag) notesTag.textContent = userLocation.address || `${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W`;
-  if (mapBtnText) mapBtnText.textContent = (userLocation.address || 'Live Location').split(',')[0];
+  updateModalStatusCard();
 }
 
 async function reverseGeocode(lat, lng) {
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
       headers: { 'Accept-Language': 'en' },
-      signal: AbortSignal.timeout(3500)
+      signal: AbortSignal.timeout(4000)
     });
     if (res.ok) {
       const data = await res.json();
       const addr = data.address || {};
-      const street = addr.road || addr.street || addr.pedestrian || addr.suburb || addr.neighbourhood || addr.city_district;
-      const city = addr.city || addr.town || addr.village || addr.municipality || 'Urban Sector';
-      let displayStr = street ? `${street}, ${city}` : (data.display_name ? data.display_name.split(',').slice(0, 2).join(',') : `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`);
-      userLocation.address = displayStr;
-      const locEl = document.getElementById('location-display');
-      if (locEl) locEl.textContent = `📍 ${displayStr}`;
-      const notesTag = document.getElementById('notes-location-tag');
-      if (notesTag) notesTag.textContent = displayStr;
-      const mapBtnText = document.getElementById('map-loc-btn-text');
-      if (mapBtnText) mapBtnText.textContent = displayStr.split(',')[0];
-      return displayStr;
+      
+      const area = addr.suburb || addr.neighbourhood || addr.quarter || addr.residential || addr.road || addr.street || addr.pedestrian || addr.amenity || 'Local Area';
+      const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || 'Urban District';
+      const district = addr.state_district || addr.county || addr.district || addr.city_district || city;
+      const state = addr.state || addr.region || addr.province || '';
+      const country = addr.country || '';
+
+      const shortAddress = district && state ? `${area}, ${district}` : `${area}, ${city}`;
+      const fullAddress = [area, district !== city ? district : null, city, state, country].filter(Boolean).join(', ');
+
+      userLocation.area = area;
+      userLocation.city = city;
+      userLocation.district = district;
+      userLocation.state = state;
+      userLocation.country = country;
+      userLocation.shortAddress = shortAddress;
+      userLocation.address = fullAddress;
+
+      updateAllLocationDisplays();
+      regenerateDynamicLocalAssets(lat, lng);
+      return fullAddress;
     }
-  } catch {}
-  return userLocation.address || `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+  } catch (e) {
+    console.warn('Reverse geocode error:', e);
+  }
+  
+  const fallback = userLocation.address || `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+  updateAllLocationDisplays();
+  regenerateDynamicLocalAssets(lat, lng);
+  return fallback;
 }
 
 // Fallback silent IP-based location auto-detection if GPS is blocked
-// Only runs if we don't already have a precise GPS fix
 async function detectLocationSilently() {
-  // If we already have a GPS address (not default fallback), skip IP geolocation
-  if (userLocation && userLocation.accuracy && userLocation.accuracy < 200 && userLocation.address) return;
+  if (userLocation && userLocation.isRealGps) return;
+  if (userLocation && userLocation.address && userLocation.address.includes(',')) return;
   
   let detected = false;
   // Provider 1: ipwho.is (CORS enabled, fast)
@@ -2263,26 +2446,37 @@ async function detectLocationSilently() {
       const d = await res.json();
       if (d && d.latitude && d.longitude && d.success) {
         const cityStr = d.city ? `${d.city}, ${d.region || d.country_code || ''}` : 'Local Sector';
-        // Only update coordinates if we don't have GPS-level accuracy
-        if (!userLocation.accuracy || userLocation.accuracy >= 200) {
-          updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
+        if (!userLocation.isRealGps) {
+          userLocation.lat = d.latitude;
+          userLocation.lng = d.longitude;
+          userLocation.city = d.city || '';
+          userLocation.state = d.region || '';
+          userLocation.country = d.country || '';
+          userLocation.address = cityStr;
+          userLocation.shortAddress = cityStr;
+          reverseGeocode(d.latitude, d.longitude);
         }
         detected = true;
       }
     }
   } catch {}
 
-  // Provider 2: BigDataCloud Reverse Geocode Client (free, open CORS)
-  if (!detected) {
+  // Provider 2: BigDataCloud Reverse Geocode Client
+  if (!detected && !userLocation.isRealGps) {
     try {
       const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client', { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
         const d = await res.json();
         if (d && d.latitude && d.longitude) {
           const cityStr = (d.locality || d.city) ? `${d.locality || d.city}, ${d.principalSubdivision || ''}` : 'Local Sector';
-          if (!userLocation.accuracy || userLocation.accuracy >= 200) {
-            updateUserLocationDisplay(d.latitude, d.longitude, 1000, cityStr);
-          }
+          userLocation.lat = d.latitude;
+          userLocation.lng = d.longitude;
+          userLocation.city = d.locality || d.city || '';
+          userLocation.state = d.principalSubdivision || '';
+          userLocation.country = d.countryName || '';
+          userLocation.address = cityStr;
+          userLocation.shortAddress = cityStr;
+          reverseGeocode(d.latitude, d.longitude);
           detected = true;
         }
       }
@@ -2290,34 +2484,39 @@ async function detectLocationSilently() {
   }
 
   if (!detected && (!userLocation || !userLocation.address)) {
-    // Keep generic placeholder — don't override with wrong random city
-    updateUserLocationDisplay(userLocation.lat || 40.7580, userLocation.lng || -73.9855, 5000, userLocation.address || 'Local Area (GPS Required)');
+    updateUserLocationDisplay(userLocation.lat || 28.6139, userLocation.lng || 77.2090, 5000, 'Connaught Place, New Delhi District, Delhi');
+    reverseGeocode(userLocation.lat || 28.6139, userLocation.lng || 77.2090);
   }
 }
 
 function initSubmitPage() {
-  updateUserLocationDisplay(
-    userLocation.lat || 40.7580,
-    userLocation.lng || -73.9855,
-    userLocation.accuracy,
-    userLocation.address || 'Sector 4, Broadway Corridor'
-  );
+  updateAllLocationDisplays();
 }
 
-// ── Citizen Interactive Leaflet Map ──────────────────────────────────────────
+// ── Dynamic Local Assets Engine (Pins around user's exact coordinate) ────────
+let currentCitizenAssets = [];
 let citizenMap = null;
 let citizenMapMarkers = [];
+let citizenUserMarker = null;
 
-const MOCK_CITIZEN_ASSETS = [
-  { id:'BIN-1', type:'bins', lat:40.7585, lng:-73.9850, name:'Smart Bin #01', fill:85, status:'Near Full', address:'42nd & Broadway' },
-  { id:'BIN-2', type:'bins', lat:40.7575, lng:-73.9860, name:'Smart Bin #02', fill:30, status:'Normal', address:'43rd & 7th Ave' },
-  { id:'BIN-3', type:'bins', lat:40.7590, lng:-73.9840, name:'Smart Bin #03', fill:50, status:'Normal', address:'Broadway Plaza' },
-  { id:'BIN-4', type:'bins', lat:40.7565, lng:-73.9870, name:'Smart Bin #04', fill:92, status:'Critical Overflow', address:'8th Ave Station' },
-  { id:'REC-1', type:'cleanups', lat:40.7570, lng:-73.9830, name:'Community Cleanup Hub', volunteers:12, status:'Active Today', address:'Bryant Park East' },
-  { id:'REC-2', type:'cleanups', lat:40.7600, lng:-73.9880, name:'Volunteer Waste Drive', volunteers:8, status:'Starting 2PM', address:'Civic Center Alley' },
-  { id:'HOT-1', type:'hotspots', lat:40.7570, lng:-73.9890, name:'Hazardous Spill Hotspot', severity:'Critical', address:'42nd St & 8th Ave' },
-  { id:'HOT-2', type:'hotspots', lat:40.7595, lng:-73.9855, name:'Cardboard Clutter Hotspot', severity:'Medium', address:'Garment Corner' },
-];
+function regenerateDynamicLocalAssets(lat, lng) {
+  const area = userLocation.area || 'Main Sector';
+  const district = userLocation.district || 'District Hub';
+  
+  currentCitizenAssets = [
+    { id:'BIN-1', type:'bins', lat: lat + 0.0018, lng: lng + 0.0012, name:`Smart Bin #01 (${area})`, fill:85, status:'Near Full', address:`Near ${area} Market` },
+    { id:'BIN-2', type:'bins', lat: lat - 0.0015, lng: lng + 0.0022, name:`Smart Bin #02 (${district})`, fill:30, status:'Normal', address:`${district} Station Road` },
+    { id:'BIN-3', type:'bins', lat: lat + 0.0028, lng: lng - 0.0018, name:`Smart Bin #03 (Plaza)`, fill:50, status:'Normal', address:`${area} Public Plaza` },
+    { id:'BIN-4', type:'bins', lat: lat - 0.0025, lng: lng - 0.0014, name:`Smart Bin #04 (Critical)`, fill:92, status:'Critical Overflow', address:`${area} Junction` },
+    { id:'REC-1', type:'cleanups', lat: lat + 0.0012, lng: lng + 0.0031, name:'Community Cleanup Drive', volunteers:14, status:'Active Today', address:`${area} Community Park` },
+    { id:'REC-2', type:'cleanups', lat: lat - 0.0018, lng: lng - 0.0028, name:'Volunteer Plastic Drive', volunteers:9, status:'Starting 2PM', address:`${district} Civic Alley` },
+    { id:'HOT-1', type:'hotspots', lat: lat + 0.0035, lng: lng + 0.0024, name:'Dumping Hotspot #101', severity:'Critical', address:`${area} Commercial Belt` },
+    { id:'HOT-2', type:'hotspots', lat: lat - 0.0032, lng: lng + 0.0029, name:'Cardboard Clutter Hotspot', severity:'Medium', address:`${district} Wholesale Zone` }
+  ];
+
+  if (citizenMap) renderCitizenMapAssets(activeFilter);
+  if (adminMap) renderAdminMapAssets();
+}
 
 function ensureLeafletReady(callback, maxTries = 15) {
   if (typeof L !== 'undefined') {
@@ -2339,25 +2538,30 @@ function initCitizenMap() {
     const container = document.getElementById('citizen-leaflet-map');
     if (!container) return;
 
-    const lat = userLocation.lat || 40.7580;
-    const lng = userLocation.lng || -73.9855;
+    const lat = userLocation.lat || 28.6139;
+    const lng = userLocation.lng || 77.2090;
 
     if (!citizenMap) {
       citizenMap = L.map('citizen-leaflet-map', { zoomControl: true }).setView([lat, lng], 15);
       getUniversalTileLayer().addTo(citizenMap);
 
-      // Add user marker with pulsing ring
       const userIcon = L.divIcon({
         className: 'custom-user-pin',
         html: `<div class="w-7 h-7 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14]
       });
-      L.marker([lat, lng], { icon: userIcon }).addTo(citizenMap).bindPopup(`<b>📍 You Are Here</b><br>${userLocation.address || 'Current Position'}`);
+      citizenUserMarker = L.marker([lat, lng], { icon: userIcon }).addTo(citizenMap);
+      updateCitizenUserMarkerPopup();
 
-      renderCitizenMapAssets('all');
+      if (currentCitizenAssets.length === 0) regenerateDynamicLocalAssets(lat, lng);
+      else renderCitizenMapAssets(activeFilter);
     } else {
       citizenMap.setView([lat, lng], 15);
+      if (citizenUserMarker) {
+        citizenUserMarker.setLatLng([lat, lng]);
+        updateCitizenUserMarkerPopup();
+      }
     }
 
     [100, 300, 600, 1200].forEach(delay => {
@@ -2366,12 +2570,26 @@ function initCitizenMap() {
   });
 }
 
+function updateCitizenUserMarkerPopup() {
+  if (!citizenUserMarker) return;
+  const districtState = [userLocation.district, userLocation.state, userLocation.country].filter(Boolean).join(', ');
+  citizenUserMarker.bindPopup(`
+    <div class="text-xs p-1">
+      <b class="text-primary text-sm">📍 Your Current Position</b>
+      <div class="text-text-primary font-medium mt-0.5">${userLocation.shortAddress || userLocation.address || 'Exact Location'}</div>
+      <div class="text-[10px] text-text-secondary mt-1 font-label-mono">${districtState}</div>
+      <div class="text-[9px] text-primary font-bold mt-1">LAT: ${userLocation.lat?.toFixed(4)}°, LON: ${userLocation.lng?.toFixed(4)}°</div>
+    </div>
+  `);
+}
+
 function renderCitizenMapAssets(filterType) {
   if (!citizenMap || typeof L === 'undefined') return;
   citizenMapMarkers.forEach(m => citizenMap.removeLayer(m));
   citizenMapMarkers = [];
 
-  const filtered = filterType === 'all' ? MOCK_CITIZEN_ASSETS : MOCK_CITIZEN_ASSETS.filter(a => a.type === filterType);
+  const assets = currentCitizenAssets.length > 0 ? currentCitizenAssets : [];
+  const filtered = filterType === 'all' ? assets : assets.filter(a => a.type === filterType);
 
   filtered.forEach(asset => {
     let iconHtml = '';
@@ -2424,6 +2642,7 @@ function renderCitizenMapAssets(filterType) {
 }
 
 function filterCitizenMap(type) {
+  activeFilter = type;
   ['all', 'bins', 'cleanups', 'hotspots'].forEach(t => {
     const btn = document.getElementById('cmap-filter-' + t);
     if (btn) {
@@ -2437,6 +2656,7 @@ function filterCitizenMap(type) {
 
 // ── Admin Command Center Tactical Leaflet Map ─────────────────────────────────
 let adminMap = null;
+let adminMapMarkers = [];
 
 function initDashboard() {
   loadDashboardStats();
@@ -2451,47 +2671,61 @@ function initAdminTacticalMap() {
     const container = document.getElementById('admin-tactical-map');
     if (!container) return;
 
-    const lat = userLocation.lat || 40.7580;
-    const lng = userLocation.lng || -73.9855;
+    const lat = userLocation.lat || 28.6139;
+    const lng = userLocation.lng || 77.2090;
 
     if (!adminMap) {
       adminMap = L.map('admin-tactical-map', { zoomControl: true }).setView([lat, lng], 14);
       getUniversalTileLayer().addTo(adminMap);
-
-      // Critical Waste Marker (#REP-8992)
-      const critIcon = L.divIcon({
-        className: 'tactical-crit-pin',
-        html: `<button onclick="selectDashboardPin('critical')" class="w-10 h-10 rounded-full bg-danger text-white border-2 border-white flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.9)] cursor-pointer"><span class="material-symbols-outlined text-[20px] font-bold">warning</span></button>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-      });
-      L.marker([40.7570, -73.9890], { icon: critIcon }).addTo(adminMap).on('click', () => selectDashboardPin('critical'));
-
-      // High Urgency Marker (#REP-8993)
-      const warnIcon = L.divIcon({
-        className: 'tactical-warn-pin',
-        html: `<button onclick="selectDashboardPin('warning')" class="w-9 h-9 rounded-full bg-warning text-white border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.8)] cursor-pointer"><span class="material-symbols-outlined text-[18px]">report</span></button>`,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
-      });
-      L.marker([40.7128, -74.0060], { icon: warnIcon }).addTo(adminMap).on('click', () => selectDashboardPin('warning'));
-
-      // Fleet Unit 7 Marker
-      const unitIcon = L.divIcon({
-        className: 'tactical-unit-pin',
-        html: `<button onclick="selectDashboardPin('unit')" class="w-8 h-8 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)] cursor-pointer"><span class="material-symbols-outlined text-white text-[14px]">local_shipping</span></button>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-      L.marker([40.7484, -73.9857], { icon: unitIcon }).addTo(adminMap).on('click', () => selectDashboardPin('unit'));
+      renderAdminMapAssets();
     } else {
       adminMap.setView([lat, lng], 14);
+      renderAdminMapAssets();
     }
 
     [100, 300, 600, 1200].forEach(delay => {
       setTimeout(() => { if (adminMap) adminMap.invalidateSize(); }, delay);
     });
   });
+}
+
+function renderAdminMapAssets() {
+  if (!adminMap || typeof L === 'undefined') return;
+  adminMapMarkers.forEach(m => adminMap.removeLayer(m));
+  adminMapMarkers = [];
+
+  const lat = userLocation.lat || 28.6139;
+  const lng = userLocation.lng || 77.2090;
+
+  // Critical Waste Marker
+  const critIcon = L.divIcon({
+    className: 'tactical-crit-pin',
+    html: `<button onclick="selectDashboardPin('critical')" class="w-10 h-10 rounded-full bg-danger text-white border-2 border-white flex items-center justify-center pin-danger shadow-[0_0_20px_rgba(218,54,51,0.9)] cursor-pointer"><span class="material-symbols-outlined text-[20px] font-bold">warning</span></button>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+  const m1 = L.marker([lat + 0.0035, lng + 0.0025], { icon: critIcon }).addTo(adminMap).on('click', () => selectDashboardPin('critical'));
+  adminMapMarkers.push(m1);
+
+  // High Urgency Marker
+  const warnIcon = L.divIcon({
+    className: 'tactical-warn-pin',
+    html: `<button onclick="selectDashboardPin('warning')" class="w-9 h-9 rounded-full bg-warning text-white border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(210,153,34,0.8)] cursor-pointer"><span class="material-symbols-outlined text-[18px]">report</span></button>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18]
+  });
+  const m2 = L.marker([lat - 0.0032, lng - 0.0028], { icon: warnIcon }).addTo(adminMap).on('click', () => selectDashboardPin('warning'));
+  adminMapMarkers.push(m2);
+
+  // Fleet Unit 7 Marker
+  const unitIcon = L.divIcon({
+    className: 'tactical-unit-pin',
+    html: `<button onclick="selectDashboardPin('unit')" class="w-8 h-8 rounded-full bg-primary border-2 border-white flex items-center justify-center animate-pulse-ring shadow-[0_0_15px_rgba(123,219,128,0.9)] cursor-pointer"><span class="material-symbols-outlined text-white text-[14px]">local_shipping</span></button>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+  const m3 = L.marker([lat + 0.0015, lng - 0.0035], { icon: unitIcon }).addTo(adminMap).on('click', () => selectDashboardPin('unit'));
+  adminMapMarkers.push(m3);
 }
 
 // ── Tracking Page & Live Mini-Map ────────────────────────────────────────────
@@ -2522,8 +2756,8 @@ function initTrackingMiniMap() {
     const container = document.getElementById('tracking-mini-map');
     if (!container) return;
 
-    const lat = userLocation.lat || 40.7580;
-    const lng = userLocation.lng || -73.9855;
+    const lat = userLocation.lat || 28.6139;
+    const lng = userLocation.lng || 77.2090;
 
     if (!trackingMiniMap) {
       trackingMiniMap = L.map('tracking-mini-map', { zoomControl: false }).setView([lat, lng], 15);
@@ -2535,7 +2769,7 @@ function initTrackingMiniMap() {
         iconSize: [32, 32],
         iconAnchor: [16, 16]
       });
-      L.marker([lat, lng], { icon: incidentIcon }).addTo(trackingMiniMap).bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.address || 'Incident Location'}`);
+      L.marker([lat, lng], { icon: incidentIcon }).addTo(trackingMiniMap).bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.shortAddress || userLocation.address || 'Incident Location'}`);
     } else {
       trackingMiniMap.setView([lat, lng], 15);
     }
@@ -2544,6 +2778,37 @@ function initTrackingMiniMap() {
       setTimeout(() => { if (trackingMiniMap) trackingMiniMap.invalidateSize(); }, delay);
     });
   });
+}
+
+function renderTrackingLiveMapMarkers(lat, lng) {
+  if (!trackingLiveMap || typeof L === 'undefined') return;
+  trackingLiveMap.eachLayer(layer => {
+    if (layer instanceof L.Marker) trackingLiveMap.removeLayer(layer);
+  });
+
+  const userIcon = L.divIcon({
+    className: 'custom-user-pin',
+    html: `<div class="w-7 h-7 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(123,219,128,0.9)] animate-pulse-ring flex items-center justify-center"><div class="w-2.5 h-2.5 rounded-full bg-white"></div></div>`,
+    iconSize: [28, 28], iconAnchor: [14, 14]
+  });
+  L.marker([lat, lng], { icon: userIcon }).addTo(trackingLiveMap)
+    .bindPopup(`<b>📍 Incident Location</b><br>${userLocation.shortAddress || userLocation.address || 'Reported Site'}`);
+
+  const incidentIcon = L.divIcon({
+    className: 'custom-incident-pin',
+    html: `<div class="w-10 h-10 rounded-full bg-warning/30 border-2 border-warning flex items-center justify-center shadow-[0_0_20px_rgba(210,153,34,0.9)]" style="animation:pulse-green 1.5s infinite"><span class="material-symbols-outlined text-warning text-[20px]">warning</span></div>`,
+    iconSize: [40, 40], iconAnchor: [20, 20]
+  });
+  L.marker([lat + 0.0002, lng - 0.0002], { icon: incidentIcon }).addTo(trackingLiveMap)
+    .bindPopup(`<b>Report #${currentReportId || '8492-AX'}</b><br>${userLocation.address || 'Incident'}`);
+
+  const fleetIcon = L.divIcon({
+    className: 'custom-fleet-pin',
+    html: `<div class="w-9 h-9 rounded-full bg-primary border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(123,219,128,0.9)]"><span class="material-symbols-outlined text-[#05070a] text-[16px]">local_shipping</span></div>`,
+    iconSize: [36, 36], iconAnchor: [18, 18]
+  });
+  L.marker([lat - 0.0025, lng + 0.0032], { icon: fleetIcon }).addTo(trackingLiveMap)
+    .bindPopup('<b>🚛 Unit #07 — EN ROUTE</b><br>ETA: ~6 mins');
 }
 
 function selectDashboardPin(type) {
@@ -2562,20 +2827,30 @@ function selectDashboardPin(type) {
     drawerPhoto.onerror = () => { drawerPhoto.src = 'assets/industrial_spill.png'; };
   }
 
+  const regionStr = [userLocation.district, userLocation.state].filter(Boolean).join(', ');
+  const locTitle = userLocation.shortAddress || userLocation.area || 'Active Zone';
+
   if (type === 'critical') {
     document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: CRITICAL';
     document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-[10px] border border-danger/30 font-bold';
     document.getElementById('drawer-rep-id').textContent = '#REP-8992';
-    document.getElementById('drawer-title').textContent = 'Industrial Waste Spill';
-    document.getElementById('drawer-location').textContent = '42nd St & 8th Ave';
-    document.getElementById('drawer-coords').textContent = '40.757° N, 73.989° W';
+    document.getElementById('drawer-title').textContent = `Industrial Waste Spill (${locTitle})`;
+    document.getElementById('drawer-location').textContent = userLocation.shortAddress || `${userLocation.lat?.toFixed(4)}°, ${userLocation.lng?.toFixed(4)}°`;
+    document.getElementById('drawer-coords').textContent = `${userLocation.lat?.toFixed(4)}° N, ${Math.abs(userLocation.lng || 0).toFixed(4)}° W${regionStr ? ` (${regionStr})` : ''}`;
   } else if (type === 'warning') {
     document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: HIGH';
     document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-warning/20 text-warning font-label-mono text-[10px] border border-warning/30 font-bold';
     document.getElementById('drawer-rep-id').textContent = '#REP-8993';
-    document.getElementById('drawer-title').textContent = 'Overflowing Dumpster';
-    document.getElementById('drawer-location').textContent = 'Downtown Square';
-    document.getElementById('drawer-coords').textContent = '40.712° N, 74.006° W';
+    document.getElementById('drawer-title').textContent = `Overflowing Dumpster (${locTitle})`;
+    document.getElementById('drawer-location').textContent = userLocation.shortAddress || `${userLocation.lat?.toFixed(4)}°, ${userLocation.lng?.toFixed(4)}°`;
+    document.getElementById('drawer-coords').textContent = `${userLocation.lat?.toFixed(4)}° N, ${Math.abs(userLocation.lng || 0).toFixed(4)}° W${regionStr ? ` (${regionStr})` : ''}`;
+  } else {
+    document.getElementById('drawer-urgency-badge').textContent = 'UNIT: DISPATCHED';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-primary/20 text-primary font-label-mono text-[10px] border border-primary/30 font-bold';
+    document.getElementById('drawer-rep-id').textContent = '#FLEET-07';
+    document.getElementById('drawer-title').textContent = `Fleet Unit #07 (${userLocation.district || 'Sector'})`;
+    document.getElementById('drawer-location').textContent = `En route in ${locTitle}`;
+    document.getElementById('drawer-coords').textContent = `ETA: ~6 mins &bull; Vehicle: Compact Van`;
   }
 }
 
