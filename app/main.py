@@ -49,6 +49,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("redis_connection_failed", error=str(e))
 
+    # Auto-create database tables on startup (works on Free Tier without Shell access)
+    try:
+        from app.core.database import engine, Base
+        import app.models  # noqa: F401
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("database_tables_ready")
+    except Exception as e:
+        logger.error("database_tables_creation_failed", error=str(e))
+
     # Seed initial data if DB is empty
     try:
         from app.core.seed_data import seed_database
