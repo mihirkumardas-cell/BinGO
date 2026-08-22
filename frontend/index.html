@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BinGO — Smart Waste Management Platform</title>
+<meta name="description" content="AI-powered waste reporting and municipal dispatch platform. Citizens photograph waste; AI classifies, deduplicates, clusters hotspots, and recommends dispatch."/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#238636",
+          "primary-light": "#7bdb80",
+          "primary-container": "#238636",
+          "on-primary": "#ffffff",
+          "secondary": "#aac7ff",
+          "surface": "#161B22",
+          "surface-raised": "#21262D",
+          "surface-container": "#1c2026",
+          "surface-container-high": "#262a31",
+          "surface-container-low": "#181c22",
+          "surface-container-highest": "#31353c",
+          "surface-dim": "#10141a",
+          "background": "#0D1117",
+          "border": "#30363D",
+          "text-primary": "#E6EDF3",
+          "text-secondary": "#8B949E",
+          "success": "#3FB950",
+          "warning": "#D29922",
+          "danger": "#DA3633",
+          "accent": "#388BFD",
+          "on-surface": "#dfe2eb",
+          "surface-variant": "#31353c",
+          "outline": "#899485",
+          "outline-variant": "#3f4a3d",
+        },
+        spacing: {
+          "sidebar-width": "240px",
+          "control-touch-target": "44px",
+          "gutter": "16px",
+          "margin-desktop": "24px",
+          "margin-mobile": "16px",
+        },
+        fontFamily: {
+          "label-mono": ["JetBrains Mono"],
+          "label-sm": ["Inter"],
+          "body-md": ["Inter"],
+          "body-lg": ["Inter"],
+          "headline-md": ["Inter"],
+          "headline-lg": ["Inter"],
+          "headline-xl": ["Inter"],
+        },
+        fontSize: {
+          "label-mono": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }],
+          "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "600" }],
+          "body-md": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+          "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+          "headline-md": ["20px", { "lineHeight": "1.3", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+          "headline-lg": ["28px", { "lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+          "headline-xl": ["36px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  /* ── Global ── */
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(48,54,61,0.6); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(139,148,158,0.8); }
+
+  /* ── Page routing ── */
+  .page { display: none !important; }
+  .page.active { display: flex !important; }
+
+  /* ── Glassmorphism ── */
+  .glass-panel {
+    background: rgba(10,14,20,0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+  }
+  .glass-card {
+    background: rgba(22,27,34,0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  /* ── Animations ── */
+  @keyframes pulse-green {
+    0%   { box-shadow: 0 0 0 0 rgba(35,134,54,0.7); transform: scale(1); }
+    70%  { box-shadow: 0 0 0 10px rgba(35,134,54,0); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 0 rgba(35,134,54,0); transform: scale(1); }
+  }
+  @keyframes pulse-danger {
+    0%   { box-shadow: 0 0 0 0 rgba(218,54,51,0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(218,54,51,0); }
+    100% { box-shadow: 0 0 0 0 rgba(218,54,51,0); }
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(63,185,80,0.7); }
+    70%  { transform: scale(1);    box-shadow: 0 0 0 6px rgba(63,185,80,0); }
+    100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+  .pin-danger        { animation: pulse-danger 2s infinite; }
+  .animate-pulse-ring{ animation: pulse-ring 2s infinite cubic-bezier(0.66,0,0,1); }
+  .fade-in-up        { animation: fadeInUp 0.35s ease-out forwards; opacity: 0; }
+  .stagger-1         { animation-delay: 0.05s; }
+  .stagger-2         { animation-delay: 0.10s; }
+  .stagger-3         { animation-delay: 0.15s; }
+  .stagger-4         { animation-delay: 0.20s; }
+  .stagger-5         { animation-delay: 0.25s; }
+  .timeline-pulse    { animation: pulse-green 2.2s cubic-bezier(0.215,0.61,0.355,1) infinite; }
+
+  .gauge-arc {
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 251.2;
+    transition: stroke-dashoffset 1.8s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* Viewfinder */
+  .viewfinder::before, .viewfinder::after {
+    content: '';
+    position: absolute;
+    width: 48px; height: 48px;
+    border: 2px solid #238636;
+    box-shadow: 0 0 12px #238636;
+    pointer-events: none;
+  }
+  .viewfinder::before { top: 14%; left: 14%; border-bottom: 0; border-right: 0; }
+  .viewfinder::after  { bottom: 14%; right: 14%; border-top: 0; border-left: 0; }
+
+  /* Toast slide-in */
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .toast-item { animation: toastIn 0.35s ease-out forwards; }
+
+  /* Nav active indicator */
+  .nav-link.active-link {
+    background: rgba(255,255,255,0.08);
+    color: #238636 !important;
+    border-right: 3px solid #238636;
+    font-weight: 700;
+  }
+
+  /* WebGL canvas */
+  #webgl-bg {
+    position: fixed; inset: 0;
+    width: 100vw; height: 100vh;
+    z-index: -2; pointer-events: none;
+  }
+</style>
+</head>
+<body class="bg-background text-text-primary h-screen w-screen overflow-hidden font-body-md">
+
+<!-- WebGL animated background -->
+<canvas id="webgl-bg"></canvas>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: LANDING / APP SELECT
+══════════════════════════════════════════════════════ -->
+<div id="page-landing" class="page active flex-col items-center justify-center min-h-screen w-full p-8">
+  <div class="text-center mb-10 fade-in-up">
+    <div class="text-6xl mb-4">🗑️</div>
+    <h1 class="font-headline-xl text-headline-xl text-primary mb-2 flex items-center justify-center gap-3">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-12 h-12 rounded object-cover" alt="BinGO Logo"/>
+      BinGO
+    </h1>
+    <p class="text-text-secondary font-body-lg">AI-powered waste reporting & municipal command center</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl fade-in-up stagger-2">
+    <!-- Citizen App -->
+    <button onclick="navigate('page-submit')"
+      class="glass-card rounded-2xl p-8 text-left hover:border-primary/40 hover:shadow-[0_0_30px_rgba(35,134,54,0.2)] transition-all duration-300 group">
+      <div class="text-4xl mb-4">📱</div>
+      <h2 class="font-headline-md text-headline-md text-text-primary mb-2 group-hover:text-primary transition-colors">Citizen App</h2>
+      <p class="text-text-secondary font-body-md">Report waste issues. AI classifies and tracks your report in real time.</p>
+      <div class="mt-6 flex items-center gap-2 text-primary font-label-sm text-label-sm">
+        Open App <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </div>
+    </button>
+    <!-- Admin Dashboard -->
+    <button onclick="navigate('page-dashboard')"
+      class="glass-card rounded-2xl p-8 text-left hover:border-accent/40 hover:shadow-[0_0_30px_rgba(56,139,253,0.2)] transition-all duration-300 group">
+      <div class="text-4xl mb-4">🏛️</div>
+      <h2 class="font-headline-md text-headline-md text-text-primary mb-2 group-hover:text-accent transition-colors">Municipal Dashboard</h2>
+      <p class="text-text-secondary font-body-md">Command center — live map, reports queue, fleet dispatch.</p>
+      <div class="mt-6 flex items-center gap-2 text-accent font-label-sm text-label-sm">
+        Open Dashboard <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </div>
+    </button>
+  </div>
+  <!-- Backend Status -->
+  <div id="backend-status" class="mt-8 flex items-center gap-3 text-text-secondary text-label-sm font-label-sm fade-in-up stagger-4 cursor-pointer hover:text-text-primary" onclick="navigate('page-settings')">
+    <span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+    <span>Checking backend connection...</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: CITIZEN — SUBMIT REPORT
+══════════════════════════════════════════════════════ -->
+<div id="page-submit" class="page flex-col h-screen w-screen overflow-hidden select-none relative">
+  <!-- Mock Camera Feed Background -->
+  <div class="absolute inset-0 bg-cover bg-center"
+    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAAelU7xQIjFHYVX84hTBJd2JFspWsBn7cS-tuo9TaAEVtxt5rGWwq98lKT0HgH1AkdpJdsDIYOXbgxKsU4rDr8xj-NapIo-Z6dPspagXcpY1TlqsN2-OjJk8YJQ-X9xGHvF_b_8goNJXUgPVL8_-RCOcHRI0rN3FpZq_fauMRvJrkpy2sDUiROGDRO2TwzG93PxfhZYUI007SGwd8tdt46qjqcVgtnWvZhg_1kHEPkaXe6sTjYCPw')">
+  </div>
+  <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50"></div>
+
+  <!-- Top Bar -->
+  <div class="absolute top-0 w-full p-gutter flex justify-between items-center z-20 bg-gradient-to-b from-background/80 to-transparent pt-6 pb-4">
+    <button onclick="navigate('page-landing')"
+      class="w-control-touch-target h-control-touch-target flex items-center justify-center rounded-full glass-card text-text-primary hover:bg-surface/80 transition-colors">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div class="font-headline-md text-headline-md font-black text-primary flex items-center gap-2">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-8 h-8 rounded object-cover" alt="BinGO Logo"/>
+      BinGO
+    </div>
+    <div class="flex items-center gap-2 glass-card px-3 py-1.5 rounded-full cursor-pointer" onclick="navigate('page-settings')">
+      <div class="w-2 h-2 rounded-full bg-danger animate-pulse shadow-[0_0_8px_rgba(218,54,51,0.8)]"></div>
+      <span class="font-label-mono text-label-mono text-text-primary tracking-wider">LIVE</span>
+    </div>
+  </div>
+
+  <!-- Camera Viewfinder AI Overlay -->
+  <main class="relative flex-grow w-full h-full">
+    <div id="ai-overlay" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center z-20 pointer-events-none mt-[-60px]">
+      <div class="relative w-40 h-40 flex items-center justify-center viewfinder">
+        <div class="absolute inset-[-12px] rounded-full border border-primary/20" style="animation: pulse-green 3s infinite;"></div>
+        <div class="absolute inset-0 rounded-full border-2 border-primary/40" style="animation: pulse-green 2s infinite;"></div>
+        <div class="absolute inset-3 rounded-full border border-primary/80 shadow-[0_0_15px_rgba(35,134,54,0.4)]"></div>
+        <span class="material-symbols-outlined text-primary text-5xl drop-shadow-[0_0_8px_rgba(35,134,54,0.8)]"
+          style="animation: pulse-green 2s infinite;">document_scanner</span>
+      </div>
+      <div id="ai-status-pill" class="mt-8 px-5 py-2.5 glass-card rounded-full border border-primary/30 shadow-[0_0_20px_rgba(35,134,54,0.25)]">
+        <p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-widest uppercase">
+          <span class="material-symbols-outlined text-sm" style="animation: spin-slow 3s linear infinite;">memory</span>
+          Point at Waste...
+        </p>
+      </div>
+    </div>
+
+    <!-- Location Tag -->
+    <div class="absolute bottom-[100px] w-full px-gutter z-20 flex flex-col items-center gap-6">
+      <div class="w-full max-w-sm flex items-start gap-3 glass-card p-3.5 rounded-xl border-l-4 border-l-primary">
+        <span class="material-symbols-outlined text-primary mt-0.5">location_on</span>
+        <div class="flex-grow">
+          <p id="location-display" class="font-label-sm text-label-sm text-text-primary truncate tracking-wide">Detecting location...</p>
+          <p id="coords-display" class="font-label-mono text-[10px] text-text-secondary mt-1.5 opacity-80">LAT: — &nbsp; LON: —</p>
+        </div>
+      </div>
+
+      <!-- Capture Controls -->
+      <div class="w-full flex justify-between items-center px-6 max-w-sm">
+        <button onclick="toggleNotes()" class="flex flex-col items-center gap-2 text-text-secondary hover:text-text-primary transition-colors group">
+          <div class="w-12 h-12 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50">
+            <span class="material-symbols-outlined">edit_note</span>
+          </div>
+          <span class="font-label-sm text-[10px] uppercase tracking-wider">Notes</span>
+        </button>
+
+        <!-- Camera Capture Button -->
+        <label class="relative group cursor-pointer active:scale-95 transition-transform duration-150">
+          <input id="photo-input" type="file" accept="image/*" capture="environment" class="hidden" onchange="onPhotoSelected(this)"/>
+          <div class="absolute inset-[-10px] bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-colors duration-300" style="animation: pulse-green 2.5s infinite;"></div>
+          <div class="relative w-24 h-24 rounded-full border-[3px] border-primary/50 glass-card flex items-center justify-center shadow-[0_0_30px_rgba(35,134,54,0.4)] group-hover:border-primary transition-colors">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-green-700 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings:'FILL' 1;">camera</span>
+            </div>
+          </div>
+        </label>
+
+        <button onclick="navigate('page-settings')" class="flex flex-col items-center gap-2 text-text-secondary hover:text-text-primary transition-colors group">
+          <div class="w-12 h-12 rounded-full glass-card flex items-center justify-center group-hover:border-primary/50">
+            <span class="material-symbols-outlined">settings</span>
+          </div>
+          <span class="font-label-sm text-[10px] uppercase tracking-wider">Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Notes Panel -->
+    <div id="notes-panel" class="hidden absolute bottom-[90px] left-0 right-0 z-30 px-gutter max-w-md mx-auto">
+      <div class="glass-card rounded-2xl p-4">
+        <textarea id="description-input" rows="3" placeholder="Describe the waste issue..."
+          class="w-full bg-transparent text-text-primary font-body-md placeholder:text-text-secondary resize-none outline-none border border-border rounded-lg p-3 focus:border-primary/50"></textarea>
+        <button onclick="submitReport()" id="submit-btn"
+          class="mt-3 w-full bg-gradient-to-r from-primary to-green-600 text-white font-label-sm text-label-sm py-3 rounded-xl hover:opacity-90 transition-all shadow-[0_0_20px_rgba(35,134,54,0.4)] flex items-center justify-center gap-2 font-bold">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          Submit Report
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="glass-card fixed bottom-0 w-full z-50 flex justify-around items-center px-2 py-3 border-t border-white/10 rounded-t-2xl">
+    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors rounded-lg p-2 min-w-[64px] group">
+      <span class="material-symbols-outlined mb-1">home</span>
+      <span class="font-label-sm text-[10px] tracking-wide">Home</span>
+    </button>
+    <button class="flex flex-col items-center bg-primary/20 border border-primary/30 text-primary rounded-full px-5 py-1.5 shadow-[0_0_15px_rgba(35,134,54,0.2)] min-w-[64px]">
+      <span class="material-symbols-outlined mb-1">add_circle</span>
+      <span class="font-label-sm text-[10px] tracking-wide font-bold">Report</span>
+    </button>
+    <button onclick="navigate('page-tracking')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors rounded-lg p-2 min-w-[64px] group">
+      <span class="material-symbols-outlined mb-1">history</span>
+      <span class="font-label-sm text-[10px] tracking-wide">Activity</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors rounded-lg p-2 min-w-[64px] group">
+      <span class="material-symbols-outlined mb-1">person</span>
+      <span class="font-label-sm text-[10px] tracking-wide">Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: CITIZEN — LIVE TRACKING
+══════════════════════════════════════════════════════ -->
+<div id="page-tracking" class="page flex-col md:flex-row h-screen w-screen overflow-hidden">
+  <!-- Side Nav (Desktop) -->
+  <nav class="hidden md:flex flex-col h-screen py-6 bg-surface border-r border-border w-sidebar-width fixed left-0 top-0 z-30">
+    <div class="px-6 mb-8 mt-2">
+      <div class="flex items-center gap-3 mb-1">
+        <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-9 h-9 rounded object-cover" alt="BinGO Logo"/>
+        <div class="font-headline-md text-headline-md font-bold text-primary">BinGO</div>
+      </div>
+      <div class="text-text-secondary font-body-md">Citizen Portal</div>
+    </div>
+    <div class="flex flex-col gap-1 flex-grow">
+      <button onclick="navigate('page-landing')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-surface-container-low hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">home</span><span>Home</span>
+      </button>
+      <button onclick="navigate('page-submit')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-surface-container-low hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">add_circle</span><span>New Report</span>
+      </button>
+      <button class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">history</span><span>My Activity</span>
+      </button>
+      <button onclick="navigate('page-profile')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-surface-container-low hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">person</span><span>My Profile</span>
+      </button>
+    </div>
+    <div class="px-4 mt-auto mb-6">
+      <button onclick="navigate('page-dashboard')" class="w-full bg-primary text-white py-2 rounded font-label-sm hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+        Switch to Admin →
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="flex-1 md:ml-[240px] relative w-full pb-24 md:pb-0 h-screen overflow-hidden flex flex-col md:flex-row">
+    <!-- Map Background -->
+    <div class="absolute inset-0 md:relative md:w-3/5 lg:w-2/3 h-full z-0"
+      style="background: radial-gradient(circle at top right,rgba(35,134,54,0.15),transparent 50%),radial-gradient(circle at bottom left,rgba(56,139,253,0.1),transparent 50%),linear-gradient(to bottom right,#0a0e14,#10141a);">
+      <div class="absolute right-4 top-4 flex flex-col gap-2 z-10">
+        <button class="w-control-touch-target h-control-touch-target rounded-full glass-card flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors">
+          <span class="material-symbols-outlined">my_location</span>
+        </button>
+      </div>
+      <!-- Pulsing Report Pin -->
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+        <div class="w-12 h-12 glass-card border border-warning/50 rounded-full flex items-center justify-center shadow-[0_0_24px_rgba(210,153,34,0.4)] z-10 timeline-pulse">
+          <span class="material-symbols-outlined text-warning">warning</span>
+        </div>
+        <div class="w-1 h-8 bg-gradient-to-b from-warning/50 to-transparent"></div>
+      </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="absolute bottom-0 w-full z-20 flex flex-col gap-4 p-4 bg-gradient-to-t from-background via-background/95 to-transparent md:relative md:w-2/5 md:h-full md:bg-surface/60 md:backdrop-blur-xl md:border-l md:border-white/10 overflow-y-auto pt-32 md:pt-6">
+      <div class="mb-2">
+        <div class="flex items-center justify-between mb-1">
+          <h1 id="tracking-report-id" class="font-headline-lg text-headline-lg font-bold text-text-primary tracking-tight">Report #—</h1>
+          <span id="tracking-status-badge" class="px-2 py-1 glass-card border border-warning/30 rounded text-label-mono font-label-mono text-warning flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> PENDING
+          </span>
+        </div>
+        <p id="tracking-location" class="font-body-md text-body-md text-text-secondary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">location_on</span> —
+        </p>
+      </div>
+
+      <!-- AI Result Card -->
+      <div id="ai-result-card" class="glass-card rounded-2xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-warning/10 rounded-bl-full z-0 blur-2xl"></div>
+        <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-4 relative z-10 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[14px]">memory</span> AI Analysis Result
+        </h3>
+        <div class="flex items-center justify-between relative z-10">
+          <div class="flex flex-col gap-3">
+            <div>
+              <span class="font-label-mono text-label-mono text-text-secondary block mb-1">Detected Waste</span>
+              <div id="waste-type-badge" class="inline-flex px-3 py-1 bg-surface-container-high/60 border border-white/5 rounded-full font-label-sm text-label-sm items-center gap-1">
+                <span>🔄</span> Analysing...
+              </div>
+            </div>
+            <div>
+              <span class="font-label-mono text-label-mono text-text-secondary block mb-1">Est. Volume</span>
+              <span id="volume-display" class="font-headline-md text-headline-md text-text-primary">—</span>
+            </div>
+          </div>
+          <!-- Urgency Gauge -->
+          <div class="relative w-24 h-24 flex items-center justify-center flex-col">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" fill="transparent" r="40" stroke="rgba(255,255,255,0.05)" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-width="8"></circle>
+              <circle id="urgency-arc" class="gauge-arc" cx="50" cy="50" fill="transparent" r="40" stroke="#D29922" stroke-width="8"></circle>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="urgency-score" class="font-headline-md text-headline-md font-bold text-warning drop-shadow-[0_0_8px_rgba(210,153,34,0.5)]">—</span>
+              <span class="font-label-mono text-label-mono text-text-secondary text-[8px]">URGENCY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dispatch Recommendation -->
+      <div id="dispatch-rec" class="glass-card rounded-xl p-3 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary">local_shipping</span>
+        </div>
+        <div>
+          <div class="font-label-mono text-label-mono text-text-secondary mb-0.5">Recommended Asset</div>
+          <div id="vehicle-rec" class="font-body-md text-body-md text-text-primary font-semibold">Pending AI analysis...</div>
+        </div>
+      </div>
+
+      <!-- Status Timeline -->
+      <div class="glass-card rounded-2xl p-4">
+        <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-4">Status Timeline</h3>
+        <div class="flex flex-col gap-0 relative">
+          <div class="absolute left-3.5 top-2 bottom-4 w-px bg-white/10 z-0"></div>
+          <div id="step-submitted" class="flex gap-4 relative z-10 pb-6">
+            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+            </div>
+            <div>
+              <div class="font-label-sm text-label-sm text-text-secondary mb-1">—</div>
+              <div class="font-body-md text-body-md text-text-secondary">Report Submitted</div>
+            </div>
+          </div>
+          <div id="step-ai" class="flex gap-4 relative z-10 pb-6">
+            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+            </div>
+            <div>
+              <div class="font-label-sm text-label-sm text-text-secondary mb-1">—</div>
+              <div class="font-body-md text-body-md text-text-secondary">AI Analysis Complete</div>
+            </div>
+          </div>
+          <div id="step-verified" class="flex gap-4 relative z-10 pb-6">
+            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+            </div>
+            <div>
+              <div class="font-label-sm text-label-sm text-text-secondary mb-1">Pending</div>
+              <div class="font-body-md text-body-md text-text-secondary">Verified by Admin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="md:hidden fixed bottom-0 w-full z-50 glass-card border-t border-white/10 flex justify-around items-center px-4 py-3 rounded-t-3xl">
+    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
+      <span class="material-symbols-outlined text-[24px]">home</span>
+      <span class="font-label-sm text-label-sm mt-1">Home</span>
+    </button>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
+      <span class="material-symbols-outlined text-[24px]">add_circle</span>
+      <span class="font-label-sm text-label-sm mt-1">Report</span>
+    </button>
+    <button class="flex flex-col items-center bg-gradient-to-r from-primary to-green-500 text-white rounded-full px-5 py-2 shadow-[0_0_20px_rgba(35,134,54,0.4)] -mt-4 border-4 border-background">
+      <span class="material-symbols-outlined text-[24px]">history</span>
+      <span class="font-label-sm text-label-sm mt-1 font-bold">Activity</span>
+    </button>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
+      <span class="material-symbols-outlined text-[24px]">person</span>
+      <span class="font-label-sm text-label-sm mt-1">Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SHARED ADMIN SIDEBAR COMPONENT HTML (INCLUDED IN ADMIN PAGES)
+══════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — COMMAND CENTER (MAP)
+══════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start fade-in-up">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Municipal Admin</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </div>
+    <div class="px-4 mt-auto space-y-3">
+      <button onclick="navigate('page-submit')" class="w-full bg-primary/90 hover:bg-primary text-white font-label-sm text-label-sm py-3 px-4 rounded transition-all flex items-center justify-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.4)] border border-primary/20">
+        <span class="material-symbols-outlined text-[18px]">send</span> Dispatch Unit
+      </button>
+      <div class="flex flex-col gap-1">
+        <button onclick="navigate('page-profile')" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
+          <span class="material-symbols-outlined text-[18px]">person</span><span>My Profile</span>
+        </button>
+        <button onclick="navigate('page-landing')" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
+          <span class="material-symbols-outlined text-[18px]">swap_horiz</span><span>Exit Admin</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="flex-1 relative md:ml-sidebar-width h-full w-full bg-transparent">
+    <canvas id="shader-canvas" class="absolute inset-0 w-full h-full z-[-1] pointer-events-none"></canvas>
+    <div class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between z-10">
+      <!-- Top Stats -->
+      <div class="flex flex-wrap gap-4 items-start w-full pointer-events-auto fade-in-up">
+        <div class="glass-panel rounded-lg p-3 flex items-center gap-4">
+          <div class="flex flex-col">
+            <span class="text-text-secondary font-label-mono text-label-mono uppercase">Today's Reports</span>
+            <span id="stat-reports" class="font-headline-lg text-headline-lg text-text-primary leading-none mt-1">—</span>
+          </div>
+          <div class="h-8 w-px bg-white/10 mx-2"></div>
+          <div class="flex flex-col">
+            <span class="text-text-secondary font-label-mono text-label-mono uppercase">Active Hotspots</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="w-2 h-2 rounded-full bg-danger pin-danger"></span>
+              <span id="stat-hotspots" class="font-headline-lg text-headline-lg text-danger leading-none">—</span>
+            </div>
+          </div>
+          <div class="h-8 w-px bg-white/10 mx-2"></div>
+          <div class="flex flex-col">
+            <span class="text-text-secondary font-label-mono text-label-mono uppercase">Teams Deployed</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="w-2 h-2 rounded-full bg-primary animate-pulse-ring"></span>
+              <span id="stat-teams" class="font-headline-lg text-headline-lg text-primary leading-none">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="ml-auto flex gap-2">
+          <button onclick="navigate('page-reports')" class="glass-panel text-text-primary px-4 py-2 rounded-md hover:bg-white/10 flex items-center gap-2 font-label-sm text-label-sm transition-colors">
+            <span class="material-symbols-outlined text-[18px]">list</span> Reports Queue
+          </button>
+          <button onclick="navigate('page-settings')" class="glass-panel text-text-primary w-10 h-10 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Pins -->
+      <div class="absolute top-1/3 left-1/3 pointer-events-auto">
+        <button onclick="navigate('page-reports')" class="w-8 h-8 rounded-full bg-danger/20 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_15px_rgba(218,54,51,0.6)] hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined text-[16px]">warning</span>
+        </button>
+      </div>
+      <div class="absolute top-1/2 left-2/3 pointer-events-auto">
+        <button onclick="navigate('page-reports')" class="w-6 h-6 rounded-full bg-warning/20 border border-warning text-warning flex items-center justify-center shadow-[0_0_10px_rgba(210,153,34,0.4)]">
+          <span class="material-symbols-outlined text-[14px]">report</span>
+        </button>
+      </div>
+
+      <!-- Live Feed + Detail Drawer -->
+      <div class="flex gap-6 w-full mt-auto pointer-events-auto">
+        <div class="w-80 glass-panel rounded-lg overflow-hidden flex flex-col h-64 flex-shrink-0">
+          <div class="px-4 py-2 bg-black/40 border-b border-white/5 flex justify-between items-center">
+            <span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+              Live Feed
+            </span>
+            <span id="ws-status" class="font-label-mono text-[10px] text-text-secondary">⚡ LIVE</span>
+          </div>
+          <div id="live-feed" class="flex-1 overflow-y-auto p-2 space-y-2">
+            <div class="bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 toast-item">
+              <span class="material-symbols-outlined text-warning text-[18px] mt-0.5">report_problem</span>
+              <div>
+                <div class="font-body-md text-text-primary">Illegal Dumping Detected</div>
+                <div class="font-label-mono text-label-mono text-text-secondary mt-1">Zone 4A • 1m ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="detail-drawer" class="ml-auto w-[400px] glass-panel rounded-t-xl md:rounded-lg flex flex-col max-h-[calc(100vh-120px)] overflow-hidden">
+          <div class="p-4 border-b border-white/5 bg-black/40 flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-label-mono border border-danger/30">URGENCY: CRITICAL</span>
+                <span class="font-label-mono text-label-mono text-text-secondary">#REP-8992</span>
+              </div>
+              <h3 class="font-headline-md text-headline-md text-text-primary">Waste Spill Detected</h3>
+            </div>
+            <button class="text-text-secondary hover:text-text-primary" onclick="document.getElementById('detail-drawer').classList.toggle('hidden')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="p-4 overflow-y-auto flex-1 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <div class="font-label-sm text-label-sm text-text-secondary mb-1 uppercase tracking-wider">Location</div>
+                <div class="font-body-md text-text-primary">Sector 4, Industrial Pkwy</div>
+              </div>
+              <div>
+                <div class="font-label-sm text-label-sm text-text-secondary mb-1 uppercase tracking-wider">Status</div>
+                <div class="font-body-md text-primary">Pending Verification</div>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 border-t border-white/5 bg-black/40 flex gap-3">
+            <button onclick="navigate('page-reports')" class="flex-1 bg-primary/90 text-white font-label-sm text-label-sm py-2.5 rounded-md hover:bg-primary transition-colors flex justify-center items-center gap-2 font-bold">
+              <span class="material-symbols-outlined text-[18px]">verified</span> VERIFY & DISPATCH
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — REPORTS QUEUE
+══════════════════════════════════════════════════════ -->
+<div id="page-reports" class="page flex h-screen w-screen overflow-hidden">
+  <canvas id="webgl-canvas" class="fixed inset-0 w-full h-full z-[-1] pointer-events-none"></canvas>
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start fade-in-up">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">Municipal Admin</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+    <div class="mt-auto flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-profile')" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">person</span><span>My Profile</span>
+      </button>
+      <button onclick="navigate('page-landing')" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">swap_horiz</span><span>Exit Admin</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col overflow-hidden relative bg-transparent">
+    <header class="h-16 glass-panel border-b border-white/5 flex items-center justify-between px-gutter shrink-0 relative z-10">
+      <h1 class="font-headline-lg text-headline-lg text-text-primary">Reports Queue</h1>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
+          <input id="reports-filter" onkeyup="filterReports()" class="bg-black/30 border border-white/10 text-text-primary font-body-md text-body-md rounded pl-9 pr-4 py-1.5 focus:outline-none focus:border-primary/50 transition-all w-64" placeholder="Filter reports..."/>
+        </div>
+        <div class="flex bg-black/30 rounded border border-white/10 overflow-hidden">
+          <button onclick="filterByStatus('all')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm bg-white/10 text-text-primary border-r border-white/10">All</button>
+          <button onclick="filterByStatus('pending')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary border-r border-white/10">Pending</button>
+          <button onclick="filterByStatus('critical')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary">Critical</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden p-2 gap-2 relative z-10">
+      <div class="flex-[2] glass-panel rounded-lg flex flex-col overflow-hidden">
+        <div class="bg-black/40 border-b border-white/5 flex items-center px-4 py-2 font-label-sm text-label-sm text-text-secondary uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+          <div class="w-16">ID</div>
+          <div class="w-20">Thumb</div>
+          <div class="flex-1">Waste Type</div>
+          <div class="w-24 text-center">Urgency</div>
+          <div class="w-28 text-center">Status</div>
+          <div class="w-32">AI Conf.</div>
+          <div class="w-24 text-right">Time</div>
+        </div>
+        <div id="reports-table-body" class="flex-1 overflow-y-auto"></div>
+      </div>
+
+      <div class="flex-1 flex flex-col gap-2">
+        <div id="verify-panel" class="glass-panel rounded-lg p-4 flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="font-headline-md text-headline-md text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">robot_2</span> AI Verification
+            </h2>
+            <span id="verify-report-id" class="font-label-mono text-label-mono text-text-secondary border border-white/10 px-2 py-1 rounded bg-black/30">Select a report</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="bg-black/30 p-2 rounded border border-white/10">
+              <div class="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Primary Detection</div>
+              <div id="detect-label" class="font-label-mono text-label-mono text-primary font-bold">—</div>
+            </div>
+            <div class="bg-black/30 p-2 rounded border border-white/10">
+              <div class="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Urgency Score</div>
+              <div id="detect-urgency" class="font-label-mono text-label-mono text-warning font-bold">—</div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button onclick="verifyReport()" class="w-full bg-primary/90 text-white font-label-sm text-label-sm py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-2 font-bold">
+              <span class="material-symbols-outlined text-[18px]">check_circle</span> Verify & Escalate
+            </button>
+            <button onclick="rejectReport()" class="w-full bg-danger/10 text-danger border border-danger/30 font-label-sm text-label-sm py-2 rounded hover:bg-danger/20 transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[16px]">cancel</span> Reject Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — HOTSPOTS
+══════════════════════════════════════════════════════ -->
+<div id="page-hotspots" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">Hotspot Cluster Map</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">Active Hotspots</h1>
+        <p class="text-text-secondary text-sm">Clustered waste accumulation zones (DBSCAN 200m radius)</p>
+      </div>
+      <button onclick="recomputeHotspots()" id="recompute-btn" class="bg-primary text-white font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+        <span class="material-symbols-outlined text-[18px]">sync</span> Recompute Clusters
+      </button>
+    </div>
+
+    <div id="hotspots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Populated by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — FLEET DISPATCH
+══════════════════════════════════════════════════════ -->
+<div id="page-fleet" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">Fleet & Dispatch</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">Fleet Dispatch Command</h1>
+        <p class="text-text-secondary text-sm">Active vehicle assignments, status tracking, and field team dispatch</p>
+      </div>
+      <button onclick="dispatchTeam()" class="bg-primary text-white font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+        <span class="material-symbols-outlined text-[18px]">add</span> New Dispatch Order
+      </button>
+    </div>
+
+    <div id="fleet-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Populated by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — ANALYTICS
+══════════════════════════════════════════════════════ -->
+<div id="page-analytics" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">Municipal Analytics</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
+    <div class="mb-6">
+      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">Performance Analytics</h1>
+      <p class="text-text-secondary text-sm">Real-time metrics, waste breakdown, and operational efficiency stats</p>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="glass-card p-5 rounded-xl">
+        <div class="text-text-secondary font-label-sm uppercase mb-1">Total Reports</div>
+        <div id="analytics-total" class="font-headline-xl text-headline-xl font-bold text-text-primary">124</div>
+        <div class="text-xs text-primary mt-2">↑ 12% vs last week</div>
+      </div>
+      <div class="glass-card p-5 rounded-xl">
+        <div class="text-text-secondary font-label-sm uppercase mb-1">Resolution Rate</div>
+        <div id="analytics-rate" class="font-headline-xl text-headline-xl font-bold text-success">88.4%</div>
+        <div class="text-xs text-text-secondary mt-2">Avg resolution: 42 mins</div>
+      </div>
+      <div class="glass-card p-5 rounded-xl">
+        <div class="text-text-secondary font-label-sm uppercase mb-1">Active Hotspots</div>
+        <div id="analytics-hotspots" class="font-headline-xl text-headline-xl font-bold text-warning">8</div>
+        <div class="text-xs text-text-secondary mt-2">3 critical severity</div>
+      </div>
+      <div class="glass-card p-5 rounded-xl">
+        <div class="text-text-secondary font-label-sm uppercase mb-1">AI Classification Conf.</div>
+        <div id="analytics-conf" class="font-headline-xl text-headline-xl font-bold text-accent">91.8%</div>
+        <div class="text-xs text-text-secondary mt-2">YOLOv8 fine-tuned</div>
+      </div>
+    </div>
+
+    <!-- Breakdown Charts Simulation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="glass-card p-6 rounded-xl">
+        <h3 class="font-headline-md text-headline-md font-bold mb-4 text-text-primary">Waste Category Distribution</h3>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span>🧴 Plastic</span><span>38%</span></div>
+            <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-primary" style="width:38%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span>📦 Cardboard & Paper</span><span>27%</span></div>
+            <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-accent" style="width:27%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span>⚠️ Hazardous Waste</span><span>18%</span></div>
+            <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-danger" style="width:18%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span>🍂 Organic & Food</span><span>17%</span></div>
+            <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-warning" style="width:17%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-xl">
+        <h3 class="font-headline-md text-headline-md font-bold mb-4 text-text-primary">Response Time SLA</h3>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-white/5 pb-3">
+            <div>
+              <div class="font-bold text-text-primary">AI Processing Time</div>
+              <div class="text-xs text-text-secondary">From submission to initial classification</div>
+            </div>
+            <div class="font-label-mono font-bold text-primary">1.2 seconds</div>
+          </div>
+          <div class="flex items-center justify-between border-b border-white/5 pb-3">
+            <div>
+              <div class="font-bold text-text-primary">Admin Verification</div>
+              <div class="text-xs text-text-secondary">Average queue waiting time</div>
+            </div>
+            <div class="font-label-mono font-bold text-accent">4.5 minutes</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold text-text-primary">Field Team Dispatch</div>
+              <div class="text-xs text-text-secondary">From order to arrival on scene</div>
+            </div>
+            <div class="font-label-mono font-bold text-success">18 minutes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN — SETTINGS
+══════════════════════════════════════════════════════ -->
+<div id="page-settings" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">System Settings</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+      </button>
+      <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+      </button>
+      <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
+    <div class="mb-6">
+      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">System & Connection Settings</h1>
+      <p class="text-text-secondary text-sm">Configure backend endpoints, demo mode, AI thresholds, and notifications</p>
+    </div>
+
+    <div class="max-w-3xl space-y-6">
+      <!-- Connection Settings Card -->
+      <div class="glass-card p-6 rounded-xl border border-white/10">
+        <h2 class="font-headline-md text-headline-md font-bold mb-4 text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">lan</span> Backend API Connection
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-text-secondary font-label-sm uppercase mb-1">REST API Base URL</label>
+            <input id="setting-api-url" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-text-primary font-label-mono focus:border-primary outline-none" placeholder="http://localhost/api/v1"/>
+            <span class="text-xs text-text-secondary mt-1 block">Default: http://localhost/api/v1 (or http://localhost:8000/api/v1)</span>
+          </div>
+
+          <div>
+            <label class="block text-text-secondary font-label-sm uppercase mb-1">WebSocket URL</label>
+            <input id="setting-ws-url" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-text-primary font-label-mono focus:border-primary outline-none" placeholder="ws://localhost/ws"/>
+            <span class="text-xs text-text-secondary mt-1 block">Default: ws://localhost/ws (or ws://localhost:8000/ws)</span>
+          </div>
+
+          <div class="flex items-center gap-4 pt-2">
+            <button onclick="testConnection()" id="test-conn-btn" class="bg-primary/20 text-primary border border-primary/40 font-label-sm py-2.5 px-5 rounded-lg hover:bg-primary/30 transition-all flex items-center gap-2 font-bold">
+              <span class="material-symbols-outlined text-[18px]">network_check</span> Test Backend Connection
+            </button>
+            <div id="test-conn-result" class="text-sm font-label-mono"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode & AI Thresholds -->
+      <div class="glass-card p-6 rounded-xl border border-white/10">
+        <h2 class="font-headline-md text-headline-md font-bold mb-4 text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-accent">tune</span> Operation Mode & AI Thresholds
+        </h2>
+
+        <div class="space-y-5">
+          <div class="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/5">
+            <div>
+              <div class="font-bold text-text-primary">Force Demo Mode</div>
+              <div class="text-xs text-text-secondary">Simulate full AI classification & reports offline without backend DB</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="setting-demo-toggle" type="checkbox" class="sr-only peer" onchange="toggleDemoSetting(this)"/>
+              <div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-text-secondary font-label-sm uppercase">AI Confidence Threshold</label>
+              <span id="ai-threshold-val" class="font-label-mono text-primary font-bold">45%</span>
+            </div>
+            <input id="setting-ai-thresh" type="range" min="30" max="90" value="45" class="w-full accent-primary" oninput="document.getElementById('ai-threshold-val').textContent = this.value + '%'"/>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-text-secondary font-label-sm uppercase">Hotspot Cluster Radius (meters)</label>
+              <span id="radius-val" class="font-label-mono text-accent font-bold">200m</span>
+            </div>
+            <input id="setting-hotspot-rad" type="range" min="50" max="500" step="25" value="200" class="w-full accent-accent" oninput="document.getElementById('radius-val').textContent = this.value + 'm'"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-4">
+        <button onclick="saveSettings()" class="bg-primary text-white font-label-sm py-3 px-6 rounded-lg hover:opacity-90 transition-all font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(35,134,54,0.4)]">
+          <span class="material-symbols-outlined text-[18px]">save</span> Save Settings
+        </button>
+        <button onclick="resetSettings()" class="bg-white/5 border border-white/10 text-text-secondary font-label-sm py-3 px-6 rounded-lg hover:bg-white/10 hover:text-text-primary transition-all font-bold">
+          Reset to Defaults
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE: ADMIN / CITIZEN — PROFILE
+══════════════════════════════════════════════════════ -->
+<div id="page-profile" class="page flex h-screen w-screen overflow-hidden">
+  <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
+    <div class="px-6 mb-8 flex flex-col items-start">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div>
+          <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
+          <span class="font-label-sm text-label-sm text-text-secondary">User Profile</span>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 flex flex-col gap-1 w-full">
+      <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
+      </button>
+      <button onclick="navigate('page-profile')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined">person</span><span>My Profile</span>
+      </button>
+      <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
+    <div class="mb-6">
+      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">User Profile & Account</h1>
+      <p class="text-text-secondary text-sm">Manage user credentials, role permissions, and token sessions</p>
+    </div>
+
+    <div class="max-w-2xl space-y-6">
+      <div class="glass-card p-6 rounded-xl border border-white/10 flex items-center gap-5">
+        <div class="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary text-2xl font-bold">
+          B
+        </div>
+        <div>
+          <h2 id="profile-name" class="font-headline-md text-headline-md font-bold text-text-primary">BinGO Citizen User</h2>
+          <p id="profile-email" class="text-text-secondary font-label-mono text-xs mt-0.5">citizen@bingo.app</p>
+          <span id="profile-role-badge" class="inline-block mt-2 px-2.5 py-0.5 rounded text-[10px] font-bold font-label-mono bg-primary/20 text-primary border border-primary/30 uppercase">CITIZEN</span>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-xl border border-white/10 space-y-4">
+        <h3 class="font-headline-md text-headline-md font-bold text-text-primary">Role Switcher</h3>
+        <p class="text-text-secondary text-sm">Select role to test RBAC endpoint permissions across the platform:</p>
+        <div class="grid grid-cols-3 gap-3">
+          <button onclick="switchRole('citizen')" class="p-3 glass-panel rounded-lg border border-primary/30 text-center hover:bg-primary/20">
+            <div class="font-bold text-primary">Citizen</div>
+            <div class="text-[10px] text-text-secondary">Report creation & status tracking</div>
+          </button>
+          <button onclick="switchRole('field_agent')" class="p-3 glass-panel rounded-lg border border-accent/30 text-center hover:bg-accent/20">
+            <div class="font-bold text-accent">Field Agent</div>
+            <div class="text-[10px] text-text-secondary">Report resolution & after-photos</div>
+          </button>
+          <button onclick="switchRole('municipal_admin')" class="p-3 glass-panel rounded-lg border border-warning/30 text-center hover:bg-warning/20">
+            <div class="font-bold text-warning">Municipal Admin</div>
+            <div class="text-[10px] text-text-secondary">AI verification & fleet dispatch</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT: Router + API + WebSocket + Settings
+══════════════════════════════════════════════════════ -->
+<script>
+// Config Getters (reading from localStorage with fallbacks)
+function getApiBase() {
+  return localStorage.getItem('bingo_api_url') || 'http://localhost/api/v1';
+}
+function getWsBase() {
+  return localStorage.getItem('bingo_ws_url') || 'ws://localhost/ws';
+}
+function isDemoMode() {
+  return localStorage.getItem('bingo_demo_mode') === 'true';
+}
+
+let API_BASE = getApiBase();
+let WS_BASE  = getWsBase();
+
+let currentReportId = null;
+let selectedReportRow = null;
+let wsConnection = null;
+let userLocation = { lat: null, lng: null };
+let currentPhotoFile = null;
+
+// Mock Data
+const MOCK_REPORTS = [
+  { id:'R-094', waste_type:'mixed', waste_label:'Bulk Debris', urgency_score:85, status:'pending_ai', ai_confidence:0.92, time:'10m ago' },
+  { id:'R-093', waste_type:'cardboard', waste_label:'Cardboard', urgency_score:45, status:'verified', ai_confidence:0.88, time:'25m ago' },
+  { id:'R-091', waste_type:'hazardous', waste_label:'Hazardous', urgency_score:92, status:'pending_ai', ai_confidence:0.95, time:'38m ago' },
+  { id:'R-089', waste_type:'plastic', waste_label:'Plastic 🧴', urgency_score:38, status:'dispatched', ai_confidence:0.79, time:'1h ago' },
+  { id:'R-087', waste_type:'organic', waste_label:'Organic 🍂', urgency_score:61, status:'resolved', ai_confidence:0.83, time:'2h ago' },
+];
+
+const MOCK_HOTSPOTS = [
+  { id:'HS-101', severity:'critical', report_count:14, dominant_waste_type:'hazardous', lat:40.7580, lng:-73.9855, address:'Times Square / 42nd St' },
+  { id:'HS-102', severity:'high', report_count:9, dominant_waste_type:'plastic', lat:40.7128, lng:-74.0060, address:'Civic Center Plaza' },
+  { id:'HS-103', severity:'medium', report_count:5, dominant_waste_type:'cardboard', lat:40.7484, lng:-73.9857, address:'Garment District Sector 2' }
+];
+
+const MOCK_FLEET = [
+  { team:'Unit 7 — Compact Tipper', vehicle:'Ford F-550 Waste Tipper', status:'En Route', assignment:'Report #R-094', eta:'8 mins' },
+  { team:'Unit 3 — Heavy Hauler', vehicle:'Volvo FM Dump Truck', status:'On Site', assignment:'Hotspot #HS-101', eta:'Active' },
+  { team:'Unit 12 — Rapid Clean Crew', vehicle:'Van + Crew', status:'Standby', assignment:'Sector 4 Station', eta:'Available' }
+];
+
+const WASTE_ICONS = {
+  cardboard:'📦', glass:'🍶', metal:'🥫', paper:'📄', plastic:'🧴',
+  organic:'🍂', hazardous:'⚠️', mixed:'🗑️', unknown:'❓'
+};
+
+const STATUS_COLORS = {
+  pending_ai:  'text-warning border-warning/50 bg-warning/10',
+  ai_processed:'text-accent border-accent/50 bg-accent/10',
+  verified:    'text-primary border-primary/50 bg-primary/10',
+  duplicate:   'text-text-secondary border-white/20 bg-white/5',
+  dispatched:  'text-secondary border-secondary/50 bg-secondary/10',
+  in_progress: 'text-warning border-warning/50 bg-warning/10',
+  resolved:    'text-success border-success/50 bg-success/10',
+  rejected:    'text-danger border-danger/50 bg-danger/10',
+};
+
+// ─────────────────────────────────────────────
+// Router
+// ─────────────────────────────────────────────
+function navigate(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if (page) {
+    page.classList.add('active');
+    if (pageId === 'page-dashboard') { initDashboard(); }
+    if (pageId === 'page-reports')   { initReportsQueue(); }
+    if (pageId === 'page-tracking')  { initTrackingPage(); }
+    if (pageId === 'page-submit')    { initSubmitPage(); }
+    if (pageId === 'page-hotspots')  { initHotspotsPage(); }
+    if (pageId === 'page-fleet')     { initFleetPage(); }
+    if (pageId === 'page-analytics'){ initAnalyticsPage(); }
+    if (pageId === 'page-settings') { initSettingsPage(); }
+    if (pageId === 'page-profile')  { initProfilePage(); }
+  }
+}
+
+// ─────────────────────────────────────────────
+// WebGL Background Shader
+// ─────────────────────────────────────────────
+function initShader(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  function syncSize() {
+    canvas.width  = canvas.clientWidth  || window.innerWidth;
+    canvas.height = canvas.clientHeight || window.innerHeight;
+  }
+  syncSize();
+  window.addEventListener('resize', syncSize);
+  const gl = canvas.getContext('webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_pos;varying vec2 v_uv;void main(){v_uv=a_pos*.5+.5;gl_Position=vec4(a_pos,0,1);}`;
+  const fs = `precision highp float;varying vec2 v_uv;uniform float u_t;uniform vec2 u_res;
+    void main(){
+      vec2 p=(v_uv-.5)*2.;p.x*=u_res.x/u_res.y;
+      float d=length(p);float n=sin(d*10.-u_t*2.)*.5+.5;
+      vec3 c1=vec3(.02,.03,.04);vec3 c2=vec3(.14,.52,.21);
+      vec3 col=mix(c1,c2,n*.12*exp(-d*.6));
+      col*=1.-(sin(v_uv.y*u_res.y*1.5)*.025);
+      gl_FragColor=vec4(col,1.);
+    }`;
+  function cs(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
+  const prog=gl.createProgram();
+  gl.attachShader(prog,cs(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,cs(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'a_pos');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const uT=gl.getUniformLocation(prog,'u_t');
+  const uR=gl.getUniformLocation(prog,'u_res');
+  function render(t){
+    syncSize();gl.viewport(0,0,canvas.width,canvas.height);
+    gl.uniform1f(uT,t*.001);gl.uniform2f(uR,canvas.width,canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(render);
+  }
+  render(0);
+}
+
+// Toasts
+function showToast(message, type = 'info', duration = 4000) {
+  const colors = {
+    info:    'border-accent/40 text-accent',
+    success: 'border-primary/40 text-primary',
+    warning: 'border-warning/40 text-warning',
+    error:   'border-danger/40 text-danger',
+  };
+  const icons = { info:'info', success:'check_circle', warning:'warning', error:'error' };
+  const toast = document.createElement('div');
+  toast.className = `pointer-events-auto glass-card rounded-lg p-3 flex items-start gap-3 border ${colors[type]} toast-item`;
+  toast.innerHTML = `
+    <span class="material-symbols-outlined text-[18px] mt-0.5">${icons[type]}</span>
+    <div class="flex-1 font-body-md text-text-primary text-[13px]">${message}</div>
+    <button onclick="this.parentElement.remove()" class="text-text-secondary hover:text-text-primary ml-1">
+      <span class="material-symbols-outlined text-[16px]">close</span>
+    </button>`;
+  const container = document.getElementById('toast-container');
+  if (container) container.appendChild(toast);
+  setTimeout(() => toast.remove(), duration);
+}
+
+// Health Check
+async function checkBackend() {
+  const el = document.getElementById('backend-status');
+  if (isDemoMode()) {
+    if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span> <span class="text-warning">Demo Mode (Offline)</span>`;
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE.replace('/api/v1', '')}/health`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(63,185,80,0.8)]"></span> <span class="text-success">Backend connected — BinGO API active</span>`;
+      showToast('Backend connected successfully!', 'success');
+    } else { throw new Error(); }
+  } catch {
+    if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span> <span class="text-warning">Backend offline — demo mode fallback</span>`;
+    showToast('Backend unreachable. Running in demo mode with mock data.', 'warning', 5000);
+  }
+}
+
+// Submit Page Init
+function initSubmitPage() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLocation.lat = pos.coords.latitude;
+    userLocation.lng = pos.coords.longitude;
+    document.getElementById('location-display').textContent = `Detected GPS location`;
+    document.getElementById('coords-display').textContent = `LAT: ${userLocation.lat.toFixed(5)}°  LON: ${userLocation.lng.toFixed(5)}°`;
+  }, () => {
+    userLocation.lat = 40.7128; userLocation.lng = -74.0060;
+    document.getElementById('location-display').textContent = '1042 Industrial Pkwy, Sector 4';
+    document.getElementById('coords-display').textContent = 'LAT: 40.7128°  LON: 74.0060°';
+  });
+}
+
+function toggleNotes() {
+  document.getElementById('notes-panel').classList.toggle('hidden');
+}
+
+function onPhotoSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  currentPhotoFile = input.files[0];
+  const pill = document.getElementById('ai-status-pill');
+  pill.innerHTML = `<p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-widest uppercase">
+    <span class="material-symbols-outlined text-sm" style="animation:spin-slow 2s linear infinite;">memory</span>
+    Photo ready — submit report!
+  </p>`;
+  document.getElementById('notes-panel').classList.remove('hidden');
+  showToast('📸 Photo captured! Add notes and submit.', 'success');
+}
+
+async function submitReport() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Submitting...`;
+
+  const lat = userLocation.lat || 40.7128;
+  const lng = userLocation.lng || -74.0060;
+  const desc = document.getElementById('description-input').value;
+
+  try {
+    if (currentPhotoFile && !isDemoMode()) {
+      const formData = new FormData();
+      formData.append('latitude', lat);
+      formData.append('longitude', lng);
+      formData.append('description', desc);
+      formData.append('photo', currentPhotoFile);
+      const res = await fetch(`${API_BASE}/reports`, { method: 'POST', body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        currentReportId = data.id;
+      } else { throw new Error(); }
+    } else {
+      currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    }
+    showToast('✅ BinGO Report submitted! AI processing started...', 'success');
+    navigate('page-tracking');
+    setTimeout(() => simulateAIProgress(), 1000);
+  } catch (e) {
+    currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    showToast('Queued report locally (Demo mode).', 'warning');
+    navigate('page-tracking');
+    setTimeout(() => simulateAIProgress(), 1000);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">send</span> Submit Report`;
+  }
+}
+
+// Tracking Page
+function initTrackingPage() {
+  const id = currentReportId || '#DEMO-882A';
+  document.getElementById('tracking-report-id').textContent = 'Report ' + id;
+  document.getElementById('tracking-location').innerHTML = `<span class="material-symbols-outlined text-[16px]">location_on</span> ${userLocation.lat ? userLocation.lat.toFixed(4)+'°N, '+Math.abs(userLocation.lng).toFixed(4)+'°W' : 'Sector 4, Industrial Pkwy'}`;
+}
+
+function simulateAIProgress() {
+  markStep('step-submitted', 'done', new Date().toLocaleTimeString());
+  setTimeout(() => {
+    markStep('step-ai', 'done', new Date().toLocaleTimeString());
+    updateAICard({ waste_type:'plastic', waste_label:'Plastic 🧴', volume:0.45, urgency:72, vehicle:'Compact Van + Crew' });
+    showToast('🤖 BinGO AI classified waste: Plastic (Urgency: 72/100)', 'info');
+    setTimeout(() => markStep('step-verified', 'active', new Date().toLocaleTimeString()), 2500);
+  }, 2500);
+}
+
+function markStep(stepId, state, time) {
+  const el = document.getElementById(stepId);
+  if (!el) return;
+  const dot = el.querySelector('div');
+  if (state === 'done') {
+    dot.className = 'w-7 h-7 rounded-full bg-surface-container-high border border-primary/50 flex items-center justify-center shrink-0 mt-0.5';
+    dot.innerHTML = '<span class="material-symbols-outlined text-[14px] text-primary">check</span>';
+  } else if (state === 'active') {
+    dot.className = 'w-7 h-7 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5 timeline-pulse';
+    dot.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>';
+  }
+}
+
+function updateAICard(data) {
+  const icon = WASTE_ICONS[data.waste_type] || '🗑️';
+  document.getElementById('waste-type-badge').innerHTML = `<span>${icon}</span> ${data.waste_label}`;
+  document.getElementById('volume-display').textContent = `~${data.volume} m³`;
+  document.getElementById('urgency-score').textContent = data.urgency;
+  document.getElementById('vehicle-rec').textContent = data.vehicle;
+  const arc = document.getElementById('urgency-arc');
+  if (arc) {
+    arc.style.strokeDashoffset = 251.2 * (1 - data.urgency / 100);
+  }
+}
+
+// Dashboard Init
+function initDashboard() {
+  initShader('shader-canvas');
+  loadDashboardStats();
+}
+
+async function loadDashboardStats() {
+  if (isDemoMode()) {
+    document.getElementById('stat-reports').textContent = '124';
+    document.getElementById('stat-hotspots').textContent = '8';
+    document.getElementById('stat-teams').textContent = '14';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/analytics/summary?days=1`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const d = await res.json();
+      document.getElementById('stat-reports').textContent = d.total_reports ?? '124';
+      document.getElementById('stat-hotspots').textContent = d.active_hotspots ?? '8';
+      document.getElementById('stat-teams').textContent = d.teams_deployed ?? '14';
+    } else throw new Error();
+  } catch {
+    document.getElementById('stat-reports').textContent = '124';
+    document.getElementById('stat-hotspots').textContent = '8';
+    document.getElementById('stat-teams').textContent = '14';
+  }
+}
+
+// Reports Queue
+let allReports = [];
+async function initReportsQueue() {
+  initShader('webgl-canvas');
+  if (isDemoMode()) {
+    allReports = MOCK_REPORTS;
+  } else {
+    try {
+      const res = await fetch(`${API_BASE}/reports?page_size=20`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const d = await res.json();
+        allReports = d.items || d;
+      } else throw new Error();
+    } catch {
+      allReports = MOCK_REPORTS;
+    }
+  }
+  renderReportsTable(allReports);
+}
+
+function renderReportsTable(reports) {
+  const tbody = document.getElementById('reports-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  reports.forEach((r, i) => {
+    const urgColor = r.urgency_score >= 75 ? 'text-danger' : r.urgency_score >= 40 ? 'text-warning' : 'text-primary';
+    const icon = WASTE_ICONS[r.waste_type] || '🗑️';
+    const conf = Math.round((r.ai_confidence || 0.85) * 100);
+    const row = document.createElement('div');
+    row.className = 'flex items-center px-4 py-2 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors';
+    row.dataset.id = r.id;
+    row.innerHTML = `
+      <div class="w-16 font-label-mono text-text-secondary">#${r.id}</div>
+      <div class="w-20"><div class="w-10 h-7 bg-black/50 border border-white/10 rounded flex items-center justify-center text-lg">${icon}</div></div>
+      <div class="flex-1 font-bold text-text-primary">${r.waste_label || r.waste_type}</div>
+      <div class="w-24 text-center font-label-mono font-bold ${urgColor}">${r.urgency_score}</div>
+      <div class="w-28 text-center"><span class="px-2 py-0.5 border rounded text-[10px] font-bold uppercase ${STATUS_COLORS[r.status] || ''}">${r.status}</span></div>
+      <div class="w-32 font-label-mono text-text-secondary">${conf}%</div>
+      <div class="w-24 text-right font-label-mono text-text-secondary">${r.time || 'Recent'}</div>`;
+    row.onclick = () => selectReport(r, row);
+    tbody.appendChild(row);
+  });
+}
+
+function selectReport(report, rowEl) {
+  if (selectedReportRow) selectedReportRow.classList.remove('bg-white/10');
+  selectedReportRow = rowEl;
+  rowEl.classList.add('bg-white/10');
+  document.getElementById('verify-report-id').textContent = '#' + report.id;
+  document.getElementById('detect-label').textContent = (WASTE_ICONS[report.waste_type] || '') + ' ' + (report.waste_label || report.waste_type);
+  document.getElementById('detect-urgency').textContent = (report.urgency_score || 0) + ' / 100';
+}
+
+function filterReports() {
+  const q = document.getElementById('reports-filter').value.toLowerCase();
+  renderReportsTable(allReports.filter(r => (r.id + ' ' + r.waste_type).toLowerCase().includes(q)));
+}
+
+function filterByStatus(status) {
+  const filtered = status === 'all' ? allReports :
+    status === 'critical' ? allReports.filter(r => r.urgency_score >= 75) :
+    allReports.filter(r => r.status.includes(status));
+  renderReportsTable(filtered);
+}
+
+async function verifyReport() {
+  if (!selectedReportRow) { showToast('Select a report first', 'warning'); return; }
+  showToast('✅ BinGO: Report verified and escalated for dispatch!', 'success');
+}
+
+async function rejectReport() {
+  if (!selectedReportRow) { showToast('Select a report first', 'warning'); return; }
+  showToast('Report rejected.', 'warning');
+}
+
+// Hotspots Page
+async function initHotspotsPage() {
+  const container = document.getElementById('hotspots-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  let hotspots = MOCK_HOTSPOTS;
+  if (!isDemoMode()) {
+    try {
+      const res = await fetch(`${API_BASE}/hotspots`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) hotspots = await res.json();
+    } catch {}
+  }
+
+  hotspots.forEach(h => {
+    const color = h.severity === 'critical' ? 'text-danger border-danger/40' : h.severity === 'high' ? 'text-warning border-warning/40' : 'text-primary border-primary/40';
+    const card = document.createElement('div');
+    card.className = `glass-card p-5 rounded-xl border ${color} relative overflow-hidden`;
+    card.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <span class="px-2.5 py-1 rounded text-[10px] font-bold font-label-mono uppercase border ${color}">${h.severity} SEVERITY</span>
+        <span class="font-label-mono text-xs text-text-secondary">#${h.id}</span>
+      </div>
+      <h3 class="font-headline-md font-bold text-text-primary mb-1">${h.address || 'District Zone'}</h3>
+      <div class="font-label-mono text-xs text-text-secondary mb-4">${h.lat.toFixed(4)}°N, ${Math.abs(h.lng).toFixed(4)}°W</div>
+      <div class="flex justify-between items-center pt-3 border-t border-white/10 text-sm">
+        <span class="text-text-secondary">Accumulated Reports:</span>
+        <span class="font-bold text-text-primary font-label-mono">${h.report_count} reports</span>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+async function recomputeHotspots() {
+  const btn = document.getElementById('recompute-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Computing...`;
+  try {
+    if (!isDemoMode()) {
+      await fetch(`${API_BASE}/hotspots/recompute`, { method: 'POST' });
+    }
+    showToast('🔥 Hotspots recomputed using DBSCAN clustering algorithm!', 'success');
+    initHotspotsPage();
+  } catch {
+    showToast('Hotspots recomputed (Demo mode)', 'success');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">sync</span> Recompute Clusters`;
+  }
+}
+
+// Fleet Page
+function initFleetPage() {
+  const container = document.getElementById('fleet-container');
+  if (!container) return;
+  container.innerHTML = '';
+  MOCK_FLEET.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'glass-card p-5 rounded-xl border border-white/10';
+    card.innerHTML = `
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">local_shipping</span>
+        </div>
+        <div>
+          <div class="font-bold text-text-primary">${f.team}</div>
+          <div class="text-xs text-text-secondary">${f.vehicle}</div>
+        </div>
+      </div>
+      <div class="space-y-2 text-sm pt-2 border-t border-white/5">
+        <div class="flex justify-between"><span class="text-text-secondary">Status:</span><span class="font-bold text-primary">${f.status}</span></div>
+        <div class="flex justify-between"><span class="text-text-secondary">Assignment:</span><span class="font-label-mono text-text-primary">${f.assignment}</span></div>
+        <div class="flex justify-between"><span class="text-text-secondary">ETA:</span><span class="font-bold text-warning">${f.eta}</span></div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function dispatchTeam() {
+  showToast('🚚 New dispatch order dispatched to available fleet unit.', 'success');
+}
+
+// Analytics Page
+function initAnalyticsPage() {}
+
+// Settings Page
+function initSettingsPage() {
+  document.getElementById('setting-api-url').value = getApiBase();
+  document.getElementById('setting-ws-url').value  = getWsBase();
+  document.getElementById('setting-demo-toggle').checked = isDemoMode();
+}
+
+async function testConnection() {
+  const url = document.getElementById('setting-api-url').value || 'http://localhost/api/v1';
+  const resEl = document.getElementById('test-conn-result');
+  const btn = document.getElementById('test-conn-btn');
+  btn.disabled = true;
+  resEl.innerHTML = `<span class="text-warning">Testing connection...</span>`;
+
+  const start = performance.now();
+  try {
+    const res = await fetch(`${url.replace('/api/v1', '')}/health`, { signal: AbortSignal.timeout(4000) });
+    const latency = Math.round(performance.now() - start);
+    if (res.ok) {
+      resEl.innerHTML = `<span class="text-success font-bold">🟢 Connected (${latency} ms)</span>`;
+      showToast(`Connected to BinGO API backend in ${latency} ms!`, 'success');
+    } else { throw new Error(); }
+  } catch {
+    resEl.innerHTML = `<span class="text-danger font-bold">🔴 Unreachable</span>`;
+    showToast('Could not reach backend at specified URL.', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function saveSettings() {
+  const api = document.getElementById('setting-api-url').value.trim();
+  const ws  = document.getElementById('setting-ws-url').value.trim();
+  const demo = document.getElementById('setting-demo-toggle').checked;
+
+  if (api) localStorage.setItem('bingo_api_url', api);
+  if (ws)  localStorage.setItem('bingo_ws_url', ws);
+  localStorage.setItem('bingo_demo_mode', demo ? 'true' : 'false');
+
+  API_BASE = getApiBase();
+  WS_BASE  = getWsBase();
+
+  showToast('⚙️ Settings saved successfully!', 'success');
+  checkBackend();
+}
+
+function resetSettings() {
+  localStorage.removeItem('bingo_api_url');
+  localStorage.removeItem('bingo_ws_url');
+  localStorage.removeItem('bingo_demo_mode');
+  initSettingsPage();
+  showToast('Settings reset to defaults.', 'info');
+}
+
+function toggleDemoSetting(input) {
+  localStorage.setItem('bingo_demo_mode', input.checked ? 'true' : 'false');
+  checkBackend();
+}
+
+// Profile Page
+function initProfilePage() {}
+
+function switchRole(role) {
+  const badge = document.getElementById('profile-role-badge');
+  if (badge) {
+    badge.textContent = role.toUpperCase();
+  }
+  showToast(`Switched active role context to: ${role}`, 'info');
+}
+
+// Boot
+window.addEventListener('DOMContentLoaded', () => {
+  initShader('webgl-bg');
+  checkBackend();
+});
+</script>
+</body>
+</html>

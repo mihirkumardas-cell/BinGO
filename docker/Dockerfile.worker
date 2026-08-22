@@ -1,0 +1,26 @@
+FROM python:3.12-slim
+
+LABEL maintainer="CleanTrack AI <ops@cleantrack.ai>"
+LABEL description="CleanTrack AI — arq Background Worker"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    libgeos-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
+
+RUN adduser --disabled-password --gecos "" worker && \
+    chown -R worker:worker /app
+USER worker
+
+CMD ["arq", "app.workers.worker_main.WorkerSettings"]
