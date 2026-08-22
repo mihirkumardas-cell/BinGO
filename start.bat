@@ -1,9 +1,10 @@
 @echo off
-title BinGO — Smart Waste Platform Launcher
+title BinGO — Smart Waste Management Platform Launcher
 color 0A
+cls
 echo.
 echo  ======================================================
-echo   BinGO  ^|  Smart Waste Management & AI Platform
+echo   BinGO  ^|  Smart Waste Management ^& AI Platform
 echo  ======================================================
 echo.
 
@@ -18,41 +19,54 @@ if not exist "%INDEX_FILE%" (
     exit /b 1
 )
 
-echo  [1/3] Checking Docker status...
+echo  [1/3] Checking environment ^& Docker status...
 docker info >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo  [WARNING] Docker Desktop is not running or not installed.
-    echo  Launching BinGO in standalone Demo Mode (Offline)...
-    echo.
-    start "" "%INDEX_FILE%"
-    echo  [OK] BinGO App opened in browser!
-    echo.
-    pause
-    exit /b 0
-)
-
-echo  [2/3] Starting BinGO Docker containers in background...
-echo  Running: docker compose up -d
-docker compose up -d
-
-if %errorlevel% neq 0 (
-    echo.
-    echo  [WARNING] Could not start Docker containers automatically.
-    echo  Launching BinGO in Demo Mode fallback...
-    start "" "%INDEX_FILE%"
-) else (
-    echo.
-    echo  [3/3] Backend services starting!
-    echo  - Nginx Gateway: http://localhost
-    echo  - API Endpoint:  http://localhost/api/v1
-    echo.
-    echo  Opening BinGO in browser...
-    timeout /t 2 >nul
-    start "" "http://localhost"
+if %errorlevel% equ 0 (
+    echo  [INFO] Docker Desktop is running!
+    echo  [2/3] Starting BinGO Docker containers in background...
+    echo  Running: docker compose up -d
+    docker compose up -d
+    if %errorlevel% equ 0 (
+        echo.
+        echo  [3/3] Backend services started successfully!
+        echo  - Nginx Gateway: http://localhost
+        echo  - API Endpoint:  http://localhost/api/v1
+        echo.
+        echo  Opening BinGO in web browser...
+        timeout /t 2 >nul
+        start "" "http://localhost"
+        echo.
+        echo  [OK] BinGO is running in full Docker mode!
+        echo  Press any key to exit launcher...
+        pause >nul
+        exit /b 0
+    )
 )
 
 echo.
-echo  [OK] BinGO is running!
-echo  Press any key to close launcher window...
-pause > nul
+echo  [WARNING] Docker Desktop is not running or not installed.
+echo  Fallback: Launching BinGO via Python Local HTTP Server...
+
+python --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo.
+    echo  [OK] Python detected! Starting BinGO HTTP Server on port 3000...
+    echo  Serving directory: %SCRIPT_DIR%frontend
+    echo  Opening http://localhost:3000 in your browser...
+    echo.
+    start "" "http://localhost:3000"
+    echo  ------------------------------------------------------
+    echo   BinGO App running on http://localhost:3000
+    echo   Press Ctrl+C or close window to stop server.
+    echo  ------------------------------------------------------
+    python -m http.server 3000 --directory "%SCRIPT_DIR%frontend"
+    exit /b 0
+)
+
+echo.
+echo  [NOTICE] Python not found. Launching BinGO frontend file directly...
+start "" "%INDEX_FILE%"
+echo  [OK] Opened BinGO in default browser!
+echo.
+pause
+exit /b 0

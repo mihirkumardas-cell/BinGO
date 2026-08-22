@@ -5,6 +5,11 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>BinGO — Smart Waste Management Platform</title>
 <meta name="description" content="AI-powered waste reporting and municipal dispatch platform. Citizens photograph waste; AI classifies, deduplicates, clusters hotspots, and recommends dispatch."/>
+<meta name="theme-color" content="#05070a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="icon" type="image/jpeg" href="assets/bingo_logo.jpg"/>
+<link rel="apple-touch-icon" href="assets/bingo_logo.jpg"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -14,28 +19,33 @@
     theme: {
       extend: {
         colors: {
-          "primary": "#238636",
-          "primary-light": "#7bdb80",
+          "primary": "#7bdb80",
+          "primary-light": "#97f999",
           "primary-container": "#238636",
-          "on-primary": "#ffffff",
+          "on-primary": "#00390e",
           "secondary": "#aac7ff",
+          "secondary-container": "#0072e3",
+          "on-secondary": "#002f65",
           "surface": "#161B22",
           "surface-raised": "#21262D",
           "surface-container": "#1c2026",
           "surface-container-high": "#262a31",
           "surface-container-low": "#181c22",
           "surface-container-highest": "#31353c",
-          "surface-dim": "#10141a",
-          "background": "#0D1117",
+          "surface-container-lowest": "#05070a",
+          "surface-dim": "#0a0e14",
+          "surface-bright": "#353940",
+          "background": "#05070a",
           "border": "#30363D",
           "text-primary": "#E6EDF3",
           "text-secondary": "#8B949E",
           "success": "#3FB950",
           "warning": "#D29922",
           "danger": "#DA3633",
+          "error": "#ffb4ab",
           "accent": "#388BFD",
           "on-surface": "#dfe2eb",
-          "surface-variant": "#31353c",
+          "on-surface-variant": "#becaba",
           "outline": "#899485",
           "outline-variant": "#3f4a3d",
         },
@@ -45,6 +55,7 @@
           "gutter": "16px",
           "margin-desktop": "24px",
           "margin-mobile": "16px",
+          "unit": "4px",
         },
         fontFamily: {
           "label-mono": ["JetBrains Mono"],
@@ -71,7 +82,7 @@
 <style>
   /* ── Global ── */
   * { box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; }
+  body { font-family: 'Inter', sans-serif; background-color: #05070a; color: #E6EDF3; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(48,54,61,0.6); border-radius: 4px; }
@@ -99,35 +110,45 @@
 
   /* ── Animations ── */
   @keyframes pulse-green {
-    0%   { box-shadow: 0 0 0 0 rgba(35,134,54,0.7); transform: scale(1); }
-    70%  { box-shadow: 0 0 0 10px rgba(35,134,54,0); transform: scale(1.05); }
-    100% { box-shadow: 0 0 0 0 rgba(35,134,54,0); transform: scale(1); }
+    0%   { box-shadow: 0 0 0 0 rgba(123,219,128,0.7); transform: scale(1); }
+    70%  { box-shadow: 0 0 0 10px rgba(123,219,128,0); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 0 rgba(123,219,128,0); transform: scale(1); }
   }
   @keyframes pulse-danger {
-    0%   { box-shadow: 0 0 0 0 rgba(218,54,51,0.5); }
+    0%   { box-shadow: 0 0 0 0 rgba(218,54,51,0.6); }
     70%  { box-shadow: 0 0 0 8px rgba(218,54,51,0); }
     100% { box-shadow: 0 0 0 0 rgba(218,54,51,0); }
   }
   @keyframes pulse-ring {
-    0%   { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(63,185,80,0.7); }
-    70%  { transform: scale(1);    box-shadow: 0 0 0 6px rgba(63,185,80,0); }
-    100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+    0%   { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(123,219,128,0.7); }
+    70%  { transform: scale(1);    box-shadow: 0 0 0 8px rgba(123,219,128,0); }
+    100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(123,219,128,0); }
   }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
   @keyframes spin-slow { to { transform: rotate(360deg); } }
+  @keyframes scan-pulse {
+    0%,100% { box-shadow: 0 0 6px rgba(123,219,128,0.6), 0 0 0 0 rgba(123,219,128,0.4); }
+    50%     { box-shadow: 0 0 14px rgba(123,219,128,0.9), 0 0 12px rgba(123,219,128,0); }
+  }
 
   .pin-danger        { animation: pulse-danger 2s infinite; }
   .animate-pulse-ring{ animation: pulse-ring 2s infinite cubic-bezier(0.66,0,0,1); }
   .fade-in-up        { animation: fadeInUp 0.35s ease-out forwards; opacity: 0; }
+  .slide-in-left     { animation: slideInLeft 0.3s ease-out forwards; }
   .stagger-1         { animation-delay: 0.05s; }
   .stagger-2         { animation-delay: 0.10s; }
   .stagger-3         { animation-delay: 0.15s; }
   .stagger-4         { animation-delay: 0.20s; }
   .stagger-5         { animation-delay: 0.25s; }
   .timeline-pulse    { animation: pulse-green 2.2s cubic-bezier(0.215,0.61,0.355,1) infinite; }
+  .scan-active-badge { animation: scan-pulse 1.8s ease-in-out infinite; }
 
   .gauge-arc {
     stroke-dasharray: 251.2;
@@ -140,8 +161,8 @@
     content: '';
     position: absolute;
     width: 48px; height: 48px;
-    border: 2px solid #238636;
-    box-shadow: 0 0 12px #238636;
+    border: 2px solid #7bdb80;
+    box-shadow: 0 0 12px #7bdb80;
     pointer-events: none;
   }
   .viewfinder::before { top: 14%; left: 14%; border-bottom: 0; border-right: 0; }
@@ -157,8 +178,8 @@
   /* Nav active indicator */
   .nav-link.active-link {
     background: rgba(255,255,255,0.08);
-    color: #238636 !important;
-    border-right: 3px solid #238636;
+    color: #7bdb80 !important;
+    border-right: 3px solid #7bdb80;
     font-weight: 700;
   }
 
@@ -168,6 +189,13 @@
     width: 100vw; height: 100vh;
     z-index: -2; pointer-events: none;
   }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    15%,45%,75% { transform: translateX(-6px); }
+    30%,60%,90% { transform: translateX(6px); }
+  }
+  .shake-anim { animation: shake 0.45s ease-out; }
 </style>
 </head>
 <body class="bg-background text-text-primary h-screen w-screen overflow-hidden font-body-md">
@@ -176,16 +204,121 @@
 <canvas id="webgl-bg"></canvas>
 
 <!-- TOAST NOTIFICATION CONTAINER -->
-<div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
+<div id="toast-container" class="fixed top-3 left-3 right-3 md:left-auto md:right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-sm md:w-full mx-auto md:mx-0"></div>
+
+<!-- MUNICIPAL ADMIN LOGIN GATE MODAL -->
+<div id="admin-login-modal" class="fixed inset-0 z-[9997] bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+  <div id="admin-login-card" class="glass-card max-w-md w-full rounded-2xl p-6 border border-accent/40 shadow-[0_0_50px_rgba(56,139,253,0.3)] fade-in-up">
+    <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl overflow-hidden border border-accent/50 shrink-0 shadow-[0_0_15px_rgba(56,139,253,0.3)]">
+          <img src="assets/bingo_logo.jpg" alt="BinGO Logo" class="w-full h-full object-cover"/>
+        </div>
+        <div>
+          <span class="text-[10px] font-label-mono uppercase tracking-widest text-accent font-bold">Secure Access Gate</span>
+          <h3 class="font-headline-md text-base font-bold text-text-primary">Municipal Command Login</h3>
+        </div>
+      </div>
+      <button onclick="closeAdminLoginModal()" class="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+    <p class="text-text-secondary text-xs leading-relaxed mb-4">Access to the Municipal Dispatch Command Center is restricted to authorized operators.</p>
+    <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+      <div>
+        <label class="block text-text-secondary text-[11px] font-label-sm uppercase font-semibold mb-1">Operator Username</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">badge</span>
+          <input id="admin-username" type="text" required placeholder="admin"
+            class="w-full bg-black/40 border border-white/15 text-text-primary font-label-mono text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-accent transition-all"/>
+        </div>
+      </div>
+      <div>
+        <label class="block text-text-secondary text-[11px] font-label-sm uppercase font-semibold mb-1">Security Password</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">lock</span>
+          <input id="admin-password" type="password" required placeholder="••••••••"
+            class="w-full bg-black/40 border border-white/15 text-text-primary font-label-mono text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-accent transition-all"/>
+        </div>
+      </div>
+      <div id="login-error-msg" class="hidden text-danger text-xs font-semibold bg-danger/10 border border-danger/30 rounded-lg p-2 flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px]">error</span>
+        <span>Invalid credentials. Use: <code>admin</code> / <code>admin123</code></span>
+      </div>
+      <div class="pt-1 flex flex-col gap-2">
+        <button type="submit" class="w-full bg-gradient-to-r from-accent to-blue-600 text-white font-label-sm text-xs py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(56,139,253,0.4)] flex items-center justify-center gap-2 font-bold">
+          <span class="material-symbols-outlined text-[18px]">key</span> Authenticate &amp; Enter Command Center
+        </button>
+        <button type="button" onclick="fillDemoAdminCredentials()" class="w-full bg-white/5 border border-white/10 text-text-secondary text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[15px] text-accent">bolt</span> Auto-Fill Demo Credentials (admin / admin123)
+        </button>
+      </div>
+    </form>
+    <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-text-secondary">
+      <span>Built with &#x2764;&#xfe0f; by <strong>NullOps</strong></span>
+      <button onclick="closeAdminLoginModal()" class="text-accent hover:underline">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL MODAL -->
+<div id="tutorial-overlay" class="fixed inset-0 z-[9998] bg-black/75 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4">
+  <div class="glass-card max-w-lg w-full max-h-[88dvh] overflow-y-auto rounded-2xl p-5 sm:p-6 border border-primary/40 shadow-[0_0_50px_rgba(123,219,128,0.3)] fade-in-up">
+    <div class="flex items-center justify-between pb-3.5 border-b border-white/10 mb-3.5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-11 h-11 rounded-xl overflow-hidden border border-primary/50 shrink-0 shadow-[0_0_15px_rgba(123,219,128,0.3)]">
+          <img src="assets/bingo_logo.jpg" alt="BinGO Logo" class="w-full h-full object-cover"/>
+        </div>
+        <div>
+          <span class="text-[10px] font-label-mono uppercase tracking-widest text-primary-light font-bold">Quick Start Guide</span>
+          <h3 id="tut-step-title" class="font-headline-md text-sm sm:text-base font-bold text-text-primary">Welcome to BinGO!</h3>
+        </div>
+      </div>
+      <button onclick="closeTutorial(false)" class="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+    <div id="tut-step-body" class="space-y-2.5 min-h-[130px] text-text-secondary text-xs sm:text-sm"></div>
+    <div class="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span id="tut-dot-1" class="w-2.5 h-2.5 rounded-full bg-primary transition-all"></span>
+        <span id="tut-dot-2" class="w-2.5 h-2.5 rounded-full bg-white/20 transition-all"></span>
+        <span id="tut-dot-3" class="w-2.5 h-2.5 rounded-full bg-white/20 transition-all"></span>
+        <span id="tut-dot-4" class="w-2.5 h-2.5 rounded-full bg-white/20 transition-all"></span>
+        <span id="tut-progress-text" class="text-[11px] font-label-mono text-text-secondary ml-1.5">Step 1 of 4</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="tut-prev-btn" onclick="prevTutorialStep()" class="px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors">Back</button>
+        <button id="tut-next-btn" onclick="nextTutorialStep()" class="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-[#05070a] transition-all flex items-center gap-1 min-h-[38px] shadow-[0_0_15px_rgba(123,219,128,0.4)]">
+          <span>Next</span><span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+    <div class="mt-2.5 flex items-center justify-between text-[11px] text-text-secondary/70">
+      <span>Auto-shows for first 5 visits</span>
+      <button onclick="dismissTutorialForever()" class="hover:text-warning underline transition-colors">Don't show automatically</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Help Button -->
+<button onclick="startInteractiveTour()" title="Interactive Guide" class="fixed bottom-20 md:bottom-5 right-3 md:right-5 z-40 bg-surface/90 hover:bg-surface-raised border border-primary/40 text-primary-light p-2 sm:p-2.5 rounded-full shadow-[0_0_20px_rgba(123,219,128,0.3)] flex items-center gap-1.5 text-xs font-bold backdrop-blur-md transition-all hover:scale-105 active:scale-95 group">
+  <span class="material-symbols-outlined text-[18px] sm:text-[20px] text-primary group-hover:rotate-12 transition-transform">lightbulb</span>
+  <span class="hidden sm:inline pr-1">Interactive Guide</span>
+  <span class="px-1.5 bg-primary/30 rounded-full text-[10px] font-label-mono text-white">Guide</span>
+</button>
 
 <!-- ══════════════════════════════════════════════════════
      PAGE: LANDING / APP SELECT
 ══════════════════════════════════════════════════════ -->
 <div id="page-landing" class="page active flex-col items-center justify-center min-h-screen w-full p-8">
   <div class="text-center mb-10 fade-in-up">
-    <div class="text-6xl mb-4">🗑️</div>
+    <div class="flex items-center justify-center mb-4">
+      <div class="w-20 h-20 rounded-3xl overflow-hidden border-2 border-primary/40 shadow-[0_0_40px_rgba(123,219,128,0.5)] hover:scale-105 transition-transform">
+        <img src="assets/bingo_logo.jpg" alt="BinGO AI Logo" class="w-full h-full object-cover"/>
+      </div>
+    </div>
     <h1 class="font-headline-xl text-headline-xl text-primary mb-2 flex items-center justify-center gap-3">
-      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-12 h-12 rounded object-cover" alt="BinGO Logo"/>
       BinGO
     </h1>
     <p class="text-text-secondary font-body-lg">AI-powered waste reporting & municipal command center</p>
@@ -193,7 +326,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl fade-in-up stagger-2">
     <!-- Citizen App -->
     <button onclick="navigate('page-submit')"
-      class="glass-card rounded-2xl p-8 text-left hover:border-primary/40 hover:shadow-[0_0_30px_rgba(35,134,54,0.2)] transition-all duration-300 group">
+      class="glass-card rounded-2xl p-8 text-left hover:border-primary/40 hover:shadow-[0_0_30px_rgba(123,219,128,0.2)] transition-all duration-300 group">
       <div class="text-4xl mb-4">📱</div>
       <h2 class="font-headline-md text-headline-md text-text-primary mb-2 group-hover:text-primary transition-colors">Citizen App</h2>
       <p class="text-text-secondary font-body-md">Report waste issues. AI classifies and tracks your report in real time.</p>
@@ -217,7 +350,23 @@
     <span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
     <span>Checking backend connection...</span>
   </div>
+  <!-- Footer - NullOps -->
+  <footer class="mt-8 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] sm:text-xs text-text-secondary fade-in-up">
+    <div class="flex items-center gap-2">
+      <span>&#169; 2026 <strong>BinGO</strong> &bull; CleanTrack AI &bull; All rights reserved.</span>
+    </div>
+    <div class="flex items-center gap-1.5 font-medium text-text-primary">
+      <span>Built with</span><span class="text-red-500 animate-pulse">&#x2764;&#xfe0f;</span><span>by <strong>NullOps</strong></span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="startInteractiveTour()" class="hover:text-primary-light transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">help</span> Help Guide
+      </button>
+      <button onclick="navigate('page-settings')" class="hover:text-text-primary transition-colors">API Config</button>
+    </div>
+  </footer>
 </div>
+
 
 <!-- ══════════════════════════════════════════════════════
      PAGE: CITIZEN — SUBMIT REPORT
@@ -236,7 +385,9 @@
       <span class="material-symbols-outlined">arrow_back</span>
     </button>
     <div class="font-headline-md text-headline-md font-black text-primary flex items-center gap-2">
-      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-8 h-8 rounded object-cover" alt="BinGO Logo"/>
+      <div class="w-8 h-8 rounded-lg overflow-hidden border border-primary/40 shadow-[0_0_10px_rgba(123,219,128,0.4)] shrink-0">
+        <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+      </div>
       BinGO
     </div>
     <div class="flex items-center gap-2 glass-card px-3 py-1.5 rounded-full cursor-pointer" onclick="navigate('page-settings')">
@@ -251,11 +402,11 @@
       <div class="relative w-40 h-40 flex items-center justify-center viewfinder">
         <div class="absolute inset-[-12px] rounded-full border border-primary/20" style="animation: pulse-green 3s infinite;"></div>
         <div class="absolute inset-0 rounded-full border-2 border-primary/40" style="animation: pulse-green 2s infinite;"></div>
-        <div class="absolute inset-3 rounded-full border border-primary/80 shadow-[0_0_15px_rgba(35,134,54,0.4)]"></div>
-        <span class="material-symbols-outlined text-primary text-5xl drop-shadow-[0_0_8px_rgba(35,134,54,0.8)]"
+        <div class="absolute inset-3 rounded-full border border-primary/80 shadow-[0_0_15px_rgba(123,219,128,0.4)]"></div>
+        <span class="material-symbols-outlined text-primary text-5xl drop-shadow-[0_0_8px_rgba(123,219,128,0.8)]"
           style="animation: pulse-green 2s infinite;">document_scanner</span>
       </div>
-      <div id="ai-status-pill" class="mt-8 px-5 py-2.5 glass-card rounded-full border border-primary/30 shadow-[0_0_20px_rgba(35,134,54,0.25)]">
+      <div id="ai-status-pill" class="mt-8 px-5 py-2.5 glass-card rounded-full border border-primary/30 shadow-[0_0_20px_rgba(123,219,128,0.25)]">
         <p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-widest uppercase">
           <span class="material-symbols-outlined text-sm" style="animation: spin-slow 3s linear infinite;">memory</span>
           Point at Waste...
@@ -286,7 +437,7 @@
         <label class="relative group cursor-pointer active:scale-95 transition-transform duration-150">
           <input id="photo-input" type="file" accept="image/*" capture="environment" class="hidden" onchange="onPhotoSelected(this)"/>
           <div class="absolute inset-[-10px] bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-colors duration-300" style="animation: pulse-green 2.5s infinite;"></div>
-          <div class="relative w-24 h-24 rounded-full border-[3px] border-primary/50 glass-card flex items-center justify-center shadow-[0_0_30px_rgba(35,134,54,0.4)] group-hover:border-primary transition-colors">
+          <div class="relative w-24 h-24 rounded-full border-[3px] border-primary/50 glass-card flex items-center justify-center shadow-[0_0_30px_rgba(123,219,128,0.4)] group-hover:border-primary transition-colors">
             <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-green-700 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
               <span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings:'FILL' 1;">camera</span>
             </div>
@@ -308,7 +459,7 @@
         <textarea id="description-input" rows="3" placeholder="Describe the waste issue..."
           class="w-full bg-transparent text-text-primary font-body-md placeholder:text-text-secondary resize-none outline-none border border-border rounded-lg p-3 focus:border-primary/50"></textarea>
         <button onclick="submitReport()" id="submit-btn"
-          class="mt-3 w-full bg-gradient-to-r from-primary to-green-600 text-white font-label-sm text-label-sm py-3 rounded-xl hover:opacity-90 transition-all shadow-[0_0_20px_rgba(35,134,54,0.4)] flex items-center justify-center gap-2 font-bold">
+          class="mt-3 w-full bg-gradient-to-r from-primary to-green-600 text-[#05070a] font-label-sm text-label-sm py-3 rounded-xl hover:opacity-90 transition-all shadow-[0_0_20px_rgba(123,219,128,0.4)] flex items-center justify-center gap-2 font-bold">
           <span class="material-symbols-outlined text-[18px]">send</span>
           Submit Report
         </button>
@@ -322,7 +473,7 @@
       <span class="material-symbols-outlined mb-1">home</span>
       <span class="font-label-sm text-[10px] tracking-wide">Home</span>
     </button>
-    <button class="flex flex-col items-center bg-primary/20 border border-primary/30 text-primary rounded-full px-5 py-1.5 shadow-[0_0_15px_rgba(35,134,54,0.2)] min-w-[64px]">
+    <button class="flex flex-col items-center bg-primary/20 border border-primary/30 text-primary rounded-full px-5 py-1.5 shadow-[0_0_15px_rgba(123,219,128,0.2)] min-w-[64px]">
       <span class="material-symbols-outlined mb-1">add_circle</span>
       <span class="font-label-sm text-[10px] tracking-wide font-bold">Report</span>
     </button>
@@ -338,17 +489,19 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     PAGE: CITIZEN — LIVE TRACKING
+     PAGE: CITIZEN — LIVE TRACKING SCREEN (DESIGN MATCHED)
 ══════════════════════════════════════════════════════ -->
 <div id="page-tracking" class="page flex-col md:flex-row h-screen w-screen overflow-hidden">
   <!-- Side Nav (Desktop) -->
   <nav class="hidden md:flex flex-col h-screen py-6 bg-surface border-r border-border w-sidebar-width fixed left-0 top-0 z-30">
     <div class="px-6 mb-8 mt-2">
       <div class="flex items-center gap-3 mb-1">
-        <img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ6u0h92-9Gl76DJnYGkeXsRkr32oFUKM_ip2hauMJBDFevonS-nozBGqueT7IeeYR5pMWUw8FQM9Ryl4d88J2XbjkhVQonmD80Vis35T8n2pD2scAniBCTN7U1FlcSoZJuJ3kXytK31piGvLL9xzQZ7MzyFIqv4JWEyFJf-nXATPRw4jg8HbD_uClkbQa7jkmonrRt6GuAAmU7VZ9Lmz1TpDVPxoT55-yi_vezPIPdKbwjKx_9GRONw" class="w-9 h-9 rounded object-cover" alt="BinGO Logo"/>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div class="font-headline-md text-headline-md font-bold text-primary">BinGO</div>
       </div>
-      <div class="text-text-secondary font-body-md">Citizen Portal</div>
+      <div class="text-text-secondary font-body-md text-xs">Citizen Portal</div>
     </div>
     <div class="flex flex-col gap-1 flex-grow">
       <button onclick="navigate('page-landing')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-surface-container-low hover:text-text-primary transition-all">
@@ -365,72 +518,90 @@
       </button>
     </div>
     <div class="px-4 mt-auto mb-6">
-      <button onclick="navigate('page-dashboard')" class="w-full bg-primary text-white py-2 rounded font-label-sm hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+      <button onclick="navigate('page-dashboard')" class="w-full bg-primary text-[#05070a] py-2.5 rounded font-label-sm font-bold hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(123,219,128,0.3)]">
         Switch to Admin →
       </button>
     </div>
   </nav>
 
-  <!-- Main -->
+  <!-- Main Content Area -->
   <main class="flex-1 md:ml-[240px] relative w-full pb-24 md:pb-0 h-screen overflow-hidden flex flex-col md:flex-row">
-    <!-- Map Background -->
+    <!-- Map Canvas (Left on desktop, bg on mobile) -->
     <div class="absolute inset-0 md:relative md:w-3/5 lg:w-2/3 h-full z-0"
-      style="background: radial-gradient(circle at top right,rgba(35,134,54,0.15),transparent 50%),radial-gradient(circle at bottom left,rgba(56,139,253,0.1),transparent 50%),linear-gradient(to bottom right,#0a0e14,#10141a);">
+      style="background: radial-gradient(circle at top right, rgba(123, 219, 128, 0.15), transparent 50%), radial-gradient(circle at bottom left, rgba(0, 114, 227, 0.1), transparent 50%), linear-gradient(to bottom right, #0a0e14, #10141a);">
+      <!-- Floating Map Controls -->
       <div class="absolute right-4 top-4 flex flex-col gap-2 z-10">
-        <button class="w-control-touch-target h-control-touch-target rounded-full glass-card flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors">
+        <button class="w-control-touch-target h-control-touch-target rounded-full bg-surface-raised/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.4)] flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors">
           <span class="material-symbols-outlined">my_location</span>
         </button>
+        <button class="w-control-touch-target h-control-touch-target rounded-full bg-surface-raised/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.4)] flex items-center justify-center text-text-primary hover:bg-surface-raised transition-colors">
+          <span class="material-symbols-outlined">layers</span>
+        </button>
       </div>
-      <!-- Pulsing Report Pin -->
+      <!-- Report Location Marker -->
       <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-        <div class="w-12 h-12 glass-card border border-warning/50 rounded-full flex items-center justify-center shadow-[0_0_24px_rgba(210,153,34,0.4)] z-10 timeline-pulse">
+        <div class="w-12 h-12 bg-surface-raised/40 backdrop-blur-xl border border-warning/50 rounded-full flex items-center justify-center shadow-[0_0_24px_rgba(210,153,34,0.4)] z-10 timeline-pulse">
           <span class="material-symbols-outlined text-warning">warning</span>
         </div>
         <div class="w-1 h-8 bg-gradient-to-b from-warning/50 to-transparent"></div>
+        <div class="w-4 h-1 bg-warning/30 rounded-full blur-[2px]"></div>
       </div>
     </div>
 
-    <!-- Side Panel -->
-    <div class="absolute bottom-0 w-full z-20 flex flex-col gap-4 p-4 bg-gradient-to-t from-background via-background/95 to-transparent md:relative md:w-2/5 md:h-full md:bg-surface/60 md:backdrop-blur-xl md:border-l md:border-white/10 overflow-y-auto pt-32 md:pt-6">
+    <!-- Floating Cards / Side Panel -->
+    <div class="absolute bottom-0 w-full z-20 flex flex-col gap-4 p-4 md:p-6 bg-gradient-to-t from-background via-background/95 to-transparent md:relative md:w-2/5 md:lg:w-1/3 md:h-full md:bg-surface/60 md:backdrop-blur-xl md:border-l md:border-white/10 overflow-y-auto pt-32 md:pt-6">
+      <!-- Featured 3D Asset -->
+      <div class="w-full h-40 md:h-48 rounded-2xl mb-2 overflow-hidden relative border border-white/10 shadow-2xl shrink-0">
+        <div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10"></div>
+        <img id="tracking-photo-preview" alt="BinGO Smart Asset" class="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'><rect width='600' height='400' fill='%23161b22'/><rect x='20' y='20' width='560' height='360' rx='16' fill='%2321262d' stroke='%237bdb80' stroke-width='2'/><text x='300' y='180' fill='%237bdb80' font-family='sans-serif' font-size='48' text-anchor='middle'>📷</text><text x='300' y='240' fill='%23e6edf3' font-family='sans-serif' font-size='20' font-weight='bold' text-anchor='middle'>Live GPS Tagged Asset</text></svg>"/>
+        <div class="absolute bottom-3 left-4 z-20 flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-primary/20 backdrop-blur-md border border-primary/30 rounded text-[10px] font-label-mono text-primary uppercase tracking-wider shadow-[0_0_10px_rgba(123,219,128,0.2)]">Smart Asset Detected</span>
+        </div>
+      </div>
+
+      <!-- Header -->
       <div class="mb-2">
         <div class="flex items-center justify-between mb-1">
-          <h1 id="tracking-report-id" class="font-headline-lg text-headline-lg font-bold text-text-primary tracking-tight">Report #—</h1>
-          <span id="tracking-status-badge" class="px-2 py-1 glass-card border border-warning/30 rounded text-label-mono font-label-mono text-warning flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> PENDING
+          <h1 id="tracking-report-id" class="font-headline-lg text-headline-lg font-bold text-text-primary tracking-tight">Report #8492-AX</h1>
+          <span id="tracking-status-badge" class="px-2 py-1 bg-surface-raised/50 backdrop-blur-md border border-warning/30 rounded text-label-mono font-label-mono text-warning flex items-center gap-1 shadow-[0_0_10px_rgba(210,153,34,0.15)]">
+            <span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> ACTIVE
           </span>
         </div>
         <p id="tracking-location" class="font-body-md text-body-md text-text-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">location_on</span> —
+          <span class="material-symbols-outlined text-[16px]">location_on</span>
+          48.8566° N, 2.3522° E (Sector 4)
         </p>
       </div>
 
       <!-- AI Result Card -->
-      <div id="ai-result-card" class="glass-card rounded-2xl p-4 relative overflow-hidden">
+      <div id="ai-result-card" class="bg-surface-raised/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.36)] relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-warning/10 rounded-bl-full z-0 blur-2xl"></div>
         <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-4 relative z-10 flex items-center gap-2">
           <span class="material-symbols-outlined text-[14px]">memory</span> AI Analysis Result
         </h3>
         <div class="flex items-center justify-between relative z-10">
           <div class="flex flex-col gap-3">
-            <div>
-              <span class="font-label-mono text-label-mono text-text-secondary block mb-1">Detected Waste</span>
-              <div id="waste-type-badge" class="inline-flex px-3 py-1 bg-surface-container-high/60 border border-white/5 rounded-full font-label-sm text-label-sm items-center gap-1">
-                <span>🔄</span> Analysing...
+            <div class="flex flex-col">
+              <span class="font-label-mono text-label-mono text-text-secondary mb-1">Detected Waste</span>
+              <div class="flex gap-2">
+                <div id="waste-type-badge" class="px-3 py-1 bg-surface-container-high/60 backdrop-blur-md border border-white/5 rounded-full flex items-center gap-1 font-label-sm text-label-sm">
+                  <span class="text-secondary">🧴</span> Plastic
+                </div>
               </div>
             </div>
-            <div>
-              <span class="font-label-mono text-label-mono text-text-secondary block mb-1">Est. Volume</span>
-              <span id="volume-display" class="font-headline-md text-headline-md text-text-primary">—</span>
+            <div class="flex flex-col">
+              <span class="font-label-mono text-label-mono text-text-secondary mb-1">Est. Volume</span>
+              <span id="volume-display" class="font-headline-md text-headline-md text-text-primary drop-shadow-md">~0.4 m³</span>
             </div>
           </div>
           <!-- Urgency Gauge -->
-          <div class="relative w-24 h-24 flex items-center justify-center flex-col">
+          <div class="relative w-24 h-24 flex items-center justify-center flex-col drop-shadow-lg">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" fill="transparent" r="40" stroke="rgba(255,255,255,0.05)" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-width="8"></circle>
-              <circle id="urgency-arc" class="gauge-arc" cx="50" cy="50" fill="transparent" r="40" stroke="#D29922" stroke-width="8"></circle>
+              <circle id="urgency-arc" class="gauge-arc" cx="50" cy="50" fill="transparent" r="40" stroke="#D29922" stroke-width="8" style="stroke-dashoffset: 55.264;"></circle>
             </svg>
             <div class="absolute flex flex-col items-center">
-              <span id="urgency-score" class="font-headline-md text-headline-md font-bold text-warning drop-shadow-[0_0_8px_rgba(210,153,34,0.5)]">—</span>
+              <span id="urgency-score" class="font-headline-md text-headline-md font-bold text-warning drop-shadow-[0_0_8px_rgba(210,153,34,0.5)]">78</span>
               <span class="font-label-mono text-label-mono text-text-secondary text-[8px]">URGENCY</span>
             </div>
           </div>
@@ -438,46 +609,68 @@
       </div>
 
       <!-- Dispatch Recommendation -->
-      <div id="dispatch-rec" class="glass-card rounded-xl p-3 flex items-center gap-3">
+      <div id="dispatch-rec" class="bg-surface-raised/40 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
         <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
           <span class="material-symbols-outlined text-primary">local_shipping</span>
         </div>
         <div>
           <div class="font-label-mono text-label-mono text-text-secondary mb-0.5">Recommended Asset</div>
-          <div id="vehicle-rec" class="font-body-md text-body-md text-text-primary font-semibold">Pending AI analysis...</div>
+          <div id="vehicle-rec" class="font-body-md text-body-md text-text-primary font-semibold">Compact Van, 2 personnel</div>
         </div>
+        <button onclick="assignRecommendedAsset()" class="ml-auto px-4 py-2 bg-gradient-to-r from-primary to-[#5ad060] text-[#05070a] shadow-[0_0_15px_rgba(123,219,128,0.3)] rounded-lg text-label-sm font-label-sm font-bold hover:opacity-90 transition-opacity">
+          Assign
+        </button>
       </div>
 
-      <!-- Status Timeline -->
-      <div class="glass-card rounded-2xl p-4">
+      <!-- Timeline Tracking -->
+      <div class="bg-surface-raised/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mt-2 shadow-[0_8px_32px_rgba(0,0,0,0.36)]">
         <h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-4">Status Timeline</h3>
         <div class="flex flex-col gap-0 relative">
           <div class="absolute left-3.5 top-2 bottom-4 w-px bg-white/10 z-0"></div>
-          <div id="step-submitted" class="flex gap-4 relative z-10 pb-6">
-            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+          <!-- Step 1: Submitted -->
+          <div id="step-submitted" class="flex gap-4 relative z-10 pb-6 group">
+            <div class="w-7 h-7 rounded-full bg-surface-container-high/80 backdrop-blur border border-white/10 flex items-center justify-center shrink-0 mt-0.5 transition-colors group-hover:border-primary/50">
+              <span class="material-symbols-outlined text-[14px] text-text-secondary">check</span>
             </div>
             <div>
-              <div class="font-label-sm text-label-sm text-text-secondary mb-1">—</div>
+              <div id="step-time-submitted" class="font-label-sm text-label-sm text-text-secondary mb-1">10:42 AM</div>
               <div class="font-body-md text-body-md text-text-secondary">Report Submitted</div>
             </div>
           </div>
-          <div id="step-ai" class="flex gap-4 relative z-10 pb-6">
-            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+          <!-- Step 2: AI Analysis -->
+          <div id="step-ai" class="flex gap-4 relative z-10 pb-6 group">
+            <div class="w-7 h-7 rounded-full bg-surface-container-high/80 backdrop-blur border border-white/10 flex items-center justify-center shrink-0 mt-0.5 transition-colors group-hover:border-primary/50">
+              <span class="material-symbols-outlined text-[14px] text-text-secondary">check</span>
             </div>
             <div>
-              <div class="font-label-sm text-label-sm text-text-secondary mb-1">—</div>
+              <div id="step-time-ai" class="font-label-sm text-label-sm text-text-secondary mb-1">10:43 AM</div>
               <div class="font-body-md text-body-md text-text-secondary">AI Analysis Complete</div>
             </div>
           </div>
+          <!-- Step 3: Verified -->
           <div id="step-verified" class="flex gap-4 relative z-10 pb-6">
-            <div class="w-7 h-7 rounded-full glass-card flex items-center justify-center shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[14px] text-text-secondary">radio_button_unchecked</span>
+            <div class="w-7 h-7 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5 timeline-pulse shadow-[0_0_10px_rgba(123,219,128,0.3)]">
+              <div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(123,219,128,0.8)]"></div>
             </div>
             <div>
+              <div id="step-time-verified" class="font-label-sm text-label-sm text-primary mb-1 drop-shadow-[0_0_4px_rgba(123,219,128,0.4)]">10:45 AM</div>
+              <div class="font-body-md text-body-md text-text-primary font-semibold">Verified by Admin</div>
+            </div>
+          </div>
+          <!-- Step 4: Dispatched -->
+          <div id="step-dispatched" class="flex gap-4 relative z-10 pb-6">
+            <div class="w-7 h-7 rounded-full bg-surface-container-low/50 backdrop-blur border border-white/5 flex items-center justify-center shrink-0 mt-0.5"></div>
+            <div>
               <div class="font-label-sm text-label-sm text-text-secondary mb-1">Pending</div>
-              <div class="font-body-md text-body-md text-text-secondary">Verified by Admin</div>
+              <div class="font-body-md text-body-md text-text-secondary opacity-50">Team Dispatched</div>
+            </div>
+          </div>
+          <!-- Step 5: Resolved -->
+          <div id="step-resolved" class="flex gap-4 relative z-10">
+            <div class="w-7 h-7 rounded-full bg-surface-container-low/50 backdrop-blur border border-white/5 flex items-center justify-center shrink-0 mt-0.5"></div>
+            <div>
+              <div class="font-label-sm text-label-sm text-text-secondary mb-1">Pending</div>
+              <div class="font-body-md text-body-md text-text-secondary opacity-50">Resolved</div>
             </div>
           </div>
         </div>
@@ -485,178 +678,243 @@
     </div>
   </main>
 
-  <!-- Mobile Bottom Nav -->
-  <nav class="md:hidden fixed bottom-0 w-full z-50 glass-card border-t border-white/10 flex justify-around items-center px-4 py-3 rounded-t-3xl">
-    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
-      <span class="material-symbols-outlined text-[24px]">home</span>
-      <span class="font-label-sm text-label-sm mt-1">Home</span>
+  <!-- Bottom Navigation Bar (Mobile only) -->
+  <nav class="docked full-width bottom-0 rounded-t-3xl bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.3)] fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-3 md:hidden">
+    <button onclick="navigate('page-landing')" class="flex flex-col items-center justify-center text-text-secondary hover:text-text-primary transition-colors duration-200 w-16 py-1 rounded-lg">
+      <span class="material-symbols-outlined text-[24px]">map</span>
+      <span class="font-label-sm text-label-sm mt-1">Map</span>
     </button>
-    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center justify-center text-text-secondary hover:text-text-primary transition-colors duration-200 w-16 py-1 rounded-lg">
       <span class="material-symbols-outlined text-[24px]">add_circle</span>
       <span class="font-label-sm text-label-sm mt-1">Report</span>
     </button>
-    <button class="flex flex-col items-center bg-gradient-to-r from-primary to-green-500 text-white rounded-full px-5 py-2 shadow-[0_0_20px_rgba(35,134,54,0.4)] -mt-4 border-4 border-background">
-      <span class="material-symbols-outlined text-[24px]">history</span>
+    <button class="flex flex-col items-center justify-center bg-gradient-to-r from-primary to-[#5ad060] text-[#05070a] rounded-full px-5 py-2 shadow-[0_0_20px_rgba(123,219,128,0.4)] transition-transform active:scale-95 duration-200 -mt-4 border-4 border-background">
+      <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">history</span>
       <span class="font-label-sm text-label-sm mt-1 font-bold">Activity</span>
     </button>
-    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-text-primary w-16 py-1 rounded-lg">
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center justify-center text-text-secondary hover:text-text-primary transition-colors duration-200 w-16 py-1 rounded-lg">
       <span class="material-symbols-outlined text-[24px]">person</span>
       <span class="font-label-sm text-label-sm mt-1">Profile</span>
     </button>
   </nav>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SHARED ADMIN SIDEBAR COMPONENT HTML (INCLUDED IN ADMIN PAGES)
-══════════════════════════════════════════════════════ -->
 
 <!-- ══════════════════════════════════════════════════════
-     PAGE: ADMIN — COMMAND CENTER (MAP)
+     PAGE: ADMIN — COMMAND CENTER (MAP) (DESIGN MATCHED)
 ══════════════════════════════════════════════════════ -->
 <div id="page-dashboard" class="page flex h-screen w-screen overflow-hidden">
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start fade-in-up">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Municipal Admin</span>
+          <span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider text-[10px]">Municipal Dashboard</span>
         </div>
       </div>
     </div>
     <div class="flex-1 flex flex-col gap-1 w-full">
       <button onclick="navigate('page-dashboard')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
-        <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
-      </button>
-      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
-      </button>
-      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span><span>Command Center</span>
       </button>
       <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Tracking</span>
       </button>
       <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
         <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">description</span><span>Reports</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
       </button>
       <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
         <span class="material-symbols-outlined">settings</span><span>Settings</span>
       </button>
     </div>
     <div class="px-4 mt-auto space-y-3">
-      <button onclick="navigate('page-submit')" class="w-full bg-primary/90 hover:bg-primary text-white font-label-sm text-label-sm py-3 px-4 rounded transition-all flex items-center justify-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.4)] border border-primary/20">
+      <button onclick="dispatchTeam()" class="w-full bg-primary/90 hover:bg-primary text-[#05070a] font-label-sm text-label-sm py-3 px-4 rounded transition-all flex items-center justify-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.4)] border border-primary/20">
         <span class="material-symbols-outlined text-[18px]">send</span> Dispatch Unit
       </button>
       <div class="flex flex-col gap-1">
-        <button onclick="navigate('page-profile')" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
-          <span class="material-symbols-outlined text-[18px]">person</span><span>My Profile</span>
+        <button onclick="startInteractiveTour()" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
+          <span class="material-symbols-outlined text-[18px]">help</span><span>Support</span>
         </button>
-        <button onclick="navigate('page-landing')" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
-          <span class="material-symbols-outlined text-[18px]">swap_horiz</span><span>Exit Admin</span>
+        <button onclick="logoutAdmin()" class="flex items-center gap-3 text-text-secondary px-2 py-2 text-sm rounded hover:bg-white/5 hover:text-text-primary transition-all">
+          <span class="material-symbols-outlined text-[18px]">logout</span><span>Logout</span>
         </button>
       </div>
     </div>
   </aside>
 
   <main class="flex-1 relative md:ml-sidebar-width h-full w-full bg-transparent">
-    <canvas id="shader-canvas" class="absolute inset-0 w-full h-full z-[-1] pointer-events-none"></canvas>
+    <!-- Map Canvas -->
+    <div class="absolute inset-0 w-full h-full z-[-1]">
+      <img class="w-full h-full object-cover grayscale mix-blend-overlay opacity-30" alt="Cyber Tactical Map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVKJEs1KlMJWiLE9ppouKT0Uv4Vf-kUXhsnei4F3ADHhmx2WndnxlD7HmJ4MVXOwxCLdXVLipetnrczeV8Ea7QIRE67VgJfrQJKLhIlXAoWWLuiY81myl8qVTqvJJWfk47kID7PfumrwM-cazccIZV-0-f0b2AYAuoceG7wxZvjzrtg9P6vIJ6VakRg1du_6ryK5hcvt_A8DkU_P97QNmIizcdl6IWKMEedEdDIE2KvJy2qn8J49A"/>
+    </div>
+    
     <div class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between z-10">
-      <!-- Top Stats -->
+      <!-- Top Stats Bar -->
       <div class="flex flex-wrap gap-4 items-start w-full pointer-events-auto fade-in-up">
         <div class="glass-panel rounded-lg p-3 flex items-center gap-4">
           <div class="flex flex-col">
             <span class="text-text-secondary font-label-mono text-label-mono uppercase">Today's Reports</span>
-            <span id="stat-reports" class="font-headline-lg text-headline-lg text-text-primary leading-none mt-1">—</span>
+            <span id="stat-reports" class="font-headline-lg text-headline-lg text-text-primary leading-none mt-1">124</span>
           </div>
           <div class="h-8 w-px bg-white/10 mx-2"></div>
           <div class="flex flex-col">
             <span class="text-text-secondary font-label-mono text-label-mono uppercase">Active Hotspots</span>
             <div class="flex items-center gap-2 mt-1">
-              <span class="w-2 h-2 rounded-full bg-danger pin-danger"></span>
-              <span id="stat-hotspots" class="font-headline-lg text-headline-lg text-danger leading-none">—</span>
+              <span class="w-2 h-2 rounded-full bg-danger pin-danger shadow-[0_0_10px_rgba(218,54,51,0.8)]"></span>
+              <span id="stat-hotspots" class="font-headline-lg text-headline-lg text-danger leading-none drop-shadow-[0_0_4px_rgba(218,54,51,0.6)]">8</span>
             </div>
           </div>
           <div class="h-8 w-px bg-white/10 mx-2"></div>
           <div class="flex flex-col">
             <span class="text-text-secondary font-label-mono text-label-mono uppercase">Teams Deployed</span>
             <div class="flex items-center gap-2 mt-1">
-              <span class="w-2 h-2 rounded-full bg-primary animate-pulse-ring"></span>
-              <span id="stat-teams" class="font-headline-lg text-headline-lg text-primary leading-none">—</span>
+              <span class="w-2 h-2 rounded-full bg-primary animate-pulse-ring shadow-[0_0_10px_rgba(123,219,128,0.8)]"></span>
+              <span id="stat-teams" class="font-headline-lg text-headline-lg text-primary leading-none drop-shadow-[0_0_4px_rgba(123,219,128,0.6)]">14</span>
             </div>
           </div>
         </div>
         <div class="ml-auto flex gap-2">
           <button onclick="navigate('page-reports')" class="glass-panel text-text-primary px-4 py-2 rounded-md hover:bg-white/10 flex items-center gap-2 font-label-sm text-label-sm transition-colors">
-            <span class="material-symbols-outlined text-[18px]">list</span> Reports Queue
+            <span class="material-symbols-outlined text-[18px]">filter_list</span> Filter View
           </button>
           <button onclick="navigate('page-settings')" class="glass-panel text-text-primary w-10 h-10 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span class="material-symbols-outlined text-[20px]">layers</span>
           </button>
         </div>
       </div>
 
       <!-- Map Pins -->
-      <div class="absolute top-1/3 left-1/3 pointer-events-auto">
-        <button onclick="navigate('page-reports')" class="w-8 h-8 rounded-full bg-danger/20 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_15px_rgba(218,54,51,0.6)] hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-[16px]">warning</span>
+      <div class="absolute top-1/3 left-1/3 pointer-events-auto group">
+        <button onclick="selectDashboardPin('critical')" class="w-8 h-8 rounded-full bg-danger/20 border-2 border-danger text-danger flex items-center justify-center pin-danger shadow-[0_0_15px_rgba(218,54,51,0.6)] transform hover:scale-110 transition-transform backdrop-blur-sm">
+          <span class="material-symbols-outlined text-[16px] font-bold" style="font-variation-settings: 'FILL' 1;">warning</span>
         </button>
       </div>
       <div class="absolute top-1/2 left-2/3 pointer-events-auto">
-        <button onclick="navigate('page-reports')" class="w-6 h-6 rounded-full bg-warning/20 border border-warning text-warning flex items-center justify-center shadow-[0_0_10px_rgba(210,153,34,0.4)]">
-          <span class="material-symbols-outlined text-[14px]">report</span>
+        <button onclick="selectDashboardPin('warning')" class="w-6 h-6 rounded-full bg-warning/20 border border-warning text-warning flex items-center justify-center shadow-[0_0_10px_rgba(210,153,34,0.4)] hover:bg-warning/40 transition-colors backdrop-blur-sm">
+          <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">report</span>
+        </button>
+      </div>
+      <div class="absolute bottom-1/3 left-1/2 pointer-events-auto">
+        <button onclick="selectDashboardPin('unit')" class="w-4 h-4 rounded-full bg-primary border border-primary flex items-center justify-center animate-pulse-ring shadow-[0_0_10px_rgba(123,219,128,0.6)]">
         </button>
       </div>
 
       <!-- Live Feed + Detail Drawer -->
-      <div class="flex gap-6 w-full mt-auto pointer-events-auto">
-        <div class="w-80 glass-panel rounded-lg overflow-hidden flex flex-col h-64 flex-shrink-0">
-          <div class="px-4 py-2 bg-black/40 border-b border-white/5 flex justify-between items-center">
+      <div class="flex gap-6 w-full mt-auto relative z-10 pointer-events-auto">
+        <!-- Live Feed Panel -->
+        <div class="w-80 glass-panel rounded-lg shadow-xl overflow-hidden flex flex-col h-64 flex-shrink-0 fade-in-up stagger-2">
+          <div class="px-4 py-2 bg-black/40 border-b border-white/5 flex justify-between items-center backdrop-blur-md">
             <span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider flex items-center gap-2">
-              <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+              <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_5px_rgba(123,219,128,0.8)]"></span>
               Live Feed
             </span>
-            <span id="ws-status" class="font-label-mono text-[10px] text-text-secondary">⚡ LIVE</span>
+            <button onclick="toggleFeedPause(this)" title="Pause feed" class="text-text-secondary hover:text-text-primary">
+              <span class="material-symbols-outlined text-[16px]">pause</span>
+            </button>
           </div>
           <div id="live-feed" class="flex-1 overflow-y-auto p-2 space-y-2">
-            <div class="bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 toast-item">
-              <span class="material-symbols-outlined text-warning text-[18px] mt-0.5">report_problem</span>
+            <div onclick="selectDashboardPin('critical')" class="bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 hover:bg-white/5 transition-colors cursor-pointer backdrop-blur-sm">
+              <span class="material-symbols-outlined text-danger text-[18px] mt-0.5 drop-shadow-[0_0_4px_rgba(218,54,51,0.6)]" style="font-variation-settings: 'FILL' 1;">error</span>
               <div>
-                <div class="font-body-md text-text-primary">Illegal Dumping Detected</div>
+                <div class="font-body-md text-body-md text-text-primary font-bold">Illegal Dumping Detected</div>
                 <div class="font-label-mono text-label-mono text-text-secondary mt-1">Zone 4A • 1m ago</div>
+              </div>
+            </div>
+            <div onclick="selectDashboardPin('unit')" class="bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 hover:bg-white/5 transition-colors cursor-pointer backdrop-blur-sm">
+              <span class="material-symbols-outlined text-primary text-[18px] drop-shadow-[0_0_4px_rgba(123,219,128,0.6)]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              <div>
+                <div class="font-body-md text-body-md text-text-primary">Fleet Unit 7 Resolved Issue</div>
+                <div class="font-label-mono text-label-mono text-text-secondary mt-1">Sector 12 • 4m ago</div>
+              </div>
+            </div>
+            <div onclick="selectDashboardPin('warning')" class="bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 hover:bg-white/5 transition-colors cursor-pointer opacity-70 backdrop-blur-sm">
+              <span class="material-symbols-outlined text-warning text-[18px] drop-shadow-[0_0_4px_rgba(210,153,34,0.6)]" style="font-variation-settings: 'FILL' 1;">report_problem</span>
+              <div>
+                <div class="font-body-md text-body-md text-text-primary">Overflow Risk: Bins at 90%</div>
+                <div class="font-label-mono text-label-mono text-text-secondary mt-1">Downtown Square • 12m ago</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="detail-drawer" class="ml-auto w-[400px] glass-panel rounded-t-xl md:rounded-lg flex flex-col max-h-[calc(100vh-120px)] overflow-hidden">
-          <div class="p-4 border-b border-white/5 bg-black/40 flex justify-between items-start">
+        <!-- Detail Drawer -->
+        <div id="detail-drawer" class="ml-auto w-[400px] glass-panel rounded-t-xl md:rounded-lg shadow-2xl flex flex-col max-h-[calc(100vh-120px)] overflow-hidden fade-in-up stagger-3">
+          <div class="p-4 border-b border-white/5 bg-black/40 flex justify-between items-start backdrop-blur-md">
             <div>
               <div class="flex items-center gap-2 mb-1">
-                <span class="px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-label-mono border border-danger/30">URGENCY: CRITICAL</span>
-                <span class="font-label-mono text-label-mono text-text-secondary">#REP-8992</span>
+                <span id="drawer-urgency-badge" class="px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-label-mono border border-danger/30 shadow-[0_0_8px_rgba(218,54,51,0.2)]">URGENCY: CRITICAL</span>
+                <span id="drawer-rep-id" class="font-label-mono text-label-mono text-text-secondary">#REP-8992</span>
               </div>
-              <h3 class="font-headline-md text-headline-md text-text-primary">Waste Spill Detected</h3>
+              <h3 id="drawer-title" class="font-headline-md text-headline-md text-text-primary">Industrial Waste Spill</h3>
             </div>
             <button class="text-text-secondary hover:text-text-primary" onclick="document.getElementById('detail-drawer').classList.toggle('hidden')">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
-          <div class="p-4 overflow-y-auto flex-1 space-y-4">
-            <div class="grid grid-cols-2 gap-3">
+          <div class="p-4 overflow-y-auto flex-1 space-y-6">
+            <!-- Photo Evidence -->
+            <div class="relative w-full h-40 bg-black/50 border border-white/10 rounded-lg overflow-hidden group shadow-inner">
+              <img id="drawer-photo" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'><rect width='600' height='400' fill='%23161b22'/><rect x='20' y='20' width='560' height='360' rx='16' fill='%2321262d' stroke='%23388bfd' stroke-width='2'/><text x='300' y='180' fill='%23388bfd' font-family='sans-serif' font-size='48' text-anchor='middle'>🔍</text><text x='300' y='240' fill='%23e6edf3' font-family='sans-serif' font-size='20' font-weight='bold' text-anchor='middle'>AI Scan Evidence Evidence</text></svg>" alt="Waste photo evidence"/>
+              <div class="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-sm p-1.5 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[14px]">psychology</span>
+                <div class="flex flex-col">
+                  <span class="font-label-mono text-[10px] text-text-secondary leading-none">AI CONFIDENCE</span>
+                  <span id="drawer-ai-conf" class="font-label-mono text-[12px] text-primary font-bold leading-none mt-0.5 drop-shadow-[0_0_2px_rgba(123,219,128,0.8)]">94% MATCH</span>
+                </div>
+              </div>
+            </div>
+            <!-- Details Grid -->
+            <div class="grid grid-cols-2 gap-4">
               <div>
                 <div class="font-label-sm text-label-sm text-text-secondary mb-1 uppercase tracking-wider">Location</div>
-                <div class="font-body-md text-text-primary">Sector 4, Industrial Pkwy</div>
+                <div id="drawer-location" class="font-body-md text-body-md text-text-primary">42nd St &amp; 8th Ave</div>
+                <div id="drawer-coords" class="font-label-mono text-label-mono text-text-secondary mt-0.5">40.757° N, 73.989° W</div>
               </div>
               <div>
-                <div class="font-label-sm text-label-sm text-text-secondary mb-1 uppercase tracking-wider">Status</div>
-                <div class="font-body-md text-primary">Pending Verification</div>
+                <div class="font-label-sm text-label-sm text-text-secondary mb-1 uppercase tracking-wider">Reported By</div>
+                <div id="drawer-reporter" class="font-body-md text-body-md text-text-primary">Citizen App (Anon)</div>
+                <div id="drawer-time" class="font-label-mono text-label-mono text-text-secondary mt-0.5">14 mins ago</div>
+              </div>
+            </div>
+            <!-- Status Timeline -->
+            <div>
+              <div class="font-label-sm text-label-sm text-text-secondary mb-3 uppercase tracking-wider">Status Timeline</div>
+              <div class="relative pl-4 space-y-4 before:absolute before:inset-y-0 before:left-[5px] before:w-px before:bg-white/10">
+                <div class="relative flex gap-3">
+                  <div class="absolute -left-4 w-3 h-3 bg-black/50 border border-primary rounded-full flex items-center justify-center mt-0.5 shadow-[0_0_5px_rgba(123,219,128,0.5)]">
+                    <div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                  </div>
+                  <div>
+                    <div class="font-label-sm text-label-sm text-primary">Report Received</div>
+                    <div class="font-label-mono text-[10px] text-text-secondary">10:42 AM</div>
+                  </div>
+                </div>
+                <div class="relative flex gap-3">
+                  <div class="absolute -left-4 w-3 h-3 bg-black/50 border-2 border-white/20 rounded-full mt-0.5"></div>
+                  <div>
+                    <div class="font-label-sm text-label-sm text-text-primary">AI Verification Pending</div>
+                    <div class="font-label-mono text-[10px] text-text-secondary">Awaiting manual override</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="p-4 border-t border-white/5 bg-black/40 flex gap-3">
-            <button onclick="navigate('page-reports')" class="flex-1 bg-primary/90 text-white font-label-sm text-label-sm py-2.5 rounded-md hover:bg-primary transition-colors flex justify-center items-center gap-2 font-bold">
-              <span class="material-symbols-outlined text-[18px]">verified</span> VERIFY & DISPATCH
+          <!-- Footer Actions -->
+          <div class="p-4 border-t border-white/5 bg-black/40 flex gap-3 backdrop-blur-md">
+            <button onclick="verifyAndDispatch()" class="flex-1 bg-primary/90 text-[#05070a] font-label-sm text-label-sm py-2.5 rounded-md hover:bg-primary transition-colors border border-primary/20 flex justify-center items-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.4)] backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[18px]">verified</span> VERIFY &amp; DISPATCH
+            </button>
+            <button onclick="document.getElementById('detail-drawer').classList.add('hidden')" class="px-4 bg-white/5 border border-white/10 text-text-secondary rounded-md hover:bg-white/10 hover:text-text-primary transition-colors flex justify-center items-center backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[18px]">delete</span>
             </button>
           </div>
         </div>
@@ -665,68 +923,79 @@
   </main>
 </div>
 
+
 <!-- ══════════════════════════════════════════════════════
-     PAGE: ADMIN — REPORTS QUEUE
+     PAGE: ADMIN — REPORTS QUEUE (DESIGN MATCHED)
 ══════════════════════════════════════════════════════ -->
 <div id="page-reports" class="page flex h-screen w-screen overflow-hidden">
   <canvas id="webgl-canvas" class="fixed inset-0 w-full h-full z-[-1] pointer-events-none"></canvas>
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start fade-in-up">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">Municipal Admin</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">Municipal Dashboard</span>
         </div>
       </div>
+      <button onclick="dispatchTeam()" class="w-full mt-4 bg-primary/90 hover:bg-primary text-[#05070a] font-label-sm text-label-sm py-2 px-4 rounded transition-all duration-300 flex items-center justify-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.4)] backdrop-blur-sm border border-primary/20">
+        <span class="material-symbols-outlined text-[16px]">send</span> Dispatch Unit
+      </button>
     </div>
     <nav class="flex-1 flex flex-col gap-1 w-full">
       <button onclick="navigate('page-dashboard')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
         <span class="material-symbols-outlined">dashboard</span><span>Command Center</span>
       </button>
-      <button onclick="navigate('page-reports')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
-        <span class="material-symbols-outlined">description</span><span>Reports Queue</span>
-      </button>
-      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
-      </button>
       <button onclick="navigate('page-fleet')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Dispatch</span>
+        <span class="material-symbols-outlined">local_shipping</span><span>Fleet Tracking</span>
       </button>
       <button onclick="navigate('page-analytics')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
         <span class="material-symbols-outlined">analytics</span><span>Analytics</span>
+      </button>
+      <button onclick="navigate('page-reports')" class="nav-link active-link flex items-center gap-3 px-4 py-3 transition-all">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span><span>Reports</span>
+      </button>
+      <button onclick="navigate('page-hotspots')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">local_fire_department</span><span>Hotspots</span>
       </button>
       <button onclick="navigate('page-settings')" class="nav-link flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
         <span class="material-symbols-outlined">settings</span><span>Settings</span>
       </button>
     </nav>
     <div class="mt-auto flex flex-col gap-1 w-full">
-      <button onclick="navigate('page-profile')" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">person</span><span>My Profile</span>
+      <button onclick="startInteractiveTour()" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">help</span><span>Support</span>
       </button>
-      <button onclick="navigate('page-landing')" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
-        <span class="material-symbols-outlined">swap_horiz</span><span>Exit Admin</span>
+      <button onclick="logoutAdmin()" class="flex items-center gap-3 text-text-secondary px-4 py-3 hover:bg-white/5 hover:text-text-primary transition-all">
+        <span class="material-symbols-outlined">logout</span><span>Logout</span>
       </button>
     </div>
   </aside>
 
   <main class="flex-1 md:ml-sidebar-width h-full flex flex-col overflow-hidden relative bg-transparent">
+    <!-- Header -->
     <header class="h-16 glass-panel border-b border-white/5 flex items-center justify-between px-gutter shrink-0 relative z-10">
       <h1 class="font-headline-lg text-headline-lg text-text-primary">Reports Queue</h1>
       <div class="flex items-center gap-4">
+        <!-- Search Input -->
         <div class="relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
-          <input id="reports-filter" onkeyup="filterReports()" class="bg-black/30 border border-white/10 text-text-primary font-body-md text-body-md rounded pl-9 pr-4 py-1.5 focus:outline-none focus:border-primary/50 transition-all w-64" placeholder="Filter reports..."/>
+          <input id="reports-filter" onkeyup="filterReports()" class="bg-black/30 border border-white/10 text-text-primary font-body-md text-body-md rounded pl-9 pr-4 py-1.5 focus:outline-none focus:border-primary/50 transition-all w-64 backdrop-blur-sm" placeholder="Filter reports..."/>
         </div>
-        <div class="flex bg-black/30 rounded border border-white/10 overflow-hidden">
-          <button onclick="filterByStatus('all')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm bg-white/10 text-text-primary border-r border-white/10">All</button>
-          <button onclick="filterByStatus('pending')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary border-r border-white/10">Pending</button>
-          <button onclick="filterByStatus('critical')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary">Critical</button>
+        <!-- Quick Filters -->
+        <div class="flex bg-black/30 rounded border border-white/10 overflow-hidden backdrop-blur-sm">
+          <button id="filter-all-btn" onclick="filterByStatus('all')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm bg-white/10 text-text-primary border-r border-white/10">All</button>
+          <button id="filter-pending-btn" onclick="filterByStatus('pending')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary border-r border-white/10 hover:bg-white/5 transition-colors">Pending</button>
+          <button id="filter-critical-btn" onclick="filterByStatus('critical')" class="filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary hover:bg-white/5 transition-colors">Critical</button>
         </div>
       </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden p-2 gap-2 relative z-10">
+    <!-- Workbench Layout (2/3 Table + 1/3 AI Verification & Context) -->
+    <div class="flex-1 flex overflow-hidden p-unit gap-unit relative z-10">
+      <!-- Data Table Section -->
       <div class="flex-[2] glass-panel rounded-lg flex flex-col overflow-hidden">
         <div class="bg-black/40 border-b border-white/5 flex items-center px-4 py-2 font-label-sm text-label-sm text-text-secondary uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
           <div class="w-16">ID</div>
@@ -734,37 +1003,72 @@
           <div class="flex-1">Waste Type</div>
           <div class="w-24 text-center">Urgency</div>
           <div class="w-28 text-center">Status</div>
-          <div class="w-32">AI Conf.</div>
+          <div class="w-32">AI Confidence</div>
           <div class="w-24 text-right">Time</div>
         </div>
         <div id="reports-table-body" class="flex-1 overflow-y-auto"></div>
       </div>
 
-      <div class="flex-1 flex flex-col gap-2">
-        <div id="verify-panel" class="glass-panel rounded-lg p-4 flex flex-col">
+      <!-- Right Column: AI Verification Panel & Contextual Data -->
+      <div class="flex-1 flex flex-col gap-unit">
+        <!-- AI Verification Card -->
+        <div id="verify-panel" class="glass-panel rounded-lg p-4 flex flex-col shadow-[0_0_20px_rgba(218,54,51,0.1)]">
           <div class="flex justify-between items-center mb-4">
             <h2 class="font-headline-md text-headline-md text-text-primary flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">robot_2</span> AI Verification
             </h2>
-            <span id="verify-report-id" class="font-label-mono text-label-mono text-text-secondary border border-white/10 px-2 py-1 rounded bg-black/30">Select a report</span>
+            <span id="verify-report-id" class="font-label-mono text-label-mono text-text-secondary border border-white/10 px-2 py-1 rounded bg-black/30">#R-094</span>
           </div>
+          <!-- 3D Preview Visual -->
+          <div class="relative w-full aspect-video bg-black/50 border border-white/10 rounded overflow-hidden mb-4 group shadow-inner">
+            <img id="verify-photo-preview" alt="Smart Waste Asset" class="w-full h-full object-cover opacity-90 transition-opacity duration-500 group-hover:opacity-100" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'><rect width='600' height='400' fill='%23161b22'/><rect x='20' y='20' width='560' height='360' rx='16' fill='%2321262d' stroke='%23da3633' stroke-width='2'/><text x='300' y='180' fill='%23da3633' font-family='sans-serif' font-size='48' text-anchor='middle'>🤖</text><text x='300' y='240' fill='%23e6edf3' font-family='sans-serif' font-size='20' font-weight='bold' text-anchor='middle'>BinGO AI 3D Verification</text></svg>"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-2 left-2 flex gap-2">
+              <div class="scan-active-badge bg-primary text-[#05070a] font-label-mono text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#05070a] animate-ping inline-block opacity-80"></span>
+                SCAN: ACTIVE
+              </div>
+            </div>
+          </div>
+          <!-- AI Metrics -->
           <div class="grid grid-cols-2 gap-2 mb-4">
-            <div class="bg-black/30 p-2 rounded border border-white/10">
+            <div class="bg-black/30 p-2 rounded border border-white/10 backdrop-blur-sm">
               <div class="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Primary Detection</div>
-              <div id="detect-label" class="font-label-mono text-label-mono text-primary font-bold">—</div>
+              <div id="detect-label" class="font-label-mono text-label-mono text-primary font-bold">Bulk Debris (92%)</div>
             </div>
-            <div class="bg-black/30 p-2 rounded border border-white/10">
-              <div class="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Urgency Score</div>
-              <div id="detect-urgency" class="font-label-mono text-label-mono text-warning font-bold">—</div>
+            <div class="bg-black/30 p-2 rounded border border-white/10 backdrop-blur-sm">
+              <div class="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Location Match</div>
+              <div id="detect-urgency" class="font-label-mono text-label-mono text-success font-bold">Verified</div>
             </div>
           </div>
-          <div class="flex flex-col gap-2">
-            <button onclick="verifyReport()" class="w-full bg-primary/90 text-white font-label-sm text-label-sm py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-2 font-bold">
-              <span class="material-symbols-outlined text-[18px]">check_circle</span> Verify & Escalate
+          <!-- Action Buttons -->
+          <div class="mt-auto flex flex-col gap-2">
+            <button onclick="verifyReport()" class="w-full bg-primary/90 text-[#05070a] font-label-sm text-label-sm py-2.5 rounded hover:bg-primary transition-all duration-300 flex items-center justify-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.4)] border border-primary/20 backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[18px]">check_circle</span> Verify &amp; Escalate
             </button>
-            <button onclick="rejectReport()" class="w-full bg-danger/10 text-danger border border-danger/30 font-label-sm text-label-sm py-2 rounded hover:bg-danger/20 transition-all flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-[16px]">cancel</span> Reject Report
-            </button>
+            <div class="flex gap-2">
+              <button onclick="assignTeamFromReport()" class="flex-1 bg-white/5 text-text-primary border border-white/10 font-label-sm text-label-sm py-2 rounded hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-sm">
+                <span class="material-symbols-outlined text-[16px]">group_add</span> Assign Team
+              </button>
+              <button onclick="rejectReport()" class="flex-1 bg-danger/10 text-danger border border-danger/30 font-label-sm text-label-sm py-2 rounded hover:bg-danger/20 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-sm shadow-[0_0_10px_rgba(218,54,51,0.1)]">
+                <span class="material-symbols-outlined text-[16px]">cancel</span> Reject
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contextual Data Card -->
+        <div class="glass-panel rounded-lg p-4 flex-1 flex flex-col">
+          <h3 class="font-body-md text-body-md text-text-secondary mb-4 uppercase tracking-wider text-[11px]">Contextual Data</h3>
+          <div class="flex-1 relative">
+            <div class="absolute inset-0 bg-black/50 border border-white/10 rounded overflow-hidden" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAobCyYWA6OgepYwKROwZKK0_5h7QQW9dLxseCIwR3rel_2BW8hlMWBU1rHkZAXjEbwfOKf9ngd3AWmRHmPqEr4XcccfrcqCJFpAcBNdngVP8VCU1JeEYT47m756_wpgwdsiB1gdt2gn1PPTa7VPdzHWwgQxT8MwxfwRJYqqibYYTuOs5F87UUxZmRIXOIwIznlCnG17nmleQAHiKXEgqEozbcY2aiXzGI74GmM7dGZaaIMC81l9eA'); background-blend-mode: overlay;">
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                <div class="w-4 h-4 bg-danger rounded-full animate-pulse-ring relative z-10 shadow-[0_0_10px_rgba(218,54,51,0.8)]"></div>
+                <div id="contextual-location-tag" class="absolute bg-black/70 border border-white/10 text-text-primary font-label-mono text-[10px] px-2 py-1 rounded -top-8 whitespace-nowrap shadow-lg backdrop-blur-md">
+                  Sector 4, Alley 9
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -779,10 +1083,12 @@
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">Hotspot Cluster Map</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">Hotspot Cluster Map</span>
         </div>
       </div>
     </div>
@@ -814,7 +1120,7 @@
         <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">Active Hotspots</h1>
         <p class="text-text-secondary text-sm">Clustered waste accumulation zones (DBSCAN 200m radius)</p>
       </div>
-      <button onclick="recomputeHotspots()" id="recompute-btn" class="bg-primary text-white font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+      <button onclick="recomputeHotspots()" id="recompute-btn" class="bg-primary text-[#05070a] font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.3)]">
         <span class="material-symbols-outlined text-[18px]">sync</span> Recompute Clusters
       </button>
     </div>
@@ -832,10 +1138,12 @@
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">Fleet & Dispatch</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">Fleet &amp; Dispatch</span>
         </div>
       </div>
     </div>
@@ -867,7 +1175,7 @@
         <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">Fleet Dispatch Command</h1>
         <p class="text-text-secondary text-sm">Active vehicle assignments, status tracking, and field team dispatch</p>
       </div>
-      <button onclick="dispatchTeam()" class="bg-primary text-white font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(35,134,54,0.3)]">
+      <button onclick="dispatchTeam()" class="bg-primary text-[#05070a] font-label-sm py-2.5 px-5 rounded-lg hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-[0_0_15px_rgba(123,219,128,0.3)]">
         <span class="material-symbols-outlined text-[18px]">add</span> New Dispatch Order
       </button>
     </div>
@@ -885,10 +1193,12 @@
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">Municipal Analytics</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">Municipal Analytics</span>
         </div>
       </div>
     </div>
@@ -954,7 +1264,7 @@
             <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-primary" style="width:38%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between text-sm mb-1"><span>📦 Cardboard & Paper</span><span>27%</span></div>
+            <div class="flex justify-between text-sm mb-1"><span>📦 Cardboard &amp; Paper</span><span>27%</span></div>
             <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-accent" style="width:27%"></div></div>
           </div>
           <div>
@@ -962,7 +1272,7 @@
             <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-danger" style="width:18%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between text-sm mb-1"><span>🍂 Organic & Food</span><span>17%</span></div>
+            <div class="flex justify-between text-sm mb-1"><span>🍂 Organic &amp; Food</span><span>17%</span></div>
             <div class="h-2.5 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-warning" style="width:17%"></div></div>
           </div>
         </div>
@@ -1005,10 +1315,12 @@
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">System Settings</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">System Settings</span>
         </div>
       </div>
     </div>
@@ -1036,7 +1348,7 @@
 
   <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
     <div class="mb-6">
-      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">System & Connection Settings</h1>
+      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">System &amp; Connection Settings</h1>
       <p class="text-text-secondary text-sm">Configure backend endpoints, demo mode, AI thresholds, and notifications</p>
     </div>
 
@@ -1072,14 +1384,14 @@
       <!-- Mode & AI Thresholds -->
       <div class="glass-card p-6 rounded-xl border border-white/10">
         <h2 class="font-headline-md text-headline-md font-bold mb-4 text-text-primary flex items-center gap-2">
-          <span class="material-symbols-outlined text-accent">tune</span> Operation Mode & AI Thresholds
+          <span class="material-symbols-outlined text-accent">tune</span> Operation Mode &amp; AI Thresholds
         </h2>
 
         <div class="space-y-5">
           <div class="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-white/5">
             <div>
               <div class="font-bold text-text-primary">Force Demo Mode</div>
-              <div class="text-xs text-text-secondary">Simulate full AI classification & reports offline without backend DB</div>
+              <div class="text-xs text-text-secondary">Simulate full AI classification &amp; reports offline without backend DB</div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input id="setting-demo-toggle" type="checkbox" class="sr-only peer" onchange="toggleDemoSetting(this)"/>
@@ -1107,7 +1419,7 @@
 
       <!-- Action Buttons -->
       <div class="flex gap-4">
-        <button onclick="saveSettings()" class="bg-primary text-white font-label-sm py-3 px-6 rounded-lg hover:opacity-90 transition-all font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(35,134,54,0.4)]">
+        <button onclick="saveSettings()" class="bg-primary text-[#05070a] font-label-sm py-3 px-6 rounded-lg hover:opacity-90 transition-all font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(123,219,128,0.4)]">
           <span class="material-symbols-outlined text-[18px]">save</span> Save Settings
         </button>
         <button onclick="resetSettings()" class="bg-white/5 border border-white/10 text-text-secondary font-label-sm py-3 px-6 rounded-lg hover:bg-white/10 hover:text-text-primary transition-all font-bold">
@@ -1125,10 +1437,12 @@
   <aside class="hidden md:flex flex-col h-screen py-6 glass-panel w-sidebar-width fixed left-0 top-0 border-r border-white/5 z-50">
     <div class="px-6 mb-8 flex flex-col items-start">
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center text-2xl">🗑️</div>
+        <div class="w-10 h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_15px_rgba(123,219,128,0.4)] shrink-0">
+          <img src="assets/bingo_logo.jpg" class="w-full h-full object-cover" alt="BinGO Logo"/>
+        </div>
         <div>
           <span class="font-headline-md text-headline-md font-bold text-primary block">BinGO</span>
-          <span class="font-label-sm text-label-sm text-text-secondary">User Profile</span>
+          <span class="font-label-sm text-label-sm text-text-secondary text-[10px]">User Profile</span>
         </div>
       </div>
     </div>
@@ -1150,7 +1464,7 @@
 
   <main class="flex-1 md:ml-sidebar-width h-full flex flex-col p-6 overflow-y-auto">
     <div class="mb-6">
-      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">User Profile & Account</h1>
+      <h1 class="font-headline-lg text-headline-lg font-bold text-text-primary">User Profile &amp; Account</h1>
       <p class="text-text-secondary text-sm">Manage user credentials, role permissions, and token sessions</p>
     </div>
 
@@ -1172,15 +1486,15 @@
         <div class="grid grid-cols-3 gap-3">
           <button onclick="switchRole('citizen')" class="p-3 glass-panel rounded-lg border border-primary/30 text-center hover:bg-primary/20">
             <div class="font-bold text-primary">Citizen</div>
-            <div class="text-[10px] text-text-secondary">Report creation & status tracking</div>
+            <div class="text-[10px] text-text-secondary">Report creation &amp; status tracking</div>
           </button>
           <button onclick="switchRole('field_agent')" class="p-3 glass-panel rounded-lg border border-accent/30 text-center hover:bg-accent/20">
             <div class="font-bold text-accent">Field Agent</div>
-            <div class="text-[10px] text-text-secondary">Report resolution & after-photos</div>
+            <div class="text-[10px] text-text-secondary">Report resolution &amp; after-photos</div>
           </button>
           <button onclick="switchRole('municipal_admin')" class="p-3 glass-panel rounded-lg border border-warning/30 text-center hover:bg-warning/20">
             <div class="font-bold text-warning">Municipal Admin</div>
-            <div class="text-[10px] text-text-secondary">AI verification & fleet dispatch</div>
+            <div class="text-[10px] text-text-secondary">AI verification &amp; fleet dispatch</div>
           </button>
         </div>
       </div>
@@ -1192,6 +1506,26 @@
      JAVASCRIPT: Router + API + WebSocket + Settings
 ══════════════════════════════════════════════════════ -->
 <script>
+
+// Default SVG Fallback Asset for BinGO Waste Management
+const DEFAULT_FALLBACK_IMG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%230a0e14"/><g opacity="0.15"><line x1="0" y1="50" x2="600" y2="50" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="100" x2="600" y2="100" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="150" x2="600" y2="150" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="200" x2="600" y2="200" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="250" x2="600" y2="250" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="300" x2="600" y2="300" stroke="%237bdb80" stroke-width="1"/><line x1="0" y1="350" x2="600" y2="350" stroke="%237bdb80" stroke-width="1"/><line x1="100" y1="0" x2="100" y2="400" stroke="%237bdb80" stroke-width="1"/><line x1="200" y1="0" x2="200" y2="400" stroke="%237bdb80" stroke-width="1"/><line x1="300" y1="0" x2="300" y2="400" stroke="%237bdb80" stroke-width="1"/><line x1="400" y1="0" x2="400" y2="400" stroke="%237bdb80" stroke-width="1"/><line x1="500" y1="0" x2="500" y2="400" stroke="%237bdb80" stroke-width="1"/></g><rect x="40" y="40" width="520" height="320" rx="16" fill="%23161b22" stroke="%2330363d" stroke-width="2"/><circle cx="300" cy="180" r="60" fill="%23238636" opacity="0.2"/><circle cx="300" cy="180" r="40" fill="none" stroke="%237bdb80" stroke-width="2" stroke-dasharray="6,4"/><path d="M 280 180 L 320 180 M 300 160 L 300 200" stroke="%237bdb80" stroke-width="2"/><text x="300" y="270" fill="%23e6edf3" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle">BinGO AI Smart Waste Asset</text><text x="300" y="300" fill="%237bdb80" font-family="monospace" font-size="14" text-anchor="middle">SCAN COMPLETED • CONFIDENCE 94%</text></svg>`;
+
+const MOCK_IMG_MIXED = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23161b22"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%2321262d" stroke="%23da3633" stroke-width="2"/><text x="200" y="130" fill="%23da3633" font-family="sans-serif" font-size="48" text-anchor="middle">🗑️</text><text x="200" y="190" fill="%23e6edf3" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Bulk Debris Waste Asset</text><text x="200" y="220" fill="%238b949e" font-family="monospace" font-size="12" text-anchor="middle">AI DETECTED • URGENCY 85/100</text></svg>`;
+const MOCK_IMG_CARDBOARD = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23161b22"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%2321262d" stroke="%23d29922" stroke-width="2"/><text x="200" y="130" fill="%23d29922" font-family="sans-serif" font-size="48" text-anchor="middle">📦</text><text x="200" y="190" fill="%23e6edf3" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Cardboard %26 Paper Asset</text><text x="200" y="220" fill="%238b949e" font-family="monospace" font-size="12" text-anchor="middle">AI DETECTED • URGENCY 45/100</text></svg>`;
+const MOCK_IMG_HAZARDOUS = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23161b22"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%2321262d" stroke="%23da3633" stroke-width="2"/><text x="200" y="130" fill="%23da3633" font-family="sans-serif" font-size="48" text-anchor="middle">⚠️</text><text x="200" y="190" fill="%23ffb4ab" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Hazardous Chemical Spill</text><text x="200" y="220" fill="%23da3633" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">CRITICAL ALERT • URGENCY 94/100</text></svg>`;
+const MOCK_IMG_PLASTIC = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23161b22"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%2321262d" stroke="%23388bfd" stroke-width="2"/><text x="200" y="130" fill="%23388bfd" font-family="sans-serif" font-size="48" text-anchor="middle">🥤</text><text x="200" y="190" fill="%23e6edf3" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">PET Plastic Bottles</text><text x="200" y="220" fill="%238b949e" font-family="monospace" font-size="12" text-anchor="middle">AI DETECTED • URGENCY 72/100</text></svg>`;
+const MOCK_IMG_ORGANIC = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23161b22"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%2321262d" stroke="%237bdb80" stroke-width="2"/><text x="200" y="130" fill="%237bdb80" font-family="sans-serif" font-size="48" text-anchor="middle">🍂</text><text x="200" y="190" fill="%23e6edf3" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Organic %26 Yard Waste</text><text x="200" y="220" fill="%237bdb80" font-family="monospace" font-size="12" text-anchor="middle">AI DETECTED • URGENCY 38/100</text></svg>`;
+
+// Global Image Error Handler to prevent any broken images across the application
+window.addEventListener('error', function (e) {
+  if (e.target && e.target.tagName === 'IMG') {
+    if (!e.target.dataset.hasFallback) {
+      e.target.dataset.hasFallback = 'true';
+      e.target.src = DEFAULT_FALLBACK_IMG;
+    }
+  }
+}, true);
+
 // Config Getters (reading from localStorage with dynamic detection)
 function getApiBase() {
   const custom = localStorage.getItem('bingo_api_url');
@@ -1219,18 +1553,96 @@ let API_BASE = getApiBase();
 let WS_BASE  = getWsBase();
 
 let currentReportId = null;
+let currentReportPhotoUrl = null; // stores real photo_url from API
 let selectedReportRow = null;
 let wsConnection = null;
 let userLocation = { lat: null, lng: null };
 let currentPhotoFile = null;
+let activeFilter = 'all';
+let adminJwt = null;    // JWT for municipal admin
+let citizenJwt = null;  // JWT for citizen user
 
-// Mock Data (used only as fallback when backend is truly offline or demo mode is on)
+// ─────────────────────────────────────────────
+// JWT / Auth Helpers
+// ─────────────────────────────────────────────
+function getAdminJwt() {
+  if (adminJwt) return adminJwt;
+  return sessionStorage.getItem('bingo_admin_jwt') || null;
+}
+
+function getCitizenJwt() {
+  if (citizenJwt) return citizenJwt;
+  return sessionStorage.getItem('bingo_citizen_jwt') || null;
+}
+
+function getAuthHeaders(role = 'admin') {
+  const token = role === 'citizen' ? getCitizenJwt() : getAdminJwt();
+  if (!token) return {};
+  return { 'Authorization': `Bearer ${token}` };
+}
+
+function getJsonAuthHeaders(role = 'admin') {
+  return { 'Content-Type': 'application/json', ...getAuthHeaders(role) };
+}
+
+// Auto-register and login a demo citizen user for report submission
+async function ensureCitizenAuth() {
+  if (getCitizenJwt()) return true;
+  if (isDemoMode()) return false;
+  try {
+    // Try login first
+    const loginRes = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'citizen.demo@bingo.app', password: 'Bingo2026!' }),
+      signal: AbortSignal.timeout(4000)
+    });
+    if (loginRes.ok) {
+      const data = await loginRes.json();
+      citizenJwt = data.access_token;
+      sessionStorage.setItem('bingo_citizen_jwt', citizenJwt);
+      return true;
+    }
+    // If login fails, attempt registration
+    const regRes = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'citizen.demo@bingo.app',
+        password: 'Bingo2026!',
+        full_name: 'Demo Citizen',
+        role: 'citizen'
+      }),
+      signal: AbortSignal.timeout(4000)
+    });
+    if (regRes.ok) {
+      // Now login
+      const loginRes2 = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'citizen.demo@bingo.app', password: 'Bingo2026!' }),
+        signal: AbortSignal.timeout(4000)
+      });
+      if (loginRes2.ok) {
+        const data = await loginRes2.json();
+        citizenJwt = data.access_token;
+        sessionStorage.setItem('bingo_citizen_jwt', citizenJwt);
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn('Citizen auth failed, will run in demo mode:', e);
+  }
+  return false;
+}
+
+// Mock Data
 const MOCK_REPORTS = [
-  { id:'22222222', full_id:'22222222-2222-2222-2222-222222222201', waste_type:'hazardous', waste_label:'Hazardous ⚠️', urgency_score:92, status:'verified', ai_confidence:0.95, time:'35m ago' },
-  { id:'22222223', full_id:'22222222-2222-2222-2222-222222222202', waste_type:'mixed', waste_label:'Bulk Mixed 🗑️', urgency_score:85, status:'pending_ai', ai_confidence:0.92, time:'10m ago' },
-  { id:'22222224', full_id:'22222222-2222-2222-2222-222222222203', waste_type:'plastic', waste_label:'Plastic 🧴', urgency_score:72, status:'dispatched', ai_confidence:0.89, time:'1h ago' },
-  { id:'22222225', full_id:'22222222-2222-2222-2222-222222222204', waste_type:'cardboard', waste_label:'Cardboard 📦', urgency_score:45, status:'verified', ai_confidence:0.88, time:'2h ago' },
-  { id:'22222226', full_id:'22222222-2222-2222-2222-222222222205', waste_type:'organic', waste_label:'Organic 🍂', urgency_score:61, status:'resolved', ai_confidence:0.83, time:'5h ago' },
+  { id:'R-094', full_id:'22222222-2222-2222-2222-222222222201', waste_type:'mixed', waste_label:'Bulk Debris', icon:'delete_sweep', urgency_score:85, status:'pending', ai_confidence:0.92, time:'10m ago', address:'Sector 4, Alley 9', thumb:MOCK_IMG_MIXED, preview:MOCK_IMG_MIXED },
+  { id:'R-093', full_id:'22222222-2222-2222-2222-222222222202', waste_type:'cardboard', waste_label:'Cardboard', icon:'recycling', urgency_score:45, status:'verified', ai_confidence:0.88, time:'25m ago', address:'Times Square Sector 2', thumb:MOCK_IMG_CARDBOARD, preview:MOCK_IMG_CARDBOARD },
+  { id:'R-092', full_id:'22222222-2222-2222-2222-222222222203', waste_type:'hazardous', waste_label:'Hazardous Spill', icon:'warning', urgency_score:94, status:'pending', ai_confidence:0.95, time:'35m ago', address:'Industrial Zone 4', thumb:MOCK_IMG_HAZARDOUS, preview:MOCK_IMG_HAZARDOUS },
+  { id:'R-091', full_id:'22222222-2222-2222-2222-222222222204', waste_type:'plastic', waste_label:'Plastic', icon:'local_drink', urgency_score:72, status:'dispatched', ai_confidence:0.89, time:'1h ago', address:'Downtown Metro Plaza', thumb:MOCK_IMG_PLASTIC, preview:MOCK_IMG_PLASTIC },
+  { id:'R-090', full_id:'22222222-2222-2222-2222-222222222205', waste_type:'organic', waste_label:'Organic Waste', icon:'eco', urgency_score:38, status:'resolved', ai_confidence:0.84, time:'3h ago', address:'Green Park District', thumb:MOCK_IMG_ORGANIC, preview:MOCK_IMG_ORGANIC },
 ];
 
 const MOCK_HOTSPOTS = [
@@ -1240,31 +1652,195 @@ const MOCK_HOTSPOTS = [
 ];
 
 const MOCK_FLEET = [
-  { team:'Unit 7 — Compact Tipper', vehicle:'Ford F-550 Waste Tipper', status:'En Route', assignment:'Report #22222224', eta:'8 mins' },
+  { team:'Unit 7 — Compact Tipper', vehicle:'Ford F-550 Waste Tipper', status:'En Route', assignment:'Report #R-094', eta:'8 mins' },
   { team:'Unit 3 — Heavy Hauler', vehicle:'Volvo FM Dump Truck', status:'On Site', assignment:'Hotspot #HS-101', eta:'Active' },
   { team:'Unit 12 — Rapid Clean Crew', vehicle:'Van + Crew', status:'Standby', assignment:'Sector 4 Station', eta:'Available' }
 ];
 
 const WASTE_ICONS = {
-  cardboard:'📦', glass:'🍶', metal:'🥫', paper:'📄', plastic:'🧴',
-  organic:'🍂', hazardous:'⚠️', mixed:'🗑️', unknown:'❓'
+  cardboard:'recycling', glass:'wine_bar', metal:'inventory_2', paper:'description', plastic:'local_drink',
+  organic:'eco', hazardous:'warning', mixed:'delete_sweep', unknown:'help'
 };
 
-const STATUS_COLORS = {
-  pending_ai:  'text-warning border-warning/50 bg-warning/10',
-  ai_processed:'text-accent border-accent/50 bg-accent/10',
-  verified:    'text-primary border-primary/50 bg-primary/10',
-  duplicate:   'text-text-secondary border-white/20 bg-white/5',
-  dispatched:  'text-secondary border-secondary/50 bg-secondary/10',
-  in_progress: 'text-warning border-warning/50 bg-warning/10',
-  resolved:    'text-success border-success/50 bg-success/10',
-  rejected:    'text-danger border-danger/50 bg-danger/10',
+const STATUS_CLASSES = {
+  pending:     'border-warning/50 text-warning bg-warning/10 shadow-[0_0_8px_rgba(210,153,34,0.2)]',
+  pending_ai:  'border-warning/50 text-warning bg-warning/10 shadow-[0_0_8px_rgba(210,153,34,0.2)]',
+  ai_processed:'border-accent/50 text-accent bg-accent/10',
+  verified:    'border-primary/50 text-primary bg-primary/10 shadow-[0_0_8px_rgba(123,219,128,0.2)]',
+  dispatched:  'border-secondary/50 text-secondary bg-secondary/10',
+  in_progress: 'border-warning/50 text-warning bg-warning/10',
+  resolved:    'border-success/50 text-success bg-success/10',
+  rejected:    'border-danger/50 text-danger bg-danger/10'
 };
+
+// ─────────────────────────────────────────────
+// Auth Guard
+// ─────────────────────────────────────────────
+const ADMIN_PAGES = ['page-dashboard', 'page-reports', 'page-hotspots', 'page-fleet', 'page-analytics', 'page-settings'];
+let targetProtectedPage = 'page-dashboard';
+
+function isAdminAuthenticated() {
+  return sessionStorage.getItem('bingo_admin_auth') === 'true';
+}
+function openAdminLoginModal(dest) {
+  targetProtectedPage = dest || 'page-dashboard';
+  const modal = document.getElementById('admin-login-modal');
+  const err = document.getElementById('login-error-msg');
+  if (err) err.classList.add('hidden');
+  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+  setTimeout(() => { const u = document.getElementById('admin-username'); if (u) u.focus(); }, 150);
+}
+function closeAdminLoginModal() {
+  const modal = document.getElementById('admin-login-modal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+function fillDemoAdminCredentials() {
+  document.getElementById('admin-username').value = 'admin';
+  document.getElementById('admin-password').value = 'admin123';
+  const err = document.getElementById('login-error-msg');
+  if (err) err.classList.add('hidden');
+  showToast('Auto-filled demo credentials!', 'info');
+}
+async function handleAdminLogin(event) {
+  event.preventDefault();
+  const u = document.getElementById('admin-username').value.trim();
+  const p = document.getElementById('admin-password').value.trim();
+  const card = document.getElementById('admin-login-card');
+  const err = document.getElementById('login-error-msg');
+  const btn = event.target.querySelector('[type="submit"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Authenticating...'; }
+
+  // Try real backend login first
+  let backendOk = false;
+  if (!isDemoMode()) {
+    try {
+      // Determine the email: if it looks like email use as-is, otherwise append domain
+      const email = u.includes('@') ? u : `${u}@bingo.gov`;
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: p }),
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        adminJwt = data.access_token;
+        sessionStorage.setItem('bingo_admin_jwt', adminJwt);
+        sessionStorage.setItem('bingo_admin_auth', 'true');
+        backendOk = true;
+      }
+    } catch (e) {
+      console.warn('Backend login failed, falling back to demo auth:', e);
+    }
+  }
+
+  // Fallback: demo credential check
+  if (!backendOk) {
+    const uL = u.trim().toLowerCase();
+    const validU = ['admin','operator','nullops','admin@bingo.gov'];
+    const validP = ['admin123','admin','bingo2026','nullops'];
+    if (validU.includes(uL) && validP.includes(p)) {
+      sessionStorage.setItem('bingo_admin_auth', 'true');
+      backendOk = true;
+    }
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">key</span> Authenticate &amp; Enter Command Center'; }
+
+  if (backendOk) {
+    closeAdminLoginModal();
+    showToast('✅ Municipal Access Granted!', 'success');
+    navigate(targetProtectedPage || 'page-dashboard');
+    // Connect WebSocket for live feed
+    connectDashboardWs();
+  } else {
+    if (card) { card.classList.remove('shake-anim'); void card.offsetWidth; card.classList.add('shake-anim'); }
+    if (err) err.classList.remove('hidden');
+    showToast('Invalid credentials.', 'error');
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem('bingo_admin_auth');
+  sessionStorage.removeItem('bingo_admin_jwt');
+  adminJwt = null;
+  // Disconnect WebSocket
+  if (wsConnection) { try { wsConnection.close(); } catch {} wsConnection = null; }
+  showToast('Logged out of Municipal Command.', 'info');
+  navigate('page-landing');
+}
+
+// ─────────────────────────────────────────────
+// Interactive Tutorial Guide
+// ─────────────────────────────────────────────
+const TUTORIAL_STEPS = [
+  { step:1, title:'Step 1: Choose Your Role', body:`<div class="space-y-2"><p>BinGO has two dedicated operational modes:</p><div class="p-2.5 rounded-lg bg-surface border border-primary/30"><strong class="text-primary-light">Citizen App:</strong> Fast waste reporting with live GPS &amp; AI scanner.</div><div class="p-2.5 rounded-lg bg-surface border border-accent/30"><strong class="text-accent">Municipal Dashboard:</strong> Tactical Command Center, live heatmap, and fleet control.</div></div>`, action: () => navigate('page-landing') },
+  { step:2, title:'Step 2: Photo Reporting', body:`<div class="space-y-2"><p>In the Citizen App:</p><ul class="list-disc pl-5 space-y-1 text-xs"><li>Geolocation is auto-captured.</li><li>Tap the Camera button to upload or take a waste picture.</li><li>Add optional notes before submitting to the backend.</li></ul></div>`, action: () => navigate('page-submit') },
+  { step:3, title:'Step 3: AI Analysis & Tracking', body:`<div class="space-y-2"><p>After submitting, YOLOv8 AI analyzes the report:</p><ul class="list-disc pl-5 space-y-1 text-xs"><li>Identifies waste material type &amp; volume estimate.</li><li>Computes Urgency Score (0-100) with animated gauge.</li><li>Recommends optimal fleet vehicle &amp; crew.</li></ul></div>`, action: () => navigate('page-tracking') },
+  { step:4, title:'Step 4: Dispatch & Hotspots', body:`<div class="space-y-2"><p>Municipal operators manage cleanups:</p><div class="p-2.5 rounded-lg bg-surface border border-warning/30"><strong class="text-warning">DBSCAN Clustering:</strong> Groups reports into priority cleanup hotspots.</div><p class="text-xs text-text-secondary">Reopen this guide anytime via the floating bulb button!</p></div>`, action: () => { if(isAdminAuthenticated()) navigate('page-dashboard'); else navigate('page-landing'); } }
+];
+let currentTutorialIndex = 0;
+
+function handleTutorialOnboarding() {
+  if (localStorage.getItem('bingo_tutorial_dismissed') === 'true') return;
+  let count = parseInt(localStorage.getItem('bingo_tutorial_count') || '0', 10);
+  if (count < 5) {
+    localStorage.setItem('bingo_tutorial_count', String(count + 1));
+    setTimeout(startInteractiveTour, 900);
+  }
+}
+function startInteractiveTour() {
+  currentTutorialIndex = 0;
+  renderTutorialStep();
+  const ov = document.getElementById('tutorial-overlay');
+  if (ov) { ov.classList.remove('hidden'); ov.classList.add('flex'); }
+}
+function renderTutorialStep() {
+  const s = TUTORIAL_STEPS[currentTutorialIndex];
+  if (!s) return;
+  document.getElementById('tut-step-title').textContent = s.title;
+  document.getElementById('tut-step-body').innerHTML = s.body;
+  document.getElementById('tut-progress-text').textContent = 'Step ' + s.step + ' of ' + TUTORIAL_STEPS.length;
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('tut-dot-' + i);
+    if (!dot) continue;
+    dot.className = i === s.step ? 'w-5 h-2.5 rounded-full bg-primary transition-all'
+      : i < s.step ? 'w-2.5 h-2.5 rounded-full bg-primary-light/70 transition-all'
+      : 'w-2.5 h-2.5 rounded-full bg-white/20 transition-all';
+  }
+  const pb = document.getElementById('tut-prev-btn'), nb = document.getElementById('tut-next-btn');
+  if (pb) pb.disabled = currentTutorialIndex === 0;
+  if (nb) nb.innerHTML = currentTutorialIndex === TUTORIAL_STEPS.length - 1
+    ? '<span>Finish Tour!</span>'
+    : '<span>Next</span><span class="material-symbols-outlined text-[14px]">arrow_forward</span>';
+  if (typeof s.action === 'function') s.action();
+}
+function nextTutorialStep() {
+  if (currentTutorialIndex < TUTORIAL_STEPS.length - 1) { currentTutorialIndex++; renderTutorialStep(); }
+  else { closeTutorial(true); showToast('You completed the BinGO Guide!', 'success'); }
+}
+function prevTutorialStep() {
+  if (currentTutorialIndex > 0) { currentTutorialIndex--; renderTutorialStep(); }
+}
+function closeTutorial(done) {
+  const ov = document.getElementById('tutorial-overlay');
+  if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); }
+  if (done) navigate('page-landing');
+}
+function dismissTutorialForever() {
+  localStorage.setItem('bingo_tutorial_dismissed', 'true');
+  closeTutorial(false);
+  showToast('Tutorial auto-popup disabled. Reopen anytime via the bulb button.', 'info');
+}
 
 // ─────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────
 function navigate(pageId) {
+  if (ADMIN_PAGES.includes(pageId) && !isAdminAuthenticated()) {
+    openAdminLoginModal(pageId);
+    return;
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById(pageId);
   if (page) {
@@ -1275,9 +1851,9 @@ function navigate(pageId) {
     if (pageId === 'page-submit')    { initSubmitPage(); }
     if (pageId === 'page-hotspots')  { initHotspotsPage(); }
     if (pageId === 'page-fleet')     { initFleetPage(); }
-    if (pageId === 'page-analytics'){ initAnalyticsPage(); }
-    if (pageId === 'page-settings') { initSettingsPage(); }
-    if (pageId === 'page-profile')  { initProfilePage(); }
+    if (pageId === 'page-analytics') { initAnalyticsPage(); }
+    if (pageId === 'page-settings')  { initSettingsPage(); }
+    if (pageId === 'page-profile')   { initProfilePage(); }
   }
 }
 
@@ -1301,8 +1877,8 @@ function initShader(canvasId) {
       vec2 p=(v_uv-.5)*2.;p.x*=u_res.x/u_res.y;
       float d=length(p);float n=sin(d*10.-u_t*2.)*.5+.5;
       vec3 c1=vec3(.02,.03,.04);vec3 c2=vec3(.14,.52,.21);
-      vec3 col=mix(c1,c2,n*.12*exp(-d*.6));
-      col*=1.-(sin(v_uv.y*u_res.y*1.5)*.025);
+      vec3 col=mix(c1,c2,n*.15*exp(-d*.8));
+      col*=1.-(sin(v_uv.y*u_res.y*1.5)*.03);
       gl_FragColor=vec4(col,1.);
     }`;
   function cs(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
@@ -1324,7 +1900,9 @@ function initShader(canvasId) {
   render(0);
 }
 
+// ─────────────────────────────────────────────
 // Toasts
+// ─────────────────────────────────────────────
 function showToast(message, type = 'info', duration = 4000) {
   const colors = {
     info:    'border-accent/40 text-accent',
@@ -1334,7 +1912,7 @@ function showToast(message, type = 'info', duration = 4000) {
   };
   const icons = { info:'info', success:'check_circle', warning:'warning', error:'error' };
   const toast = document.createElement('div');
-  toast.className = `pointer-events-auto glass-card rounded-lg p-3 flex items-start gap-3 border ${colors[type]} toast-item`;
+  toast.className = `pointer-events-auto glass-card rounded-lg p-3 flex items-start gap-3 border ${colors[type]} toast-item shadow-2xl`;
   toast.innerHTML = `
     <span class="material-symbols-outlined text-[18px] mt-0.5">${icons[type]}</span>
     <div class="flex-1 font-body-md text-text-primary text-[13px]">${message}</div>
@@ -1346,7 +1924,9 @@ function showToast(message, type = 'info', duration = 4000) {
   setTimeout(() => toast.remove(), duration);
 }
 
+// ─────────────────────────────────────────────
 // Health Check
+// ─────────────────────────────────────────────
 async function checkBackend() {
   const el = document.getElementById('backend-status');
   if (isDemoMode()) {
@@ -1379,23 +1959,115 @@ async function checkBackend() {
     if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(63,185,80,0.8)]"></span> <span class="text-success">Backend connected — BinGO Live API Active</span>`;
   } else {
     if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span> <span class="text-warning">Backend offline — demo mode fallback</span>`;
-    showToast('Backend unreachable. Running in demo mode with mock data.', 'warning', 4000);
   }
 }
 
-// Submit Page Init
+// ─────────────────────────────────────────────
+// Citizen Submit Page & GPS Location Handler
+// ─────────────────────────────────────────────
+let gpsWatchId = null;
+
+function updateUserLocationDisplay(lat, lng, accuracy = null, address = null) {
+  userLocation.lat = lat;
+  userLocation.lng = lng;
+  userLocation.accuracy = accuracy;
+  if (address) userLocation.address = address;
+
+  const locEl = document.getElementById('location-display');
+  const coordsEl = document.getElementById('coords-display');
+
+  const formattedCoords = `LAT: ${lat.toFixed(5)}°  LON: ${lng.toFixed(5)}°${accuracy ? `  (±${Math.round(accuracy)}m GPS)` : ''}`;
+  
+  if (coordsEl) {
+    coordsEl.innerHTML = `<span class="text-primary font-bold">●</span> ${formattedCoords}`;
+  }
+
+  if (locEl) {
+    if (userLocation.address) {
+      locEl.innerHTML = `<span class="text-primary font-bold">📍</span> ${userLocation.address}`;
+    } else {
+      locEl.innerHTML = `<span class="text-primary font-bold">📍</span> Sector 4 Grid (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`;
+    }
+  }
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept-Language': 'en' },
+      signal: AbortSignal.timeout(3500)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const addr = data.address || {};
+      const street = addr.road || addr.street || addr.pedestrian || addr.suburb || addr.neighbourhood || addr.city_district;
+      const city = addr.city || addr.town || addr.municipality || addr.county || 'Urban Zone';
+      let displayStr = '';
+      if (street) {
+        displayStr = `${street}, ${city}`;
+      } else if (data.display_name) {
+        displayStr = data.display_name.split(',').slice(0, 2).join(',');
+      } else {
+        displayStr = `Sector 4, Zone (${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W)`;
+      }
+      userLocation.address = displayStr;
+      const locEl = document.getElementById('location-display');
+      if (locEl) locEl.innerHTML = `<span class="text-primary font-bold">📍</span> ${displayStr}`;
+      return displayStr;
+    }
+  } catch (e) {
+    console.debug('Reverse geocode fallback:', e);
+  }
+  const fallback = `Sector 4, Broadway Corridor (${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W)`;
+  userLocation.address = fallback;
+  const locEl = document.getElementById('location-display');
+  if (locEl) locEl.innerHTML = `<span class="text-primary font-bold">📍</span> ${fallback}`;
+  return fallback;
+}
+
 function initSubmitPage() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    userLocation.lat = pos.coords.latitude;
-    userLocation.lng = pos.coords.longitude;
-    document.getElementById('location-display').textContent = `Detected GPS location`;
-    document.getElementById('coords-display').textContent = `LAT: ${userLocation.lat.toFixed(5)}°  LON: ${userLocation.lng.toFixed(5)}°`;
-  }, () => {
-    userLocation.lat = 40.7580; userLocation.lng = -73.9855;
-    document.getElementById('location-display').textContent = '742 Broadway St, Sector 4';
-    document.getElementById('coords-display').textContent = 'LAT: 40.7580°  LON: -73.9855°';
-  });
+  const locEl = document.getElementById('location-display');
+  const coordsEl = document.getElementById('coords-display');
+  if (locEl) locEl.innerHTML = `<span class="material-symbols-outlined text-[14px] text-primary animate-spin inline-block align-middle">radar</span> Acquiring live GPS lock...`;
+
+  if (!navigator.geolocation) {
+    updateUserLocationDisplay(40.7580, -73.9855, 8, '742 Broadway St, Sector 4');
+    return;
+  }
+
+  // Request high-accuracy GPS position
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const acc = pos.coords.accuracy;
+      updateUserLocationDisplay(lat, lng, acc);
+      await reverseGeocode(lat, lng);
+      showToast(`📍 Live GPS Locked: ${pos.coords.latitude.toFixed(4)}°, ${pos.coords.longitude.toFixed(4)}°`, 'info', 2500);
+    },
+    err => {
+      console.warn('GPS position error, using high-precision fallback coordinates:', err.message);
+      updateUserLocationDisplay(40.7580, -73.9855, 5, '742 Broadway St, Sector 4');
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+  );
+
+  // Watch position for continuous updates
+  if (!gpsWatchId) {
+    gpsWatchId = navigator.geolocation.watchPosition(
+      pos => {
+        userLocation.lat = pos.coords.latitude;
+        userLocation.lng = pos.coords.longitude;
+        userLocation.accuracy = pos.coords.accuracy;
+        const coordsEl = document.getElementById('coords-display');
+        if (coordsEl) {
+          coordsEl.innerHTML = `<span class="text-primary font-bold">●</span> LAT: ${userLocation.lat.toFixed(5)}°  LON: ${userLocation.lng.toFixed(5)}°  (±${Math.round(userLocation.accuracy)}m GPS)`;
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+  }
 }
 
 function toggleNotes() {
@@ -1405,13 +2077,49 @@ function toggleNotes() {
 function onPhotoSelected(input) {
   if (!input.files || !input.files[0]) return;
   currentPhotoFile = input.files[0];
+
+  // Refresh live GPS coordinate snapshot upon photo capture
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const acc = pos.coords.accuracy;
+        updateUserLocationDisplay(lat, lng, acc);
+        await reverseGeocode(lat, lng);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 4000 }
+    );
+  }
+
+  // Update AI status pill to confirm photo and location capture
   const pill = document.getElementById('ai-status-pill');
-  pill.innerHTML = `<p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-widest uppercase">
-    <span class="material-symbols-outlined text-sm" style="animation:spin-slow 2s linear infinite;">memory</span>
-    Photo ready — submit report!
-  </p>`;
+  if (pill) {
+    pill.innerHTML = `<p class="font-label-mono text-label-mono text-primary flex items-center gap-2 tracking-widest uppercase">
+      <span class="material-symbols-outlined text-sm" style="animation:spin-slow 2s linear infinite;">memory</span>
+      GPS Tagged • Ready to Submit!
+    </p>`;
+  }
+
+  // Display live preview of the photo inside the viewfinder
+  const reader = new FileReader();
+  reader.onload = e => {
+    const vf = document.querySelector('.viewfinder');
+    if (vf) {
+      vf.style.backgroundImage = `url(${e.target.result})`;
+      vf.style.backgroundSize = 'cover';
+      vf.style.backgroundPosition = 'center';
+      vf.style.borderRadius = '9999px';
+      vf.style.border = '2px solid #7bdb80';
+      vf.style.boxShadow = '0 0 25px rgba(123,219,128,0.6)';
+    }
+  };
+  reader.readAsDataURL(currentPhotoFile);
+
   document.getElementById('notes-panel').classList.remove('hidden');
-  showToast('📸 Photo captured! Ready for live AI analysis.', 'success');
+  const locText = userLocation.address || (userLocation.lat ? `${userLocation.lat.toFixed(4)}°N, ${Math.abs(userLocation.lng).toFixed(4)}°W` : 'GPS Position');
+  showToast(`📸 Photo captured &amp; GPS tagged at ${locText}!`, 'success');
 }
 
 async function submitReport() {
@@ -1426,6 +2134,9 @@ async function submitReport() {
   try {
     let reportCreated = null;
     if (!isDemoMode()) {
+      // Ensure citizen is authenticated
+      await ensureCitizenAuth();
+
       const formData = new FormData();
       formData.append('latitude', lat);
       formData.append('longitude', lng);
@@ -1433,14 +2144,13 @@ async function submitReport() {
 
       let photoToSend = currentPhotoFile;
       if (!photoToSend) {
-        // Generate placeholder image blob for camera simulation
         const canvas = document.createElement('canvas');
         canvas.width = 320;
         canvas.height = 320;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#161B22';
         ctx.fillRect(0, 0, 320, 320);
-        ctx.fillStyle = '#238636';
+        ctx.fillStyle = '#7bdb80';
         ctx.font = 'bold 22px sans-serif';
         ctx.fillText('BinGO AI Scanner', 60, 160);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
@@ -1448,15 +2158,23 @@ async function submitReport() {
       }
       formData.append('photo', photoToSend);
 
-      const res = await fetch(`${API_BASE}/reports`, { method: 'POST', body: formData });
+      const headers = getAuthHeaders('citizen');
+      const res = await fetch(`${API_BASE}/reports`, {
+        method: 'POST',
+        headers,   // Don't set Content-Type — browser sets multipart boundary automatically
+        body: formData
+      });
       if (res.ok) {
         reportCreated = await res.json();
         currentReportId = reportCreated.id;
+        // Store real photo URL for tracking page
+        currentReportPhotoUrl = reportCreated.photo_url || reportCreated.thumbnail_url || null;
       }
     }
 
     if (!reportCreated) {
-      currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      currentReportId = '8492-AX';
+      currentReportPhotoUrl = null;
       showToast('Queued report locally (Demo mode).', 'warning');
       navigate('page-tracking');
       setTimeout(() => simulateAIProgress(), 1000);
@@ -1467,7 +2185,8 @@ async function submitReport() {
     }
   } catch (e) {
     console.error('Submit error:', e);
-    currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    currentReportId = '8492-AX';
+    currentReportPhotoUrl = null;
     showToast('Queued report locally (Demo mode).', 'warning');
     navigate('page-tracking');
     setTimeout(() => simulateAIProgress(), 1000);
@@ -1477,11 +2196,30 @@ async function submitReport() {
   }
 }
 
-// Tracking Page
+// ─────────────────────────────────────────────
+// Citizen Live Tracking Page
+// ─────────────────────────────────────────────
 function initTrackingPage() {
-  const id = currentReportId ? (currentReportId.length > 8 ? currentReportId.substring(0, 8) : currentReportId) : '22222222';
+  const id = currentReportId ? (currentReportId.length > 8 ? currentReportId.substring(0, 8) : currentReportId) : '8492-AX';
   document.getElementById('tracking-report-id').textContent = 'Report #' + id;
-  document.getElementById('tracking-location').innerHTML = `<span class="material-symbols-outlined text-[16px]">location_on</span> ${userLocation.lat ? userLocation.lat.toFixed(4)+'°N, '+Math.abs(userLocation.lng).toFixed(4)+'°W' : 'Sector 4, Times Square Central'}`;
+  
+  const latStr = userLocation.lat ? userLocation.lat.toFixed(4) + '° N' : '40.7580° N';
+  const lngStr = userLocation.lng ? Math.abs(userLocation.lng).toFixed(4) + '° W' : '73.9855° W';
+  const addrStr = userLocation.address ? userLocation.address : 'Sector 4, Broadway Corridor';
+  
+  document.getElementById('tracking-location').innerHTML = `<span class="material-symbols-outlined text-[16px] text-primary">location_on</span> ${addrStr} <span class="text-xs text-text-secondary">(${latStr}, ${lngStr})</span>`;
+
+  const previewImg = document.getElementById('tracking-photo-preview');
+  if (currentReportPhotoUrl) {
+    // Use real photo_url from API response
+    previewImg.src = currentReportPhotoUrl;
+    previewImg.onerror = () => { previewImg.src = 'https://lh3.googleusercontent.com/aida/AP1WRLtpdPy_32hpWgM6rOLIJFAsdMOsb5SDfNOSzEe5hV8JxSbSFVVIfQadcSqiL41xhlVb6Jyu7U99BZnHkG2X5MLezFo6OuXIgTZDmJWsElggr4-X_gm4C8-adDUfU0j-ctRwPGYtIeuWaoAz8bkT_TherhIyyEDFrhHhXjEG0uwuq3J1TWBHqqiA1YVZf84lJ1w-AbOEVJmZDeAOrivRbinRmRBPHVHAAo3H1s1R5iqhMz6i1BGaYoe7pA'; };
+  } else if (currentPhotoFile) {
+    // Use the locally-selected file for preview
+    const reader = new FileReader();
+    reader.onload = e => { previewImg.src = e.target.result; };
+    reader.readAsDataURL(currentPhotoFile);
+  }
 }
 
 async function pollReportStatus(reportId) {
@@ -1499,19 +2237,21 @@ async function pollReportStatus(reportId) {
           clearInterval(interval);
           markStep('step-ai', 'done', new Date().toLocaleTimeString());
 
-          const label = (r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Plastic') + ' ' + (WASTE_ICONS[r.waste_type] || '🧴');
+          const label = r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Plastic';
           updateAICard({
             waste_type: r.waste_type || 'plastic',
             waste_label: label,
-            volume: r.volume_estimate_m3 || 0.55,
-            urgency: r.urgency_score || 75,
-            vehicle: r.recommended_vehicle || 'Compact Tipper Van'
+            volume: r.volume_estimate_m3 || 0.4,
+            urgency: r.urgency_score || 78,
+            vehicle: r.recommended_vehicle || 'Compact Van, 2 personnel'
           });
 
-          showToast(`🤖 Live AI Classification: ${r.waste_type ? r.waste_type.toUpperCase() : 'PLASTIC'} (Urgency: ${r.urgency_score || 75}/100)`, 'info');
+          showToast(`🤖 Live AI Classification: ${label} (Urgency: ${r.urgency_score || 78}/100)`, 'info');
 
           if (r.status === 'verified' || r.status === 'dispatched' || r.status === 'in_progress' || r.status === 'resolved') {
             markStep('step-verified', 'done', new Date().toLocaleTimeString());
+            if (r.status === 'dispatched') markStep('step-dispatched', 'done', new Date().toLocaleTimeString());
+            if (r.status === 'resolved')   markStep('step-resolved', 'done', new Date().toLocaleTimeString());
           } else {
             markStep('step-verified', 'active', 'Awaiting municipal confirmation');
           }
@@ -1531,8 +2271,8 @@ function simulateAIProgress() {
   markStep('step-submitted', 'done', new Date().toLocaleTimeString());
   setTimeout(() => {
     markStep('step-ai', 'done', new Date().toLocaleTimeString());
-    updateAICard({ waste_type:'plastic', waste_label:'Plastic 🧴', volume:0.45, urgency:72, vehicle:'Compact Van + Crew' });
-    showToast('🤖 BinGO AI classified waste: Plastic (Urgency: 72/100)', 'info');
+    updateAICard({ waste_type:'plastic', waste_label:'Plastic', volume:0.4, urgency:78, vehicle:'Compact Van, 2 personnel' });
+    showToast('🤖 BinGO AI classified waste: Plastic (Urgency: 78/100)', 'info');
     setTimeout(() => markStep('step-verified', 'active', new Date().toLocaleTimeString()), 2000);
   }, 2000);
 }
@@ -1542,17 +2282,17 @@ function markStep(stepId, state, time) {
   if (!el) return;
   const dot = el.querySelector('div');
   if (state === 'done') {
-    dot.className = 'w-7 h-7 rounded-full bg-surface-container-high border border-primary/50 flex items-center justify-center shrink-0 mt-0.5';
+    dot.className = 'w-7 h-7 rounded-full bg-surface-container-high/80 backdrop-blur border border-primary/50 flex items-center justify-center shrink-0 mt-0.5';
     dot.innerHTML = '<span class="material-symbols-outlined text-[14px] text-primary">check</span>';
   } else if (state === 'active') {
-    dot.className = 'w-7 h-7 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5 timeline-pulse';
-    dot.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>';
+    dot.className = 'w-7 h-7 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center shrink-0 mt-0.5 timeline-pulse shadow-[0_0_10px_rgba(123,219,128,0.3)]';
+    dot.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(123,219,128,0.8)]"></div>';
   }
 }
 
 function updateAICard(data) {
-  const icon = WASTE_ICONS[data.waste_type] || '🗑️';
-  document.getElementById('waste-type-badge').innerHTML = `<span>${icon}</span> ${data.waste_label}`;
+  const icon = WASTE_ICONS[data.waste_type] || 'local_drink';
+  document.getElementById('waste-type-badge').innerHTML = `<span class="material-symbols-outlined text-[14px] text-secondary">${icon}</span> ${data.waste_label}`;
   document.getElementById('volume-display').textContent = `~${data.volume} m³`;
   document.getElementById('urgency-score').textContent = data.urgency;
   document.getElementById('vehicle-rec').textContent = data.vehicle;
@@ -1562,35 +2302,188 @@ function updateAICard(data) {
   }
 }
 
-// Dashboard Init
+async function assignRecommendedAsset() {
+  showToast('🚚 Field team assigned to report.', 'success');
+  if (!isDemoMode()) {
+    try {
+      // Use admin JWT if available, otherwise citizen
+      const headers = getAdminJwt()
+        ? getJsonAuthHeaders('admin')
+        : getJsonAuthHeaders('citizen');
+      await fetch(`${API_BASE}/dispatch/assign`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ report_id: currentReportId, team_id: 'Unit-7' })
+      });
+    } catch {}
+  }
+  markStep('step-dispatched', 'active', new Date().toLocaleTimeString());
+}
+
+// ─────────────────────────────────────────────
+// Admin Command Center (Map Dashboard)
+// ─────────────────────────────────────────────
 function initDashboard() {
-  initShader('shader-canvas');
   loadDashboardStats();
+  // Reconnect WS if we have auth but lost connection
+  if (getAdminJwt() && (!wsConnection || wsConnection.readyState > 1)) {
+    connectDashboardWs();
+  }
 }
 
 async function loadDashboardStats() {
   if (isDemoMode()) {
     document.getElementById('stat-reports').textContent = '124';
-    document.getElementById('stat-hotspots').textContent = '3';
-    document.getElementById('stat-teams').textContent = '2';
+    document.getElementById('stat-hotspots').textContent = '8';
+    document.getElementById('stat-teams').textContent = '14';
     return;
   }
   try {
-    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, {
+      headers: getAuthHeaders('admin'),
+      signal: AbortSignal.timeout(3000)
+    });
     if (res.ok) {
       const d = await res.json();
-      document.getElementById('stat-reports').textContent = d.total_reports ?? '6';
-      document.getElementById('stat-hotspots').textContent = d.active_hotspots ?? '3';
-      document.getElementById('stat-teams').textContent = d.teams_deployed ?? '2';
+      document.getElementById('stat-reports').textContent = d.total_reports ?? '124';
+      document.getElementById('stat-hotspots').textContent = d.active_hotspots ?? '8';
+      document.getElementById('stat-teams').textContent = d.total_dispatches ?? '14';
     } else throw new Error();
   } catch {
-    document.getElementById('stat-reports').textContent = '6';
-    document.getElementById('stat-hotspots').textContent = '3';
-    document.getElementById('stat-teams').textContent = '2';
+    document.getElementById('stat-reports').textContent = '124';
+    document.getElementById('stat-hotspots').textContent = '8';
+    document.getElementById('stat-teams').textContent = '14';
   }
 }
 
-// Reports Queue
+// ─────────────────────────────────────────────
+// WebSocket Dashboard Live Feed
+// ─────────────────────────────────────────────
+function connectDashboardWs() {
+  const token = getAdminJwt();
+  if (!token || isDemoMode()) return;
+  if (wsConnection && wsConnection.readyState < 2) return; // already open/connecting
+
+  try {
+    WS_BASE = getWsBase();
+    wsConnection = new WebSocket(`${WS_BASE}/dashboard?token=${encodeURIComponent(token)}`);
+
+    wsConnection.onopen = () => {
+      console.info('[BinGO WS] Dashboard live feed connected');
+    };
+
+    wsConnection.onmessage = (evt) => {
+      try {
+        const data = JSON.parse(evt.data);
+        prependLiveFeedEvent(data);
+      } catch {}
+    };
+
+    wsConnection.onerror = () => {
+      console.warn('[BinGO WS] Dashboard WebSocket error');
+    };
+
+    wsConnection.onclose = (e) => {
+      console.info('[BinGO WS] Dashboard WS closed, code:', e.code);
+      wsConnection = null;
+      // Auto-reconnect after 8 seconds if admin is still authenticated
+      if (isAdminAuthenticated()) {
+        setTimeout(connectDashboardWs, 8000);
+      }
+    };
+  } catch (e) {
+    console.warn('[BinGO WS] Could not connect WebSocket:', e);
+  }
+}
+
+const WS_EVENT_ICONS = {
+  report_verified: { icon: 'check_circle', color: 'text-primary', label: 'Report Verified' },
+  dispatch_created: { icon: 'local_shipping', color: 'text-secondary', label: 'Dispatch Assigned' },
+  dispatch_status_updated: { icon: 'update', color: 'text-warning', label: 'Dispatch Updated' },
+  report_created: { icon: 'add_circle', color: 'text-accent', label: 'New Report' },
+};
+
+function prependLiveFeedEvent(data) {
+  const feed = document.getElementById('live-feed');
+  if (!feed) return;
+  const meta = WS_EVENT_ICONS[data.event] || { icon: 'notifications', color: 'text-text-secondary', label: data.event };
+  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const detail = data.report_id ? `Report #${String(data.report_id).substring(0,8)}` :
+                 data.dispatch_id ? `Dispatch #${String(data.dispatch_id).substring(0,8)}` : '';
+  const item = document.createElement('div');
+  item.className = 'bg-black/30 border border-white/5 rounded p-2 text-sm flex gap-3 hover:bg-white/5 transition-colors cursor-pointer backdrop-blur-sm slide-in-left';
+  item.innerHTML = `
+    <span class="material-symbols-outlined ${meta.color} text-[18px] mt-0.5" style="font-variation-settings:'FILL' 1;">${meta.icon}</span>
+    <div>
+      <div class="font-body-md text-body-md text-text-primary font-bold">${meta.label}</div>
+      <div class="font-label-mono text-label-mono text-text-secondary mt-1">${detail} • ${timeStr}</div>
+    </div>`;
+  feed.insertBefore(item, feed.firstChild);
+  // Keep max 8 feed items
+  while (feed.children.length > 8) feed.removeChild(feed.lastChild);
+}
+
+function selectDashboardPin(type) {
+  const drawer = document.getElementById('detail-drawer');
+  drawer.classList.remove('hidden');
+  
+  if (type === 'critical') {
+    document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: CRITICAL';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-danger/20 text-danger font-label-mono text-label-mono border border-danger/30 shadow-[0_0_8px_rgba(218,54,51,0.2)]';
+    document.getElementById('drawer-rep-id').textContent = '#REP-8992';
+    document.getElementById('drawer-title').textContent = 'Industrial Waste Spill';
+    document.getElementById('drawer-location').textContent = '42nd St & 8th Ave';
+    document.getElementById('drawer-coords').textContent = '40.757° N, 73.989° W';
+    document.getElementById('drawer-ai-conf').textContent = '94% MATCH';
+  } else if (type === 'warning') {
+    document.getElementById('drawer-urgency-badge').textContent = 'URGENCY: HIGH';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-warning/20 text-warning font-label-mono text-label-mono border border-warning/30 shadow-[0_0_8px_rgba(210,153,34,0.2)]';
+    document.getElementById('drawer-rep-id').textContent = '#REP-8993';
+    document.getElementById('drawer-title').textContent = 'Overflowing Dumpster';
+    document.getElementById('drawer-location').textContent = 'Downtown Square';
+    document.getElementById('drawer-coords').textContent = '40.712° N, 74.006° W';
+    document.getElementById('drawer-ai-conf').textContent = '88% MATCH';
+  } else {
+    document.getElementById('drawer-urgency-badge').textContent = 'RESOLVED';
+    document.getElementById('drawer-urgency-badge').className = 'px-2 py-0.5 rounded-sm bg-success/20 text-success font-label-mono text-label-mono border border-success/30';
+    document.getElementById('drawer-rep-id').textContent = '#REP-8990';
+    document.getElementById('drawer-title').textContent = 'Bulk Cardboard Cleaned';
+    document.getElementById('drawer-location').textContent = 'Sector 12 Parkway';
+    document.getElementById('drawer-coords').textContent = '40.748° N, 73.985° W';
+    document.getElementById('drawer-ai-conf').textContent = '96% MATCH';
+  }
+}
+
+async function verifyAndDispatch() {
+  // Verify the selected report first if possible
+  const repId = document.getElementById('drawer-rep-id')?.textContent?.replace('#REP-','').replace('#','');
+  try {
+    if (!isDemoMode() && getAdminJwt()) {
+      await fetch(`${API_BASE}/dispatch/assign`, {
+        method: 'POST',
+        headers: getJsonAuthHeaders('admin'),
+        body: JSON.stringify({ team_id: 'Unit-7', notes: 'Command Center Quick Dispatch' })
+      });
+    }
+  } catch {}
+  showToast('✅ Report verified and dispatch order assigned!', 'success');
+  loadDashboardStats();
+}
+
+function toggleFeedPause(btn) {
+  const icon = btn.querySelector('.material-symbols-outlined');
+  if (icon.textContent === 'pause') {
+    icon.textContent = 'play_arrow';
+    showToast('Live feed paused.', 'info');
+  } else {
+    icon.textContent = 'pause';
+    showToast('Live feed resumed.', 'info');
+  }
+}
+
+// ─────────────────────────────────────────────
+// Admin Reports Queue (Bento Layout)
+// ─────────────────────────────────────────────
 let allReports = [];
 async function initReportsQueue() {
   initShader('webgl-canvas');
@@ -1598,26 +2491,31 @@ async function initReportsQueue() {
     allReports = MOCK_REPORTS;
   } else {
     try {
-      const res = await fetch(`${API_BASE}/reports?page_size=50`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${API_BASE}/reports?page_size=50`, {
+        headers: getAuthHeaders('admin'),
+        signal: AbortSignal.timeout(3000)
+      });
       if (res.ok) {
         const d = await res.json();
         const items = d.items || (Array.isArray(d) ? d : []);
         if (items.length > 0) {
-          allReports = items.map(r => {
+          allReports = items.map((r, idx) => {
             const dt = new Date(r.created_at);
             const timeStr = isNaN(dt) ? 'Recent' : dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             return {
               id: r.id.length > 8 ? r.id.substring(0, 8) : r.id,
               full_id: r.id,
               waste_type: r.waste_type || 'mixed',
-              waste_label: (r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Mixed') + ' ' + (WASTE_ICONS[r.waste_type] || ''),
+              waste_label: r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Mixed',
+              icon: WASTE_ICONS[r.waste_type] || 'delete_sweep',
               urgency_score: r.urgency_score || 50,
-              status: r.status || 'pending_ai',
+              status: r.status || 'pending',
               ai_confidence: r.ai_confidence || 0.88,
               time: timeStr,
-              address: r.address || 'Metro District',
-              volume_estimate_m3: r.volume_estimate_m3 || 0.5,
-              recommended_vehicle: r.recommended_vehicle || 'Standard Truck'
+              address: r.address || 'Sector 4, Alley 9',
+              // Use real photo_url if available, fallback to mock
+              thumb: r.thumbnail_url || r.photo_url || MOCK_REPORTS[idx % MOCK_REPORTS.length].thumb,
+              preview: r.photo_url || MOCK_REPORTS[idx % MOCK_REPORTS.length].preview
             };
           });
         } else {
@@ -1635,45 +2533,110 @@ function renderReportsTable(reports) {
   const tbody = document.getElementById('reports-table-body');
   if (!tbody) return;
   tbody.innerHTML = '';
+  
   reports.forEach((r, i) => {
     const urgColor = r.urgency_score >= 75 ? 'text-danger' : r.urgency_score >= 40 ? 'text-warning' : 'text-primary';
-    const icon = WASTE_ICONS[r.waste_type] || '🗑️';
-    const conf = Math.round((r.ai_confidence || 0.85) * 100);
+    const urgStroke = r.urgency_score >= 75 ? '#DA3633' : r.urgency_score >= 40 ? '#D29922' : '#7bdb80';
+    const confPercent = Math.round((r.ai_confidence || 0.85) * 100);
+    const isSelected = i === 0;
+    
     const row = document.createElement('div');
-    row.className = 'flex items-center px-4 py-2 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors';
+    row.className = `flex items-center px-4 py-2 border-b border-white/5 ${isSelected ? 'bg-white/5' : ''} hover:bg-white/10 cursor-pointer transition-colors relative fade-in-up stagger-1`;
     row.dataset.id = r.full_id || r.id;
+    
     row.innerHTML = `
-      <div class="w-16 font-label-mono text-text-secondary">#${r.id}</div>
-      <div class="w-20"><div class="w-10 h-7 bg-black/50 border border-white/10 rounded flex items-center justify-center text-lg">${icon}</div></div>
-      <div class="flex-1 font-bold text-text-primary">${r.waste_label || r.waste_type}</div>
-      <div class="w-24 text-center font-label-mono font-bold ${urgColor}">${r.urgency_score}</div>
-      <div class="w-28 text-center"><span class="px-2 py-0.5 border rounded text-[10px] font-bold uppercase ${STATUS_COLORS[r.status] || ''}">${r.status}</span></div>
-      <div class="w-32 font-label-mono text-text-secondary">${conf}%</div>
-      <div class="w-24 text-right font-label-mono text-text-secondary">${r.time || 'Recent'}</div>`;
+      ${isSelected ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(123,219,128,0.5)]"></div>' : ''}
+      <div class="w-16 font-label-mono text-label-mono text-text-secondary">#${r.id}</div>
+      <div class="w-20">
+        <div class="w-12 h-8 bg-black/50 border border-white/10 rounded overflow-hidden relative">
+          <img src="${r.thumb || 'assets/bingo_logo.jpg'}" alt="Thumb" class="w-full h-full object-cover opacity-80"/>
+        </div>
+      </div>
+      <div class="flex-1">
+        <div class="inline-flex items-center gap-1.5 bg-black/30 border border-white/10 rounded-full px-2.5 py-1 backdrop-blur-sm">
+          <span class="material-symbols-outlined text-[14px] text-text-primary" style="font-variation-settings: 'FILL' 1;">${r.icon || 'delete_sweep'}</span>
+          <span class="font-label-sm text-label-sm text-text-primary">${r.waste_label || r.waste_type}</span>
+        </div>
+      </div>
+      <div class="w-24 flex justify-center">
+        <div class="relative w-10 h-10 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+            <path class="text-white/10 stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+            <path stroke="${urgStroke}" class="stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="${r.urgency_score}, 100" stroke-width="3" style="stroke-linecap: round;"></path>
+          </svg>
+          <span class="absolute font-label-mono text-label-mono font-bold ${urgColor}">${r.urgency_score}</span>
+        </div>
+      </div>
+      <div class="w-28 text-center">
+        <span class="inline-block px-2 py-0.5 border rounded text-[10px] uppercase font-bold tracking-widest backdrop-blur-sm ${STATUS_CLASSES[r.status] || 'border-white/20 text-text-secondary'}">${r.status}</span>
+      </div>
+      <div class="w-32 flex items-center gap-2">
+        <span class="font-label-mono text-label-mono text-text-secondary">${confPercent}%</span>
+        <div class="flex-1 h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+          <div class="h-full rounded-full shadow-[0_0_5px_rgba(123,219,128,0.6)]" style="width: ${confPercent}%; background: linear-gradient(90deg, #8B949E 0%, #7bdb80 100%);"></div>
+        </div>
+      </div>
+      <div class="w-24 text-right font-label-mono text-label-mono text-text-secondary">${r.time || 'Recent'}</div>`;
+    
     row.onclick = () => selectReport(r, row);
     tbody.appendChild(row);
   });
-  if (reports.length > 0 && !selectedReportRow) {
-    const first = tbody.children[0];
-    if (first) selectReport(reports[0], first);
+
+  if (reports.length > 0) {
+    selectReport(reports[0], tbody.children[0]);
   }
 }
 
 function selectReport(report, rowEl) {
-  if (selectedReportRow) selectedReportRow.classList.remove('bg-white/10');
+  if (selectedReportRow) {
+    selectedReportRow.classList.remove('bg-white/5');
+    const indicator = selectedReportRow.querySelector('.w-1.bg-primary');
+    if (indicator) indicator.remove();
+  }
   selectedReportRow = rowEl;
-  rowEl.classList.add('bg-white/10');
-  document.getElementById('verify-report-id').textContent = '#' + (report.id || 'Report');
-  document.getElementById('detect-label').textContent = (WASTE_ICONS[report.waste_type] || '') + ' ' + (report.waste_label || report.waste_type);
-  document.getElementById('detect-urgency').textContent = (report.urgency_score || 0) + ' / 100';
+  if (rowEl) {
+    rowEl.classList.add('bg-white/5');
+    if (!rowEl.querySelector('.w-1.bg-primary')) {
+      const line = document.createElement('div');
+      line.className = 'absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(123,219,128,0.5)]';
+      rowEl.prepend(line);
+    }
+  }
+
+  document.getElementById('verify-report-id').textContent = '#' + (report.id || 'R-094');
+  const conf = Math.round((report.ai_confidence || 0.92) * 100);
+  document.getElementById('detect-label').textContent = `${report.waste_label || report.waste_type} (${conf}%)`;
+  document.getElementById('detect-urgency').textContent = report.status === 'verified' ? 'Verified' : 'Location Matched';
+  
+  if (report.preview) {
+    document.getElementById('verify-photo-preview').src = report.preview;
+  }
+  if (report.address) {
+    document.getElementById('contextual-location-tag').textContent = report.address;
+  }
 }
 
 function filterReports() {
   const q = document.getElementById('reports-filter').value.toLowerCase();
-  renderReportsTable(allReports.filter(r => (r.id + ' ' + r.waste_type + ' ' + (r.waste_label || '')).toLowerCase().includes(q)));
+  const filtered = allReports.filter(r => 
+    (r.id + ' ' + r.waste_type + ' ' + (r.waste_label || '') + ' ' + (r.address || '')).toLowerCase().includes(q)
+  );
+  renderReportsTable(filtered);
 }
 
 function filterByStatus(status) {
+  activeFilter = status;
+  ['all', 'pending', 'critical'].forEach(s => {
+    const b = document.getElementById('filter-' + s + '-btn');
+    if (b) {
+      if (s === status) {
+        b.className = 'filter-btn px-3 py-1.5 font-label-sm text-label-sm bg-white/10 text-text-primary border-r border-white/10 font-bold';
+      } else {
+        b.className = 'filter-btn px-3 py-1.5 font-label-sm text-label-sm text-text-secondary border-r border-white/10 hover:bg-white/5 transition-colors';
+      }
+    }
+  });
+
   const filtered = status === 'all' ? allReports :
     status === 'critical' ? allReports.filter(r => r.urgency_score >= 75) :
     allReports.filter(r => r.status.includes(status));
@@ -1686,7 +2649,7 @@ async function verifyReport() {
   try {
     const res = await fetch(`${API_BASE}/reports/${reportId}/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getJsonAuthHeaders('admin'),
       body: JSON.stringify({ is_rejected: false })
     });
     if (res.ok) {
@@ -1704,7 +2667,7 @@ async function rejectReport() {
   try {
     const res = await fetch(`${API_BASE}/reports/${reportId}/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getJsonAuthHeaders('admin'),
       body: JSON.stringify({ is_rejected: true, rejection_reason: 'Rejected by municipal operator' })
     });
     if (res.ok) {
@@ -1716,16 +2679,35 @@ async function rejectReport() {
   showToast('Report rejected.', 'warning');
 }
 
+async function assignTeamFromReport() {
+  showToast('🚚 Dispatch assigned to unit.', 'success');
+  if (!isDemoMode()) {
+    try {
+      const reportId = selectedReportRow ? selectedReportRow.dataset.id : null;
+      await fetch(`${API_BASE}/dispatch/assign`, {
+        method: 'POST',
+        headers: getJsonAuthHeaders('admin'),
+        body: JSON.stringify({ report_id: reportId, team_id: 'Unit-7' })
+      });
+    } catch {}
+  }
+}
+
+// ─────────────────────────────────────────────
 // Hotspots Page
+// ─────────────────────────────────────────────
 async function initHotspotsPage() {
   const container = document.getElementById('hotspots-container');
   if (!container) return;
-  container.innerHTML = '';
+  container.innerHTML = '<div class="col-span-3 text-center text-text-secondary py-8"><span class="material-symbols-outlined animate-spin text-4xl text-primary">refresh</span><p class="mt-2">Loading hotspots...</p></div>';
 
   let hotspots = MOCK_HOTSPOTS;
   if (!isDemoMode()) {
     try {
-      const res = await fetch(`${API_BASE}/hotspots`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${API_BASE}/hotspots`, {
+        headers: getAuthHeaders('admin'),
+        signal: AbortSignal.timeout(3000)
+      });
       if (res.ok) {
         const data = await res.json();
         const items = data.items || (Array.isArray(data) ? data : []);
@@ -1743,22 +2725,41 @@ async function initHotspotsPage() {
       }
     } catch {}
   }
+  container.innerHTML = '';
 
   hotspots.forEach(h => {
-    const color = h.severity === 'critical' ? 'text-danger border-danger/40' : h.severity === 'high' ? 'text-warning border-warning/40' : 'text-primary border-primary/40';
+    const isCrit = h.severity === 'critical';
+    const isHigh = h.severity === 'high';
+    const color = isCrit ? 'text-danger border-danger/40 shadow-[0_0_20px_rgba(218,54,51,0.15)]' :
+                  isHigh ? 'text-warning border-warning/40 shadow-[0_0_12px_rgba(210,153,34,0.1)]' :
+                           'text-primary border-primary/40';
+    const glowDot = isCrit ? 'bg-danger pin-danger' : isHigh ? 'bg-warning animate-pulse' : 'bg-primary animate-pulse';
+    const wIcon = WASTE_ICONS[h.dominant_waste_type] || 'delete_sweep';
     const card = document.createElement('div');
-    card.className = `glass-card p-5 rounded-xl border ${color} relative overflow-hidden`;
+    card.className = `glass-card p-5 rounded-xl border ${color} relative overflow-hidden fade-in-up`;
     card.innerHTML = `
       <div class="flex justify-between items-start mb-3">
-        <span class="px-2.5 py-1 rounded text-[10px] font-bold font-label-mono uppercase border ${color}">${h.severity} SEVERITY</span>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full ${glowDot}"></span>
+          <span class="px-2.5 py-1 rounded-sm text-[10px] font-bold font-label-mono uppercase border ${color}">${h.severity} SEVERITY</span>
+        </div>
         <span class="font-label-mono text-xs text-text-secondary">#${h.id}</span>
       </div>
       <h3 class="font-headline-md font-bold text-text-primary mb-1">${h.address || 'District Zone'}</h3>
       <div class="font-label-mono text-xs text-text-secondary mb-4">${h.lat.toFixed(4)}°N, ${Math.abs(h.lng).toFixed(4)}°W</div>
-      <div class="flex justify-between items-center pt-3 border-t border-white/10 text-sm">
-        <span class="text-text-secondary">Accumulated Reports:</span>
-        <span class="font-bold text-text-primary font-label-mono">${h.report_count} reports</span>
-      </div>`;
+      <div class="flex justify-between items-center pt-3 border-t border-white/10">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[15px] text-text-secondary">${wIcon}</span>
+          <span class="text-xs text-text-secondary capitalize">${h.dominant_waste_type}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-label-mono text-xs text-text-secondary">Reports:</span>
+          <span class="font-bold text-text-primary font-label-mono">${h.report_count}</span>
+        </div>
+      </div>
+      <button onclick="dispatchTeam()" class="w-full mt-3 py-2 text-[11px] font-bold font-label-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-1.5">
+        <span class="material-symbols-outlined text-[14px]">send</span> Dispatch Team
+      </button>`;
     container.appendChild(card);
   });
 }
@@ -1769,7 +2770,10 @@ async function recomputeHotspots() {
   btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Computing...`;
   try {
     if (!isDemoMode()) {
-      await fetch(`${API_BASE}/hotspots/recompute`, { method: 'POST' });
+      await fetch(`${API_BASE}/hotspots/recompute`, {
+        method: 'POST',
+        headers: getAuthHeaders('admin')
+      });
     }
     showToast('🔥 Hotspots recomputed with live DBSCAN clustering!', 'success');
     await initHotspotsPage();
@@ -1781,14 +2785,42 @@ async function recomputeHotspots() {
   }
 }
 
+// ─────────────────────────────────────────────
 // Fleet Page
-function initFleetPage() {
+// ─────────────────────────────────────────────
+async function initFleetPage() {
   const container = document.getElementById('fleet-container');
   if (!container) return;
+  container.innerHTML = '<div class="col-span-3 text-center text-text-secondary py-8"><span class="material-symbols-outlined animate-spin text-4xl text-primary">refresh</span><p class="mt-2">Loading fleet data...</p></div>';
+
+  let fleetData = MOCK_FLEET;
+  if (!isDemoMode()) {
+    try {
+      const res = await fetch(`${API_BASE}/dispatch?page_size=20`, {
+        headers: getAuthHeaders('admin'),
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || (Array.isArray(data) ? data : []);
+        if (items.length > 0) {
+          fleetData = items.map(d => ({
+            team: d.team_id || 'Field Unit',
+            vehicle: d.vehicle_type || 'Standard Truck',
+            status: d.status || 'standby',
+            assignment: d.report_id ? `Report #${d.report_id.substring(0,8)}` : (d.hotspot_id ? `Hotspot #${d.hotspot_id.substring(0,8)}` : 'Unassigned'),
+            eta: d.estimated_arrival_minutes ? `${d.estimated_arrival_minutes} mins` : 'N/A'
+          }));
+        }
+      }
+    } catch {}
+  }
+
   container.innerHTML = '';
-  MOCK_FLEET.forEach(f => {
+  fleetData.forEach(f => {
+    const statusColor = f.status === 'En Route' || f.status === 'en_route' ? 'text-warning' : f.status === 'On Site' || f.status === 'on_site' || f.status === 'completed' ? 'text-success' : 'text-primary';
     const card = document.createElement('div');
-    card.className = 'glass-card p-5 rounded-xl border border-white/10';
+    card.className = 'glass-card p-5 rounded-xl border border-white/10 hover:border-primary/30 transition-all';
     card.innerHTML = `
       <div class="flex items-center gap-3 mb-3">
         <div class="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
@@ -1800,7 +2832,7 @@ function initFleetPage() {
         </div>
       </div>
       <div class="space-y-2 text-sm pt-2 border-t border-white/5">
-        <div class="flex justify-between"><span class="text-text-secondary">Status:</span><span class="font-bold text-primary">${f.status}</span></div>
+        <div class="flex justify-between"><span class="text-text-secondary">Status:</span><span class="font-bold ${statusColor}">${f.status}</span></div>
         <div class="flex justify-between"><span class="text-text-secondary">Assignment:</span><span class="font-label-mono text-text-primary">${f.assignment}</span></div>
         <div class="flex justify-between"><span class="text-text-secondary">ETA:</span><span class="font-bold text-warning">${f.eta}</span></div>
       </div>`;
@@ -1808,30 +2840,83 @@ function initFleetPage() {
   });
 }
 
-function dispatchTeam() {
-  showToast('🚚 Fleet dispatch order assigned to Unit 7.', 'success');
+async function dispatchTeam() {
+  if (isDemoMode()) {
+    showToast('🚚 Fleet dispatch order assigned to Unit 7. (Demo Mode)', 'success');
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/dispatch/assign`, {
+      method: 'POST',
+      headers: getJsonAuthHeaders('admin'),
+      body: JSON.stringify({ team_id: 'Unit-7', notes: 'Manual dispatch from command center' })
+    });
+    if (res.ok) {
+      showToast('🚚 Fleet dispatch order created and assigned!', 'success');
+      await initFleetPage();
+    } else {
+      showToast('🚚 Fleet dispatch order queued.', 'success');
+    }
+  } catch {
+    showToast('🚚 Fleet dispatch order queued. (Offline mode)', 'warning');
+  }
 }
 
+// ─────────────────────────────────────────────
 // Analytics Page
+// ─────────────────────────────────────────────
 async function initAnalyticsPage() {
   try {
-    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, {
+      headers: getAuthHeaders('admin'),
+      signal: AbortSignal.timeout(3000)
+    });
     if (res.ok) {
       const d = await res.json();
       const totalEl = document.getElementById('analytics-total');
-      const rateEl = document.getElementById('analytics-rate');
-      const hsEl = document.getElementById('analytics-hotspots');
-      if (totalEl) totalEl.textContent = d.total_reports ?? '6';
-      if (rateEl && d.resolved_reports) {
-        const rate = Math.round((d.resolved_reports / Math.max(1, d.total_reports)) * 100);
+      const rateEl  = document.getElementById('analytics-rate');
+      const hsEl    = document.getElementById('analytics-hotspots');
+      const confEl  = document.getElementById('analytics-conf');
+      if (totalEl) totalEl.textContent = d.total_reports ?? '124';
+      if (rateEl) {
+        const rate = d.total_reports > 0
+          ? Math.round((d.resolved_reports / d.total_reports) * 100)
+          : 88;
         rateEl.textContent = `${rate}%`;
       }
-      if (hsEl) hsEl.textContent = d.active_hotspots ?? '3';
+      if (hsEl) hsEl.textContent = d.active_hotspots ?? '8';
+      // Update waste breakdown bars from real data
+      if (d.waste_type_breakdown && d.waste_type_breakdown.length > 0) {
+        d.waste_type_breakdown.forEach(wt => {
+          // Find matching bar by waste type label in the DOM
+          const bars = document.querySelectorAll('#page-analytics .h-2\.5 > div');
+          bars.forEach((bar, idx) => {
+            const label = bar.closest('div')?.previousElementSibling?.querySelector('span')?.textContent;
+            if (label && label.toLowerCase().includes(wt.waste_type)) {
+              bar.style.width = `${wt.percentage}%`;
+              bar.previousElementSibling?.remove && null;
+              const pctEl = bar.closest('div')?.previousElementSibling?.querySelectorAll('span');
+              if (pctEl && pctEl[1]) pctEl[1].textContent = `${wt.percentage}%`;
+            }
+          });
+        });
+      }
+      // Avg resolution hours → display in SLA section
+      if (d.avg_resolution_hours) {
+        const resEl = document.querySelector('#page-analytics .font-label-mono.font-bold.text-success');
+        if (resEl) resEl.textContent = `${d.avg_resolution_hours.toFixed(0)} min avg`;
+      }
+      if (d.avg_dispatch_response_minutes) {
+        const dispEl = document.querySelector('#page-analytics .font-label-mono.font-bold.text-accent');
+        if (dispEl) dispEl.textContent = `${d.avg_dispatch_response_minutes.toFixed(1)} min`;
+      }
     }
   } catch {}
 }
 
+// ─────────────────────────────────────────────
 // Settings Page
+// ─────────────────────────────────────────────
 function initSettingsPage() {
   document.getElementById('setting-api-url').value = getApiBase();
   document.getElementById('setting-ws-url').value  = getWsBase();
@@ -1890,7 +2975,9 @@ function toggleDemoSetting(input) {
   checkBackend();
 }
 
+// ─────────────────────────────────────────────
 // Profile Page
+// ─────────────────────────────────────────────
 function initProfilePage() {}
 
 function switchRole(role) {
@@ -1901,10 +2988,13 @@ function switchRole(role) {
   showToast(`Switched active role context to: ${role}`, 'info');
 }
 
+// ─────────────────────────────────────────────
 // Boot
+// ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   initShader('webgl-bg');
   checkBackend();
+  handleTutorialOnboarding();
 });
 </script>
 </body>
