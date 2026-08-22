@@ -3,6 +3,8 @@
 **AI-powered waste reporting and municipal dispatch platform.**  
 Citizens photograph waste issues; the AI classifies, deduplicates, clusters, scores urgency, and recommends which sanitation team to dispatch — automatically.
 
+> 📖 **Comprehensive Engineering & Compliance Spec:** See [ARCHITECTURE_COMPLIANCE.md](ARCHITECTURE_COMPLIANCE.md) for full tech choices, operational assumptions, SWM 2016 / DPDP / GDPR compliance checks, and IPCC AR6 carbon methodology.
+
 ---
 
 ## 🏗️ Architecture
