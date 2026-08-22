@@ -1,0 +1,31 @@
+# Render Infrastructure as Code
+# https://render.com/docs/blueprint-spec
+#
+# This file tells Render to auto-deploy the frontend static site
+# whenever changes are pushed to the master (or main) branch.
+
+services:
+  # ── Frontend Static Site ───────────────────────────────────────────────────
+  - type: web
+    name: bingo-frontend
+    runtime: static
+    repo: https://github.com/mihirkumardas-cell/BinGO
+    branch: master
+    rootDir: frontend
+    buildCommand: ""          # Pure static HTML/CSS/JS — no build step needed
+    staticPublishPath: .      # Serve everything inside frontend/
+    pullRequestPreviewsEnabled: false
+
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: "no-cache, no-store, must-revalidate"
+      - path: /assets/*
+        name: Cache-Control
+        value: "public, max-age=86400"
+
+    routes:
+      # Single-page app: all unknown paths serve index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
