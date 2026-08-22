@@ -204,6 +204,18 @@
     30%,60%,90% { transform: translateX(6px); }
   }
   .shake-anim { animation: shake 0.45s ease-out; }
+
+  /* Safe-area support for iOS home-indicator / notch */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .safe-area-inset-bottom {
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+    .pb-safe {
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    }
+  }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 </style>
 </head>
 <body class="bg-background text-text-primary h-screen w-screen overflow-hidden font-body-md select-none">
@@ -550,10 +562,10 @@
       <button onclick="openLocationPickerModal()" class="w-full flex items-center gap-2.5 glass-card p-3 rounded-xl border-l-4 border-l-primary hover:bg-white/10 transition-colors shadow-lg text-left active:scale-[0.99]">
         <span class="material-symbols-outlined text-primary text-xl shrink-0">location_on</span>
         <div class="flex-grow min-w-0">
-          <p id="location-display" class="font-label-sm text-xs text-text-primary truncate tracking-wide font-semibold">Detecting location...</p>
-          <p id="coords-display" class="font-label-mono text-[10px] text-text-secondary opacity-90 truncate">LAT: 40.7580° &bull; LON: -73.9855° (Tap to edit)</p>
+          <p id="location-display" class="font-label-sm text-xs text-text-primary truncate tracking-wide font-semibold">📍 Sector 4, Broadway Corridor</p>
+          <p id="coords-display" class="font-label-mono text-[10px] text-text-secondary opacity-90 truncate">LAT: 40.7580° &bull; LON: -73.9855° &bull; Tap to change / GPS</p>
         </div>
-        <span class="material-symbols-outlined text-text-secondary text-sm shrink-0">edit</span>
+        <span class="material-symbols-outlined text-primary-light text-sm shrink-0">edit_location</span>
       </button>
 
       <!-- Main Action Buttons Row -->
@@ -670,7 +682,7 @@
   </nav>
 
   <!-- Main Content Area -->
-  <main class="flex-1 md:ml-[240px] relative w-full h-screen overflow-y-auto pb-28 md:pb-6 flex flex-col md:flex-row">
+  <main class="flex-1 md:ml-[240px] relative w-full h-screen overflow-y-auto pb-32 md:pb-6 flex flex-col md:flex-row">
     <!-- Top Mobile Navigation Header -->
     <div class="md:hidden sticky top-0 z-30 p-3 bg-surface/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
       <button onclick="navigate('page-landing')" class="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary font-bold">
@@ -797,26 +809,28 @@
     </div>
   </main>
 
-  <!-- Bottom Navigation Bar (Mobile only) -->
-  <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2.5 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl">
-    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 w-16">
-      <span class="material-symbols-outlined text-[22px]">home</span>
-      <span class="font-label-sm text-[10px] mt-0.5">Home</span>
+  <!-- Bottom Navigation Bar (Mobile only) — matches screen(3).png -->
+  <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-2 py-2 bg-surface/90 backdrop-blur-xl border-t border-white/10 md:hidden shadow-2xl safe-area-inset-bottom">
+    <button onclick="navigate('page-landing')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">map</span>
+      <span class="font-label-sm text-[10px] mt-0.5">Map</span>
     </button>
-    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 w-16">
-      <span class="material-symbols-outlined text-[22px]">add_circle</span>
+    <button onclick="navigate('page-submit')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">add_circle</span>
       <span class="font-label-sm text-[10px] mt-0.5">Report</span>
     </button>
-    <button class="flex flex-col items-center bg-primary/20 border border-primary/40 text-primary rounded-full px-4 py-1.5 shadow-[0_0_15px_rgba(123,219,128,0.3)]">
-      <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">history</span>
-      <span class="font-label-sm text-[10px] font-bold mt-0.5">Activity</span>
+    <button class="flex flex-col items-center text-primary py-1.5 px-3 min-w-[56px] relative">
+      <span class="absolute -top-1 inset-x-0 mx-auto w-10 h-10 bg-primary/15 rounded-full border border-primary/40 shadow-[0_0_12px_rgba(123,219,128,0.3)]"></span>
+      <span class="material-symbols-outlined text-[24px] relative z-10" style="font-variation-settings:'FILL' 1;">history</span>
+      <span class="font-label-sm text-[10px] mt-0.5 font-bold">Activity</span>
     </button>
-    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1 w-16">
-      <span class="material-symbols-outlined text-[22px]">person</span>
+    <button onclick="navigate('page-profile')" class="flex flex-col items-center text-text-secondary hover:text-primary transition-colors py-1.5 px-3 min-w-[56px]">
+      <span class="material-symbols-outlined text-[24px]">person</span>
       <span class="font-label-sm text-[10px] mt-0.5">Profile</span>
     </button>
   </nav>
 </div>
+
 
 
 <!-- ══════════════════════════════════════════════════════
@@ -1772,7 +1786,7 @@ let currentReportId = null;
 let currentReportPhotoUrl = null;
 let selectedReportRow = null;
 let wsConnection = null;
-let userLocation = { lat: 40.7580, lng: -73.9855, accuracy: 8, address: '742 Broadway St, Sector 4' };
+let userLocation = { lat: 40.7580, lng: -73.9855, accuracy: 8, address: null };
 let currentPhotoFile = null;
 let activeFilter = 'all';
 let adminJwt = null;
@@ -1960,7 +1974,7 @@ function closeNotesModal() {
   if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
 
-// ── Location Picker Dialog & Robust GPS Fallback ──────────────────────────────
+// ── Location Picker Dialog & Mobile-Safe Geolocation ─────────────────────────
 function openLocationPickerModal() {
   const modal = document.getElementById('location-picker-modal');
   const input = document.getElementById('manual-address-input');
@@ -1975,7 +1989,7 @@ function closeLocationPickerModal() {
 function setPresetLocation(lat, lng, address) {
   updateUserLocationDisplay(lat, lng, 5, address);
   closeLocationPickerModal();
-  showToast(`📍 Location set: ${address}`, 'info');
+  showToast(`📍 Location set: ${address}`, 'success');
 }
 
 function applyManualAddress() {
@@ -1983,15 +1997,40 @@ function applyManualAddress() {
   const val = input ? input.value.trim() : '';
   if (val) {
     updateUserLocationDisplay(userLocation.lat || 40.7580, userLocation.lng || -73.9855, null, val);
-    showToast(`📍 Custom location set: ${val}`, 'success');
+    showToast(`📍 Location updated: ${val}`, 'success');
   }
   closeLocationPickerModal();
 }
 
+// User-gesture triggered GPS detection (safe on mobile Chrome/Safari)
 function requestGpsWithFeedback() {
-  showToast('🛰️ Requesting live satellite GPS lock...', 'info');
-  initSubmitPage(true);
+  showToast('🛰️ Requesting live GPS coordinates...', 'info', 2000);
   closeLocationPickerModal();
+
+  if (!navigator.geolocation) {
+    showToast('GPS hardware not available. Using Sector 4 location.', 'warning');
+    return;
+  }
+
+  try {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const acc = pos.coords.accuracy;
+        updateUserLocationDisplay(lat, lng, acc);
+        await reverseGeocode(lat, lng);
+        showToast(`📍 GPS Locked: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°`, 'success');
+      },
+      err => {
+        console.warn('GPS permission or hardware unavailable:', err.message);
+        showToast(`📍 Device location: ${userLocation.address}. You can also type any address.`, 'info');
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+    );
+  } catch (e) {
+    showToast(`📍 Location active: ${userLocation.address}`, 'info');
+  }
 }
 
 function updateUserLocationDisplay(lat, lng, accuracy = null, address = null) {
@@ -2004,10 +2043,10 @@ function updateUserLocationDisplay(lat, lng, accuracy = null, address = null) {
   const coordsEl = document.getElementById('coords-display');
   const notesTag = document.getElementById('notes-location-tag');
 
-  const formattedCoords = `LAT: ${lat.toFixed(4)}° &bull; LON: ${lng.toFixed(4)}°${accuracy ? ` (&plusmn;${Math.round(accuracy)}m)` : ''} (Tap to change)`;
+  const formattedCoords = `LAT: ${lat.toFixed(4)}° &bull; LON: ${lng.toFixed(4)}°${accuracy ? ` (&plusmn;${Math.round(accuracy)}m)` : ''} &bull; Tap to change / GPS`;
   
   if (coordsEl) coordsEl.innerHTML = formattedCoords;
-  if (locEl) locEl.textContent = userLocation.address || `Sector 4 Grid (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`;
+  if (locEl) locEl.textContent = `📍 ${userLocation.address || 'Sector 4, Broadway Corridor'}`;
   if (notesTag) notesTag.textContent = userLocation.address || `${lat.toFixed(4)}°N, ${Math.abs(lng).toFixed(4)}°W`;
 }
 
@@ -2025,46 +2064,38 @@ async function reverseGeocode(lat, lng) {
       let displayStr = street ? `${street}, ${city}` : (data.display_name ? data.display_name.split(',').slice(0, 2).join(',') : `Sector 4, Zone`);
       userLocation.address = displayStr;
       const locEl = document.getElementById('location-display');
-      if (locEl) locEl.textContent = displayStr;
+      if (locEl) locEl.textContent = `📍 ${displayStr}`;
       return displayStr;
     }
   } catch {}
-  return userLocation.address || '742 Broadway St, Sector 4';
+  return userLocation.address || 'Sector 4, Broadway Corridor';
 }
 
-function initSubmitPage(forcePrompt = false) {
-  const locEl = document.getElementById('location-display');
-  if (locEl && !userLocation.address) {
-    locEl.textContent = 'Acquiring location...';
-  }
-
-  if (!navigator.geolocation) {
-    updateUserLocationDisplay(40.7580, -73.9855, 8, '742 Broadway St, Sector 4');
-    return;
-  }
-
-  // Gracefully request GPS with silent fallback
+// Silent IP-based location auto-detection on startup (zero permissions required)
+async function detectLocationSilently() {
   try {
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const acc = pos.coords.accuracy;
-        updateUserLocationDisplay(lat, lng, acc);
-        await reverseGeocode(lat, lng);
-        if (forcePrompt) showToast(`📍 Live GPS Locked: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°`, 'success');
-      },
-      err => {
-        console.warn('Geolocation fallback activated:', err.message);
-        // Fallback gracefully without showing blocking browser errors
-        updateUserLocationDisplay(userLocation.lat || 40.7580, userLocation.lng || -73.9855, 8, userLocation.address || '742 Broadway St, Sector 4');
-        if (forcePrompt) showToast('📍 Location defaulted to Sector 4. Tap Location button to adjust.', 'info');
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
-    );
-  } catch (e) {
-    updateUserLocationDisplay(40.7580, -73.9855, 8, '742 Broadway St, Sector 4');
-  }
+    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2000) });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.latitude && data.longitude) {
+        const city = data.city ? `${data.city}, ${data.region_code || data.country_name}` : 'Local Urban Sector';
+        updateUserLocationDisplay(data.latitude, data.longitude, null, city);
+        return;
+      }
+    }
+  } catch {}
+  // Default active location
+  updateUserLocationDisplay(40.7580, -73.9855, 5, 'Sector 4, Broadway Corridor');
+}
+
+function initSubmitPage() {
+  // Ensure location display is populated immediately without prompting for permissions
+  updateUserLocationDisplay(
+    userLocation.lat || 40.7580,
+    userLocation.lng || -73.9855,
+    userLocation.accuracy,
+    userLocation.address || 'Sector 4, Broadway Corridor'
+  );
 }
 
 function onPhotoSelected(input) {
@@ -2733,6 +2764,8 @@ function closeContextualMapModal() {
 window.addEventListener('DOMContentLoaded', () => {
   initShader('webgl-bg');
   checkBackend();
+  // Auto-detect location silently via IP (zero permissions, works on all browsers/mobile)
+  detectLocationSilently();
 });
 </script>
 
