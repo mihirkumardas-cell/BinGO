@@ -516,68 +516,68 @@
 <!-- ══════════════════════════════════════════════════════
      PAGE: LANDING / APP SELECT
 ══════════════════════════════════════════════════════ -->
-<div id="page-landing" class="page active flex-col items-center justify-between min-h-screen w-full p-4 sm:p-6 pb-10 overflow-y-auto">
+<div id="page-landing" class="page active flex-col items-center justify-start h-screen w-screen overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 pb-16 relative" style="height: 100vh; height: 100dvh; overflow-y: auto;">
 
-  <div class="w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-4">
-    <div class="text-center mb-6 fade-in-up">
-      <div class="flex items-center justify-center mb-3">
-        <div class="w-20 h-20 rounded-3xl overflow-hidden border-2 border-primary/40 shadow-[0_0_40px_rgba(123,219,128,0.5)] hover:scale-105 transition-transform">
+  <div class="w-full max-w-2xl mx-auto flex flex-col items-center my-auto py-1">
+    <div class="text-center mb-4 fade-in-up">
+      <div class="flex items-center justify-center mb-2">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-primary/40 shadow-[0_0_30px_rgba(123,219,128,0.5)] hover:scale-105 transition-transform">
           <img src="assets/bingo_logo.jpg" alt="BinGO AI Logo" class="w-full h-full object-cover"/>
         </div>
       </div>
-      <h1 class="font-headline-xl text-3xl sm:text-headline-xl text-primary mb-1.5 font-black tracking-tight">
+      <h1 class="font-headline-xl text-2xl sm:text-3xl sm:text-headline-xl text-primary mb-1 font-black tracking-tight">
         BinGO
       </h1>
-      <p class="text-text-secondary text-sm sm:text-body-lg">AI-Powered Smart Waste Management &amp; Municipal Dispatch</p>
+      <p class="text-text-secondary text-xs sm:text-sm">AI-Powered Smart Waste Management &amp; Municipal Dispatch</p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full fade-in-up stagger-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full fade-in-up stagger-2">
       <!-- Citizen App -->
       <button onclick="navigate('page-submit')"
-        class="glass-card rounded-2xl p-6 sm:p-8 text-left hover:border-primary/40 hover:shadow-[0_0_30px_rgba(123,219,128,0.25)] transition-all duration-300 group active:scale-[0.98]">
-        <div class="text-4xl mb-3">📱</div>
-        <h2 class="font-headline-md text-lg sm:text-headline-md text-text-primary mb-1.5 group-hover:text-primary transition-colors">Citizen Portal</h2>
-        <p class="text-text-secondary text-xs sm:text-body-md leading-relaxed">Report waste issues. AI classifies waste, estimates volume, and tracks cleanup live.</p>
-        <div class="mt-4 sm:mt-6 flex items-center gap-2 text-primary font-label-sm text-xs font-bold">
+        class="glass-card rounded-2xl p-4 sm:p-5 text-left hover:border-primary/40 hover:shadow-[0_0_30px_rgba(123,219,128,0.25)] transition-all duration-300 group active:scale-[0.98]">
+        <div class="text-3xl sm:text-4xl mb-2">📱</div>
+        <h2 class="font-headline-md text-base sm:text-lg text-text-primary mb-1 group-hover:text-primary transition-colors">Citizen Portal</h2>
+        <p class="text-text-secondary text-xs leading-relaxed">Report waste issues. AI classifies waste, estimates volume, and tracks cleanup live.</p>
+        <div class="mt-3 flex items-center gap-1.5 text-primary font-label-sm text-xs font-bold">
           Start Reporting <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
         </div>
       </button>
 
       <!-- Admin Dashboard -->
       <button onclick="navigate('page-dashboard')"
-        class="glass-card rounded-2xl p-6 sm:p-8 text-left hover:border-accent/40 hover:shadow-[0_0_30px_rgba(56,139,253,0.25)] transition-all duration-300 group active:scale-[0.98]">
-        <div class="text-4xl mb-3">🏛️</div>
-        <h2 class="font-headline-md text-lg sm:text-headline-md text-text-primary mb-1.5 group-hover:text-accent transition-colors">Municipal Command</h2>
-        <p class="text-text-secondary text-xs sm:text-body-md leading-relaxed">Command center — tactical map, reports queue, DBSCAN hotspots &amp; fleet dispatch.</p>
-        <div class="mt-4 sm:mt-6 flex items-center gap-2 text-accent font-label-sm text-xs font-bold">
+        class="glass-card rounded-2xl p-4 sm:p-5 text-left hover:border-accent/40 hover:shadow-[0_0_30px_rgba(56,139,253,0.25)] transition-all duration-300 group active:scale-[0.98]">
+        <div class="text-3xl sm:text-4xl mb-2">🏛️</div>
+        <h2 class="font-headline-md text-base sm:text-lg text-text-primary mb-1 group-hover:text-accent transition-colors">Municipal Command</h2>
+        <p class="text-text-secondary text-xs leading-relaxed">Command center — tactical map, reports queue, DBSCAN hotspots &amp; fleet dispatch.</p>
+        <div class="mt-3 flex items-center gap-1.5 text-accent font-label-sm text-xs font-bold">
           Open Command Center <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
         </div>
       </button>
     </div>
 
     <!-- SMS-First Differentiator & Rewards Feature Callout -->
-    <div class="mt-4 w-full grid grid-cols-1 sm:grid-cols-2 gap-3 fade-in-up stagger-3 text-xs">
-      <div class="glass-card p-3 rounded-xl border border-accent/30 bg-accent/5 flex items-center gap-2.5">
-        <span class="material-symbols-outlined text-accent text-xl shrink-0">sms</span>
+    <div class="mt-3 w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 fade-in-up stagger-3 text-xs">
+      <div class="glass-card p-2.5 sm:p-3 rounded-xl border border-accent/30 bg-accent/5 flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-accent text-lg sm:text-xl shrink-0">sms</span>
         <div class="text-left">
-          <span class="font-bold text-text-primary">SMS &amp; MMS First</span>
+          <span class="font-bold text-text-primary text-[11px] sm:text-xs">SMS &amp; MMS First</span>
           <p class="text-[10px] text-text-secondary">Text photos to <span class="font-bold text-accent">+1-800-BINGO</span> — no app or smartphone required.</p>
         </div>
       </div>
-      <div class="glass-card p-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 flex items-center gap-2.5">
-        <span class="material-symbols-outlined text-yellow-400 text-xl shrink-0">local_fire_department</span>
+      <div class="glass-card p-2.5 sm:p-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-yellow-400 text-lg sm:text-xl shrink-0">local_fire_department</span>
         <div class="text-left">
-          <span class="font-bold text-text-primary">Streaks &amp; Rewards</span>
+          <span class="font-bold text-text-primary text-[11px] sm:text-xs">Streaks &amp; Rewards</span>
           <p class="text-[10px] text-text-secondary">Earn BinGO credits &amp; redeem local partner discounts (Tea, Bus passes).</p>
         </div>
       </div>
     </div>
 
     <!-- Public Transparency Map shortcut -->
-    <div class="mt-3 w-full fade-in-up stagger-4">
-      <button onclick="navigate('page-public-map')" class="w-full glass-card p-3 rounded-xl border border-white/10 hover:border-primary/30 flex items-center justify-between gap-3 group transition-all">
+    <div class="mt-2.5 w-full fade-in-up stagger-4">
+      <button onclick="navigate('page-public-map')" class="w-full glass-card p-2.5 sm:p-3 rounded-xl border border-white/10 hover:border-primary/30 flex items-center justify-between gap-3 group transition-all">
         <div class="flex items-center gap-2.5">
-          <span class="material-symbols-outlined text-primary text-xl">public</span>
+          <span class="material-symbols-outlined text-primary text-lg sm:text-xl">public</span>
           <div class="text-left">
             <span class="font-bold text-text-primary text-xs block">Public Transparency Map</span>
             <span class="text-[10px] text-text-secondary">No login needed · See cleared vs. active reports city-wide</span>
@@ -588,21 +588,21 @@
     </div>
 
     <!-- Backend Status -->
-    <div id="backend-status" class="mt-4 flex items-center gap-2.5 text-text-secondary text-xs font-label-mono fade-in-up stagger-4 cursor-pointer hover:text-text-primary bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md" onclick="navigate('page-settings')">
+    <div id="backend-status" class="mt-3 flex items-center gap-2 text-text-secondary text-[11px] font-label-mono fade-in-up stagger-4 cursor-pointer hover:text-text-primary bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md" onclick="navigate('page-settings')">
       <span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
       <span>Checking backend connection...</span>
     </div>
-  </div>
 
-  <!-- Footer - NullOps -->
-  <footer class="w-full max-w-2xl mx-auto pt-4 pb-8 mt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-text-secondary shrink-0">
-    <div class="flex items-center gap-2">
-      <span>&#169; 2026 <strong>BinGO</strong> &bull; CleanTrack AI &bull; All rights reserved.</span>
-    </div>
-    <div class="flex items-center gap-1.5 font-medium text-text-primary">
-      <span>Built with</span><span class="text-red-500 animate-pulse">&#x2764;&#xfe0f;</span><span>by <strong>NullOps</strong></span>
-    </div>
-  </footer>
+    <!-- Footer - NullOps -->
+    <footer class="w-full pt-3 pb-4 mt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-text-secondary shrink-0">
+      <div class="flex items-center gap-2 text-[11px]">
+        <span>&#169; 2026 <strong>BinGO</strong> &bull; CleanTrack AI &bull; All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-[11px] font-medium text-text-primary">
+        <span>Built with</span><span class="text-red-500 animate-pulse">&#x2764;&#xfe0f;</span><span>by <strong>NullOps</strong></span>
+      </div>
+    </footer>
+  </div>
 
 </div>
 
