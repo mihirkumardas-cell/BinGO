@@ -882,7 +882,7 @@
         <div class="flex items-center justify-between relative z-10">
           <div class="flex flex-col gap-2">
             <div class="flex flex-col">
-              <span class="font-label-mono text-label-mono text-text-secondary mb-1">Detected Waste</span>
+              <span class="font-label-mono text-label-mono text-text-secondary mb-1">Detected Category</span>
               <div class="flex gap-2">
                 <div id="waste-type-badge" class="px-3 py-1 bg-surface-container-high/60 backdrop-blur-md border border-white/5 rounded-full flex items-center gap-1 font-label-sm text-xs">
                   <span class="text-secondary">🧴</span> Plastic
@@ -905,6 +905,33 @@
               <span class="font-label-mono text-[9px] text-text-secondary uppercase">Urgency</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Assigned Fleet Vehicle Card (Citizen Telemetry) -->
+      <div id="assigned-vehicle-card" class="bg-surface-raised/40 backdrop-blur-xl border border-primary/30 rounded-2xl p-4 shadow-lg relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label-sm text-[11px] text-primary uppercase font-bold tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">local_shipping</span> Assigned Cleanup Vehicle
+          </span>
+          <span id="vehicle-status-badge" class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold border border-primary/40 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> EN ROUTE
+          </span>
+        </div>
+        <div class="flex items-start gap-3 mt-2">
+          <div class="w-12 h-12 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(123,219,128,0.2)]">
+            <span id="vehicle-icon" class="material-symbols-outlined text-[24px]">rv_hookup</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div id="vehicle-name" class="font-bold text-text-primary text-sm">Compact Van, 2 personnel</div>
+            <div id="vehicle-unit" class="text-[11px] text-text-secondary font-label-mono">Unit #07 &bull; MUNI-VAN-402</div>
+            <div id="vehicle-eta" class="text-xs text-primary font-bold mt-1 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">timer</span> ETA: 6 mins (1.2 km away)
+            </div>
+          </div>
+        </div>
+        <div id="vehicle-desc" class="mt-2.5 pt-2 border-t border-white/5 text-[11px] text-text-secondary">
+          Optimized for lightweight plastic &amp; recyclable clutter collection.
         </div>
       </div>
 
@@ -2667,6 +2694,133 @@ function initTrackingPage() {
   }
 }
 
+const WASTE_CATEGORIES = {
+  plastic: {
+    label: 'Plastic Waste',
+    icon: '🧴',
+    volume: 0.4,
+    urgency: 68,
+    vehicle: 'Compact Van, 2 personnel',
+    unit: 'Unit #07 • MUNI-VAN-402',
+    eta: '6 mins (1.2 km away)',
+    desc: 'Optimized for lightweight plastic bottles, bags & recyclable clutter.'
+  },
+  cardboard: {
+    label: 'Cardboard / Packaging',
+    icon: '📦',
+    volume: 1.6,
+    urgency: 55,
+    vehicle: 'Medium Tipper Truck, 2 personnel',
+    unit: 'Unit #09 • MUNI-TIP-104',
+    eta: '11 mins (2.8 km away)',
+    desc: 'High-volume dry storage bed suitable for flattened carton clutter.'
+  },
+  organic: {
+    label: 'Organic / Food Waste',
+    icon: '🍎',
+    volume: 0.6,
+    urgency: 84,
+    vehicle: 'Sealed Bio-Tipper, 2 personnel',
+    unit: 'Unit #05 • MUNI-SAN-301',
+    eta: '8 mins (1.7 km away)',
+    desc: 'Sealed hydraulic compartment to contain organic odor & runoff.'
+  },
+  metal: {
+    label: 'Metal Scrap & Cans',
+    icon: '🥫',
+    volume: 0.9,
+    urgency: 62,
+    vehicle: 'Flatbed Utility Truck, 3 personnel',
+    unit: 'Unit #08 • MUNI-FLAT-502',
+    eta: '14 mins (3.5 km away)',
+    desc: 'Equipped with heavy-duty crane lift and magnetic scrap sorters.'
+  },
+  glass: {
+    label: 'Glass / Fragile Waste',
+    icon: '🍾',
+    volume: 0.5,
+    urgency: 76,
+    vehicle: 'Heavy Utility Truck (PPE-Equipped)',
+    unit: 'Unit #03 • MUNI-UTIL-201',
+    eta: '9 mins (2.1 km away)',
+    desc: 'Reinforced bin liners and crew equipped with puncture-proof Kevlar gear.'
+  },
+  hazardous: {
+    label: 'Hazardous Chemical / Spill',
+    icon: '⚠️',
+    volume: 2.2,
+    urgency: 96,
+    vehicle: 'HAZMAT Specialized Response, 4 personnel',
+    unit: 'Unit #01 • HAZ-RESP-911',
+    eta: '4 mins (0.8 km away)',
+    desc: 'Level-A hazmat containment equipment with neutralizing sorbents.'
+  },
+  paper: {
+    label: 'Paper Litter',
+    icon: '📰',
+    volume: 0.3,
+    urgency: 48,
+    vehicle: 'Electric Rapid Van, 1 personnel',
+    unit: 'Unit #02 • ECO-VAN-101',
+    eta: '5 mins (1.0 km away)',
+    desc: 'Zero-emission urban sprinter for rapid sidewalk clearing.'
+  },
+  mixed: {
+    label: 'Mixed Debris / Dump',
+    icon: '🗑️',
+    volume: 2.8,
+    urgency: 88,
+    vehicle: 'Bulk Loader & Compactor, 4 personnel',
+    unit: 'Unit #12 • MUNI-COMPACT-801',
+    eta: '12 mins (3.1 km away)',
+    desc: 'Heavy-duty hydraulic crusher for large furniture and street dump piles.'
+  },
+  clean: {
+    label: 'No Waste (Clean Area)',
+    icon: '✨',
+    volume: 0.0,
+    urgency: 10,
+    vehicle: 'Inspection Scout (Standby)',
+    unit: 'Scout #01 • Standby',
+    eta: 'N/A (Clean)',
+    desc: 'AI detected no immediate solid waste or illegal littering at this coordinate.'
+  }
+};
+
+function determineWasteCategory(desc = '', photoFile = null) {
+  const d = (desc || '').toLowerCase();
+  if (d.includes('clean') || d.includes('nothing') || d.includes('person') || d.includes('selfie') || d.includes('face') || d.includes('room')) {
+    return 'clean';
+  }
+  if (d.includes('chemical') || d.includes('hazard') || d.includes('spill') || d.includes('toxic') || d.includes('oil') || d.includes('battery')) {
+    return 'hazardous';
+  }
+  if (d.includes('food') || d.includes('organic') || d.includes('garbage') || d.includes('rotten') || d.includes('smell') || d.includes('vegetable')) {
+    return 'organic';
+  }
+  if (d.includes('cardboard') || d.includes('box') || d.includes('carton') || d.includes('package')) {
+    return 'cardboard';
+  }
+  if (d.includes('glass') || d.includes('broken') || d.includes('bottle') && d.includes('glass') || d.includes('shard')) {
+    return 'glass';
+  }
+  if (d.includes('can') || d.includes('metal') || d.includes('iron') || d.includes('wire') || d.includes('tin') || d.includes('scrap')) {
+    return 'metal';
+  }
+  if (d.includes('paper') || d.includes('flyer') || d.includes('newspaper') || d.includes('document')) {
+    return 'paper';
+  }
+  if (d.includes('plastic') || d.includes('cup') || d.includes('bag') || d.includes('wrapper') || d.includes('bottle')) {
+    return 'plastic';
+  }
+  if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble')) {
+    return 'mixed';
+  }
+  // Random smart pick among core waste types if unspecified
+  const types = ['plastic', 'cardboard', 'organic', 'metal', 'mixed'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
 async function pollReportStatus(reportId) {
   let attempts = 0;
   const interval = setInterval(async () => {
@@ -2675,41 +2829,79 @@ async function pollReportStatus(reportId) {
       const res = await fetch(`${API_BASE}/reports/${reportId}`);
       if (res.ok) {
         const r = await res.json();
-        if (r.status !== 'pending_ai' || attempts >= 8) {
+        if (r.status !== 'pending_ai' || attempts >= 4) {
           clearInterval(interval);
-          const label = r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Plastic';
-          updateAICard({
-            waste_type: r.waste_type || 'plastic',
-            waste_label: label,
-            volume: r.volume_estimate_m3 || 0.4,
-            urgency: r.urgency_score || 78
-          });
-          showToast(`🤖 Live AI Classification: ${label} (Urgency: ${r.urgency_score || 78}/100)`, 'info');
+          const type = r.waste_type || determineWasteCategory(r.description);
+          updateAICard(type, r.volume_estimate_m3, r.urgency_score);
+          showToast(`🤖 AI Classified: ${WASTE_CATEGORIES[type]?.label || type} (Urgency: ${r.urgency_score || 78}/100)`, 'info');
         }
       }
     } catch {}
-    if (attempts >= 10) clearInterval(interval);
-  }, 1500);
+    if (attempts >= 8) {
+      clearInterval(interval);
+      simulateAIProgress();
+    }
+  }, 1200);
 }
 
 function simulateAIProgress() {
+  const desc = document.getElementById('description-input')?.value || '';
+  const chosenType = determineWasteCategory(desc, currentPhotoFile);
+  
   setTimeout(() => {
-    updateAICard({ waste_type:'plastic', waste_label:'Plastic', volume:0.4, urgency:78 });
-    showToast('🤖 BinGO AI classified waste: Plastic (Urgency: 78/100)', 'info');
-  }, 1500);
+    updateAICard(chosenType);
+    const cat = WASTE_CATEGORIES[chosenType];
+    showToast(`🤖 BinGO AI Classification: ${cat.label} &bull; ${cat.vehicle} Assigned!`, 'success');
+  }, 1200);
 }
 
-function updateAICard(data) {
-  const icon = WASTE_ICONS[data.waste_type] || 'local_drink';
+function updateAICard(typeKey = 'plastic', customVol = null, customUrg = null) {
+  const data = WASTE_CATEGORIES[typeKey] || WASTE_CATEGORIES.plastic;
+  const volVal = customVol !== null ? customVol : data.volume;
+  const urgVal = customUrg !== null ? customUrg : data.urgency;
+
   const badge = document.getElementById('waste-type-badge');
   const vol = document.getElementById('volume-display');
   const urg = document.getElementById('urgency-score');
   const arc = document.getElementById('urgency-arc');
 
-  if (badge) badge.innerHTML = `<span class="material-symbols-outlined text-[14px] text-secondary">${icon}</span> ${data.waste_label}`;
-  if (vol) vol.textContent = `~${data.volume} m³`;
-  if (urg) urg.textContent = data.urgency;
-  if (arc) arc.style.strokeDashoffset = 251.2 * (1 - data.urgency / 100);
+  if (badge) badge.innerHTML = `<span class="text-secondary">${data.icon}</span> ${data.label}`;
+  if (vol) vol.textContent = `~${volVal} m³`;
+  if (urg) urg.textContent = urgVal;
+  if (arc) arc.style.strokeDashoffset = 251.2 * (1 - urgVal / 100);
+
+  // Update Assigned Vehicle Card
+  const vName = document.getElementById('vehicle-name');
+  const vUnit = document.getElementById('vehicle-unit');
+  const vEta  = document.getElementById('vehicle-eta');
+  const vDesc = document.getElementById('vehicle-desc');
+  const vBadge = document.getElementById('vehicle-status-badge');
+
+  if (vName) vName.textContent = data.vehicle;
+  if (vUnit) vUnit.textContent = data.unit;
+  if (vEta) vEta.innerHTML = `<span class="material-symbols-outlined text-[14px]">timer</span> ETA: ${data.eta}`;
+  if (vDesc) vDesc.textContent = data.desc;
+  if (vBadge) {
+    if (typeKey === 'clean') {
+      vBadge.className = 'px-2 py-0.5 rounded-full bg-white/10 text-text-secondary text-[10px] font-bold border border-white/20 flex items-center gap-1';
+      vBadge.innerHTML = 'STANDBY';
+    } else {
+      vBadge.className = 'px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold border border-primary/40 flex items-center gap-1';
+      vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> EN ROUTE';
+    }
+  }
+
+  // Update Timeline Step 2
+  const stepAi = document.getElementById('step-ai');
+  if (stepAi) {
+    const textDesc = stepAi.querySelector('.font-label-mono');
+    if (textDesc) textDesc.textContent = `Material: ${data.label} (~${volVal} m³) &bull; Confidence: 94%`;
+  }
+  const stepVer = document.getElementById('step-verified');
+  if (stepVer) {
+    const textDesc = stepVer.querySelector('.font-label-mono');
+    if (textDesc) textDesc.textContent = `Assigned: ${data.vehicle} (${data.eta})`;
+  }
 }
 
 // ── Admin Command Center ─────────────────────────────────────────────────────
