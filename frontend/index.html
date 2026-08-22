@@ -513,18 +513,18 @@
 <!-- ══════════════════════════════════════════════════════
      PAGE: LANDING / APP SELECT
 ══════════════════════════════════════════════════════ -->
-<div id="page-landing" class="page active flex-col items-center justify-between min-h-screen w-full p-4 sm:p-8 pb-28 md:pb-8 overflow-y-auto">
-  <div class="w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6">
-    <div class="text-center mb-8 fade-in-up">
-      <div class="flex items-center justify-center mb-4">
+<div id="page-landing" class="page active flex-col items-center justify-between min-h-screen w-full p-4 sm:p-6 pb-8 overflow-y-auto">
+  <div class="w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-4">
+    <div class="text-center mb-6 fade-in-up">
+      <div class="flex items-center justify-center mb-3">
         <div class="w-20 h-20 rounded-3xl overflow-hidden border-2 border-primary/40 shadow-[0_0_40px_rgba(123,219,128,0.5)] hover:scale-105 transition-transform">
           <img src="assets/bingo_logo.jpg" alt="BinGO AI Logo" class="w-full h-full object-cover"/>
         </div>
       </div>
-      <h1 class="font-headline-xl text-3xl sm:text-headline-xl text-primary mb-2 font-black tracking-tight">
+      <h1 class="font-headline-xl text-3xl sm:text-headline-xl text-primary mb-1.5 font-black tracking-tight">
         BinGO
       </h1>
-      <p class="text-text-secondary text-sm sm:text-body-lg">AI-Powered Smart Waste Management & Municipal Dispatch</p>
+      <p class="text-text-secondary text-sm sm:text-body-lg">AI-Powered Smart Waste Management &amp; Municipal Dispatch</p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full fade-in-up stagger-2">
@@ -544,7 +544,7 @@
         class="glass-card rounded-2xl p-6 sm:p-8 text-left hover:border-accent/40 hover:shadow-[0_0_30px_rgba(56,139,253,0.25)] transition-all duration-300 group active:scale-[0.98]">
         <div class="text-4xl mb-3">🏛️</div>
         <h2 class="font-headline-md text-lg sm:text-headline-md text-text-primary mb-1.5 group-hover:text-accent transition-colors">Municipal Command</h2>
-        <p class="text-text-secondary text-xs sm:text-body-md leading-relaxed">Command center — tactical map, reports queue, DBSCAN hotspots & fleet dispatch.</p>
+        <p class="text-text-secondary text-xs sm:text-body-md leading-relaxed">Command center — tactical map, reports queue, DBSCAN hotspots &amp; fleet dispatch.</p>
         <div class="mt-4 sm:mt-6 flex items-center gap-2 text-accent font-label-sm text-xs font-bold">
           Open Command Center <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
         </div>
@@ -582,14 +582,16 @@
         <span class="material-symbols-outlined text-text-secondary text-[18px] group-hover:text-primary transition-colors">arrow_forward</span>
       </button>
     </div>
-    <div id="backend-status" class="mt-6 flex items-center gap-2.5 text-text-secondary text-xs font-label-mono fade-in-up stagger-4 cursor-pointer hover:text-text-primary bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md" onclick="navigate('page-settings')">
+
+    <!-- Backend Status -->
+    <div id="backend-status" class="mt-4 flex items-center gap-2.5 text-text-secondary text-xs font-label-mono fade-in-up stagger-4 cursor-pointer hover:text-text-primary bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md" onclick="navigate('page-settings')">
       <span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
       <span>Checking backend connection...</span>
     </div>
   </div>
 
   <!-- Footer - NullOps -->
-  <footer class="w-full max-w-2xl mx-auto pt-6 pb-20 mt-6 mb-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary shrink-0">
+  <footer class="w-full max-w-2xl mx-auto pt-4 pb-4 mt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-text-secondary shrink-0">
     <div class="flex items-center gap-2">
       <span>&#169; 2026 <strong>BinGO</strong> &bull; CleanTrack AI &bull; All rights reserved.</span>
     </div>
