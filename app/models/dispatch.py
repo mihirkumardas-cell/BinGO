@@ -55,14 +55,15 @@ class DispatchAssignment(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     vehicle_type: Mapped[VehicleType] = mapped_column(
-        Enum(VehicleType, name="vehicle_type_enum"), nullable=False
+        Enum(VehicleType, name="vehicle_type_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
     vehicle_id: Mapped[str] = mapped_column(String(100), nullable=True)
     team_size: Mapped[int] = mapped_column(Integer, default=2)
 
     # Status
     status: Mapped[DispatchStatus] = mapped_column(
-        Enum(DispatchStatus, name="dispatch_status_enum"),
+        Enum(DispatchStatus, name="dispatch_status_enum", values_callable=lambda obj: [e.value for e in obj]),
         default=DispatchStatus.ASSIGNED,
         nullable=False,
         index=True,

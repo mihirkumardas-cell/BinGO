@@ -43,6 +43,13 @@ async def lifespan(app: FastAPI):
     await redis.ping()
     logger.info("redis_connection_ok")
 
+    # Seed initial data if DB is empty
+    try:
+        from app.core.seed_data import seed_database
+        await seed_database()
+    except Exception as e:
+        logger.error("seed_database_failed", error=str(e))
+
     yield
 
     logger.info("cleantrack_api_shutting_down")
@@ -73,7 +80,7 @@ app = FastAPI(
 # ── Middleware ────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

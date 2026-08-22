@@ -44,7 +44,7 @@ class Hotspot(Base):
     # Cluster statistics
     report_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     severity: Mapped[HotspotSeverity] = mapped_column(
-        Enum(HotspotSeverity, name="hotspot_severity_enum"),
+        Enum(HotspotSeverity, name="hotspot_severity_enum", values_callable=lambda obj: [e.value for e in obj]),
         default=HotspotSeverity.LOW,
         nullable=False,
         index=True,
