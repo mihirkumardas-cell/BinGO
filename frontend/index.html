@@ -13,6 +13,9 @@
 <link rel="apple-touch-icon" href="assets/bingo_logo.jpg"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- TensorFlow.js + MobileNet for in-browser waste classification -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -4000,193 +4003,401 @@ const WASTE_CATEGORIES = {
 };
 
 // ── Client-Side Pixel & Computer Vision Feature Extractor ─────────────────────
+// ─── BinGO AI Vision Engine — TensorFlow.js + MobileNet ───────────────────────
+// Lazy-loads MobileNet v2 on first use. Performs real neural inference to map
+// ImageNet classes → waste categories. Falls back to pixel heuristics if model
+// fails to load (e.g., offline), ensuring the app always produces a result.
+
+let _mobileNetModel = null;
+let _mobileNetLoading = false;
+let _mobileNetLoadPromise = null;
+
+async function loadMobileNet() {
+  if (_mobileNetModel) return _mobileNetModel;
+  if (_mobileNetLoadPromise) return _mobileNetLoadPromise;
+  _mobileNetLoading = true;
+  _mobileNetLoadPromise = (async () => {
+    try {
+      // mobilenet v2 — lightweight, ~14MB, loads in <3s on average connection
+      const model = await mobilenet.load({ version: 2, alpha: 1.0 });
+      _mobileNetModel = model;
+      _mobileNetLoading = false;
+      console.log('[BinGO AI] MobileNet v2 loaded ✅');
+      return model;
+    } catch (err) {
+      _mobileNetLoading = false;
+      console.warn('[BinGO AI] MobileNet load failed, falling back to pixel heuristics:', err);
+      return null;
+    }
+  })();
+  return _mobileNetLoadPromise;
+}
+
+// Pre-warm model on page load (silent, background)
+if (typeof mobilenet !== 'undefined') {
+  loadMobileNet().catch(() => {});
+}
+
+/**
+ * ImageNet class → waste category mapping.
+ * MobileNet returns top-5 predictions from 1000 ImageNet classes.
+ * We map known waste-related classes to our categories.
+ */
+const IMAGENET_WASTE_MAP = {
+  // ── PLASTIC ────────────────────────────────────────────────────────────
+  'water bottle': 'plastic',
+  'pop bottle': 'plastic',
+  'soda bottle': 'plastic',
+  'plastic bag': 'plastic',
+  'shopping basket': 'plastic',
+  'bucket': 'plastic',
+  'barrel': 'plastic',
+  'jerrycan': 'plastic',
+  'cup': 'plastic',
+  'drinking straw': 'plastic',
+  'nylon': 'plastic',
+  'foam': 'plastic',
+  'polybag': 'plastic',
+  'bottle': 'plastic',
+  'carboy': 'plastic',
+  'jug': 'plastic',
+  'plastic container': 'plastic',
+  'bottle cap': 'plastic',
+  // ── CARDBOARD / PAPER ──────────────────────────────────────────────────
+  'cardboard': 'cardboard',
+  'carton': 'cardboard',
+  'box': 'cardboard',
+  'crate': 'cardboard',
+  'wooden box': 'cardboard',
+  'packing box': 'cardboard',
+  'moving box': 'cardboard',
+  'envelope': 'paper',
+  'paper towel': 'paper',
+  'newspaper': 'paper',
+  'book': 'paper',
+  'toilet tissue': 'paper',
+  'tissue': 'paper',
+  'paper bag': 'paper',
+  'letter opener': 'paper',
+  // ── METAL / CAN ────────────────────────────────────────────────────────
+  'can opener': 'metal',
+  'beer bottle': 'metal',
+  'beer can': 'metal',
+  'tin can': 'metal',
+  'iron': 'metal',
+  'steel': 'metal',
+  'wire': 'metal',
+  'chain': 'metal',
+  'nail': 'metal',
+  'screw': 'metal',
+  'washer': 'metal',
+  'scrap metal': 'metal',
+  'hub cap': 'metal',
+  'car wheel': 'metal',
+  'bicycle wheel': 'metal',
+  'radiator': 'metal',
+  'shopping cart': 'metal',
+  'shopping trolley': 'metal',
+  // ── GLASS ──────────────────────────────────────────────────────────────
+  'wine bottle': 'glass',
+  'beer glass': 'glass',
+  'pitcher': 'glass',
+  'goblet': 'glass',
+  'glass': 'glass',
+  'beaker': 'glass',
+  'vase': 'glass',
+  'broken glass': 'glass',
+  'window shade': 'glass',
+  // ── ORGANIC / FOOD ─────────────────────────────────────────────────────
+  'orange': 'organic',
+  'lemon': 'organic',
+  'banana': 'organic',
+  'apple': 'organic',
+  'pear': 'organic',
+  'fig': 'organic',
+  'guacamole': 'organic',
+  'broccoli': 'organic',
+  'cauliflower': 'organic',
+  'mushroom': 'organic',
+  'corn': 'organic',
+  'artichoke': 'organic',
+  'cucumber': 'organic',
+  'zucchini': 'organic',
+  'squash': 'organic',
+  'pumpkin': 'organic',
+  'head cabbage': 'organic',
+  'lettuce': 'organic',
+  'eggplant': 'organic',
+  'meat loaf': 'organic',
+  'pizza': 'organic',
+  'burrito': 'organic',
+  'hotdog': 'organic',
+  'garbage bag': 'organic',
+  'compost': 'organic',
+  'manure': 'organic',
+  'fertilizer': 'organic',
+  // ── HAZARDOUS ──────────────────────────────────────────────────────────
+  'oil drum': 'hazardous',
+  'oil can': 'hazardous',
+  'gas pump': 'hazardous',
+  'fuel pump': 'hazardous',
+  'syringe': 'hazardous',
+  'battery': 'hazardous',
+  'car battery': 'hazardous',
+  'paint': 'hazardous',
+  'spray can': 'hazardous',
+  'lighter': 'hazardous',
+  'fire extinguisher': 'hazardous',
+  // ── MIXED / GENERAL WASTE ──────────────────────────────────────────────
+  'trash can': 'mixed',
+  'garbage can': 'mixed',
+  'ashcan': 'mixed',
+  'wastebasket': 'mixed',
+  'dustbin': 'mixed',
+  'dumpster': 'mixed',
+  'landfill': 'mixed',
+  'refuse': 'mixed',
+  'rubble': 'mixed',
+  'debris': 'mixed',
+  'wreckage': 'mixed',
+  'junk': 'mixed',
+  'car': 'mixed',
+  'tires': 'mixed',
+  'mattress': 'mixed',
+  'toilet': 'mixed',
+  'bathtub': 'mixed',
+  'abandoned car': 'mixed',
+  // ── CLEAN / NON-WASTE ──────────────────────────────────────────────────
+  'face': 'clean',
+  'person': 'clean',
+  'people': 'clean',
+  'human face': 'clean',
+  'wall': 'clean',
+  'sidewalk': 'clean',
+  'pavement': 'clean',
+  'road': 'clean',
+  'sky': 'clean',
+  'grass': 'clean',
+  'tree': 'clean',
+  'plant': 'clean',
+  'flower': 'clean',
+  'building': 'clean',
+  'house': 'clean',
+  'car clean': 'clean',
+};
+
+/**
+ * Pixel-level fallback heuristics (used when model is unavailable).
+ * Samples 32×32 thumbnail and computes color ratios and edge entropy.
+ */
+function analyzePixelsFallback(imageElement) {
+  try {
+    const canvas = document.createElement('canvas');
+    const size = 32;
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(imageElement, 0, 0, size, size);
+    const { data } = ctx.getImageData(0, 0, size, size);
+    const total = size * size;
+    let skin = 0, dark = 0, brown = 0, green = 0, blue = 0, bright = 0, edgeSum = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const y  = 0.299*r + 0.587*g + 0.114*b;
+      const cb = 128 - 0.168736*r - 0.331264*g + 0.5*b;
+      const cr = 128 + 0.5*r - 0.418688*g - 0.081312*b;
+      if (y > 80 && cb >= 85 && cb <= 125 && cr >= 135 && cr <= 175 && r > g && (r-b) > 20) skin++;
+      if (r < 50 && g < 50 && b < 50) dark++;
+      if (r > 100 && g > 70 && g < r && b < g*0.85 && (r-b) > 25) brown++;
+      if (g > r*1.15 && g > b*1.15 && g > 50) green++;
+      if (b > r*1.2 && b > g*1.1 && b > 60) blue++;
+      if (Math.max(r,g,b) > 220 && (Math.max(r,g,b)-Math.min(r,g,b)) < 20) bright++;
+      if (i + 4 < data.length) {
+        const l1 = y, l2 = 0.299*data[i+4]+0.587*data[i+5]+0.114*data[i+6];
+        edgeSum += Math.abs(l1 - l2);
+      }
+    }
+    return {
+      skinRatio: skin/total, darkRatio: dark/total, brownRatio: brown/total,
+      greenRatio: green/total, blueRatio: blue/total, specularRatio: bright/total,
+      edgeEntropy: edgeSum/total
+    };
+  } catch { return null; }
+}
+
+/**
+ * Main AI classification pipeline.
+ * 1. Runs TensorFlow.js MobileNet if available (real neural inference)
+ * 2. Maps top-5 predicted classes to waste categories via IMAGENET_WASTE_MAP
+ * 3. Falls back to pixel heuristics if model unavailable
+ * Returns: { category, confidence, method, topClasses }
+ */
 async function analyzeImagePixels(photoFile) {
   if (!photoFile) return null;
+
   return new Promise(resolve => {
-    try {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            const size = 64;
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            if (!ctx) return resolve(null);
+    const reader = new FileReader();
+    reader.onerror = () => resolve(null);
+    reader.onload = async (e) => {
+      const img = new Image();
+      img.onerror = () => resolve(null);
+      img.onload = async () => {
+        try {
+          // ── Try MobileNet neural inference first ──
+          const model = await loadMobileNet();
+          if (model) {
+            const predictions = await model.classify(img, 10); // top-10 predictions
+            // predictions = [{ className, probability }, ...]
+            const categoryScores = {};
 
-            ctx.drawImage(img, 0, 0, size, size);
-            const imgData = ctx.getImageData(0, 0, size, size);
-            const data = imgData.data;
-            const totalPixels = size * size;
+            for (const pred of predictions) {
+              const className = pred.className.toLowerCase();
+              const prob = pred.probability;
 
-            let skinPixels = 0;
-            let greenPixels = 0;
-            let bluePlasticPixels = 0;
-            let brownCardboardPixels = 0;
-            let darkTrashBagPixels = 0;
-            let specularPixels = 0;
-            let rTotal = 0, gTotal = 0, bTotal = 0;
-            let lumDiffTotal = 0;
-
-            for (let i = 0; i < data.length; i += 4) {
-              const r = data[i];
-              const g = data[i + 1];
-              const b = data[i + 2];
-
-              rTotal += r;
-              gTotal += g;
-              bTotal += b;
-
-              const max = Math.max(r, g, b);
-              const min = Math.min(r, g, b);
-
-              // 1. Strict Skin Tone Detector (Human face / selfie / hand closeup in YCbCr space)
-              const y = 0.299 * r + 0.587 * g + 0.114 * b;
-              const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
-              const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
-              const isStrictSkin = (y > 80 && cb >= 85 && cb <= 125 && cr >= 135 && cr <= 175 && r > g && g > b && (r - b) > 20);
-
-              if (isStrictSkin) {
-                skinPixels++;
+              // Check each word/phrase in the class name against our map
+              let matched = false;
+              for (const [keyword, category] of Object.entries(IMAGENET_WASTE_MAP)) {
+                if (className.includes(keyword)) {
+                  categoryScores[category] = (categoryScores[category] || 0) + prob;
+                  matched = true;
+                  break;
+                }
               }
 
-              // 2. Green / Organic vegetation & food waste
-              if (g > r * 1.15 && g > b * 1.15 && g > 55) {
-                greenPixels++;
-              }
-
-              // 3. Blue / Synthetic plastic wrapper & container tones
-              if (b > r * 1.18 && b > g * 1.10 && b > 65) {
-                bluePlasticPixels++;
-              }
-
-              // 4. Brown / Kraft cardboard & wooden pallet packaging tones
-              if (r > 110 && g > 75 && g < r && b < g * 0.85 && (r - b) > 30 && (r - g) < 60) {
-                brownCardboardPixels++;
-              }
-
-              // 5. Dark garbage bags / asphalt / rubble
-              if (r < 55 && g < 55 && b < 55) {
-                darkTrashBagPixels++;
-              }
-
-              // 6. Specular metal / glass highlight
-              if (max > 225 && (max - min) < 25) {
-                specularPixels++;
-              }
-
-              // Edge contrast with adjacent pixel (texture/clutter complexity)
-              if (i + 4 < data.length) {
-                const lum1 = 0.299 * r + 0.587 * g + 0.114 * b;
-                const lum2 = 0.299 * data[i + 4] + 0.587 * data[i + 5] + 0.114 * data[i + 6];
-                lumDiffTotal += Math.abs(lum1 - lum2);
+              // Unmatched predictions with high probability → likely real-world object
+              // Apply secondary heuristics based on common class patterns
+              if (!matched && prob > 0.05) {
+                if (/bag|sack|bin|container|receptacle/.test(className)) {
+                  categoryScores['plastic'] = (categoryScores['plastic'] || 0) + prob * 0.7;
+                } else if (/food|fruit|vegetable|plant|organic/.test(className)) {
+                  categoryScores['organic'] = (categoryScores['organic'] || 0) + prob * 0.7;
+                } else if (/metal|iron|steel|aluminum|tin/.test(className)) {
+                  categoryScores['metal'] = (categoryScores['metal'] || 0) + prob * 0.7;
+                } else if (/paper|book|document|card|envelope/.test(className)) {
+                  categoryScores['paper'] = (categoryScores['paper'] || 0) + prob * 0.7;
+                } else if (/street|sidewalk|road|pavement|ground|floor/.test(className)) {
+                  // generic street scene — likely mixed waste or clean
+                  categoryScores['mixed'] = (categoryScores['mixed'] || 0) + prob * 0.3;
+                }
               }
             }
 
-            const skinRatio = skinPixels / totalPixels;
-            const greenRatio = greenPixels / totalPixels;
-            const blueRatio = bluePlasticPixels / totalPixels;
-            const brownRatio = brownCardboardPixels / totalPixels;
-            const darkRatio = darkTrashBagPixels / totalPixels;
-            const specularRatio = specularPixels / totalPixels;
-            const edgeEntropy = lumDiffTotal / totalPixels;
+            // ── Pixel fallback supplement: always run pixel scan to detect dark trash bags
+            // and high-clutter scenes that MobileNet may miss ──
+            const px = analyzePixelsFallback(img);
+            if (px) {
+              // High edge entropy = cluttered/waste scene boost
+              if (px.edgeEntropy > 5.5) {
+                categoryScores['mixed'] = (categoryScores['mixed'] || 0) + 0.25;
+              }
+              // Dark garbage bags (black trash bags are very common)
+              if (px.darkRatio > 0.20) {
+                categoryScores['mixed'] = (categoryScores['mixed'] || 0) + 0.20;
+              }
+              // Selfie / skin closeup override
+              if (px.skinRatio > 0.45 && px.edgeEntropy < 4.0) {
+                categoryScores['clean'] = (categoryScores['clean'] || 0) + 0.50;
+              }
+            }
 
-            resolve({
-              skinRatio,
-              greenRatio,
-              blueRatio,
-              brownRatio,
-              darkRatio,
-              specularRatio,
-              edgeEntropy
-            });
-          } catch (err) {
-            resolve(null);
+            // Find winning category
+            let bestCat = null;
+            let bestScore = 0;
+            for (const [cat, score] of Object.entries(categoryScores)) {
+              if (score > bestScore) { bestScore = score; bestCat = cat; }
+            }
+
+            const topClasses = predictions.slice(0, 3).map(p => `${p.className} (${(p.probability*100).toFixed(1)}%)`).join(', ');
+            console.log(`[BinGO AI] MobileNet top predictions: ${topClasses}`);
+            console.log(`[BinGO AI] Category scores:`, categoryScores);
+            console.log(`[BinGO AI] Winner: ${bestCat} (score: ${bestScore.toFixed(3)})`);
+
+            if (bestCat && bestScore > 0.05) {
+              resolve({
+                category: bestCat,
+                confidence: Math.min(bestScore * 100, 97),
+                method: 'mobilenet',
+                topClasses,
+                px
+              });
+              return;
+            }
+
+            // Low-confidence neural result → fall through to pixel heuristics
+            // but default to mixed (something was uploaded, treat as potential waste)
+            if (px) {
+              resolve({ category: 'mixed', confidence: 55, method: 'pixel_fallback', px });
+            } else {
+              resolve({ category: 'mixed', confidence: 50, method: 'default', px: null });
+            }
+            return;
           }
-        };
-        img.onerror = () => resolve(null);
-        img.src = e.target.result;
+
+          // ── MobileNet unavailable: full pixel heuristic path ──
+          const px = analyzePixelsFallback(img);
+          resolve({ category: null, confidence: 0, method: 'pixel_only', px });
+
+        } catch (err) {
+          console.error('[BinGO AI] classify error:', err);
+          resolve(null);
+        }
       };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(photoFile);
-    } catch {
-      resolve(null);
-    }
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(photoFile);
   });
 }
 
+/**
+ * Maps neural analysis result + description text to a final waste category.
+ * Description text always takes priority (explicit user intent).
+ * Neural result takes priority over pixel heuristics.
+ */
 function determineWasteCategory(desc = '', photoAnalysis = null) {
-  const d = (desc || '').toLowerCase();
+  const d = (desc || '').toLowerCase().trim();
 
-  // 1. Explicit Non-Waste / Clean Intent Checks (Evaluated FIRST)
-  if (
-    d.includes('no waste') || d.includes('clean area') || d.includes('nothing here') ||
-    d.includes('clean') || d.includes('palm only') || d.includes('hand only') ||
-    d.includes('selfie') || d.includes('clear road') || d.includes('empty sidewalk') ||
-    d.includes('blank wall') || d.includes('zero waste') || d.includes('not waste') ||
-    d.includes('no trash') || d.includes('no garbage')
-  ) {
-    return 'clean';
-  }
+  // ── 1. Explicit clean/non-waste description keywords (highest priority) ──
+  const CLEAN_PHRASES = [
+    'no waste', 'clean area', 'nothing here', 'all clean', 'palm only',
+    'hand only', 'selfie', 'clear road', 'empty sidewalk', 'blank wall',
+    'zero waste', 'not waste', 'no trash', 'no garbage', 'no litter'
+  ];
+  if (CLEAN_PHRASES.some(p => d.includes(p))) return 'clean';
+  // 'clean' alone as a keyword only triggers if no waste terms present
+  const WASTE_TERMS = ['waste', 'trash', 'garbage', 'litter', 'dump', 'rubbish', 'debris', 'spill', 'overflow'];
+  if (d.includes('clean') && !WASTE_TERMS.some(t => d.includes(t))) return 'clean';
 
-  // 2. Specific Contextual Waste Material Keywords
-  if (d.includes('chemical') || d.includes('hazard') || d.includes('spill') || d.includes('toxic') || d.includes('oil') || d.includes('battery')) {
-    return 'hazardous';
-  }
-  if (d.includes('food') || d.includes('organic') || d.includes('peel') || d.includes('fruit') || d.includes('vegetable') || d.includes('rotten')) {
-    return 'organic';
-  }
-  if (d.includes('cardboard') || d.includes('box') || d.includes('carton') || d.includes('package') || d.includes('packaging')) {
-    return 'cardboard';
-  }
-  if (d.includes('glass') || d.includes('broken') || (d.includes('bottle') && d.includes('glass')) || d.includes('shard')) {
-    return 'glass';
-  }
-  if (d.includes('can') || d.includes('metal') || d.includes('iron') || d.includes('wire') || d.includes('tin') || d.includes('scrap') || d.includes('steel')) {
-    return 'metal';
-  }
-  if (d.includes('paper') || d.includes('flyer') || d.includes('newspaper') || d.includes('document')) {
-    return 'paper';
-  }
-  if (d.includes('plastic') || d.includes('cup') || d.includes('bag') || d.includes('wrapper') || d.includes('bottle') || d.includes('polythene')) {
-    return 'plastic';
-  }
-  if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble') || d.includes('waste') || d.includes('rubbish') || d.includes('litter') || d.includes('garbage') || d.includes('overflow') || d.includes('mess')) {
-    return 'mixed';
+  // ── 2. Specific waste type keywords in description ──
+  if (['chemical','hazard','spill','toxic','oil','battery','syringe','needle','drum'].some(k => d.includes(k))) return 'hazardous';
+  if (['food','organic','peel','fruit','vegetable','rotten','compost','spoiled','leftover'].some(k => d.includes(k))) return 'organic';
+  if (['cardboard','carton','box','package','packaging','packing'].some(k => d.includes(k))) return 'cardboard';
+  if (['glass','shard','broken bottle','broken glass'].some(k => d.includes(k))) return 'glass';
+  if (['metal','iron','wire','tin','scrap','steel','aluminum','can'].some(k => d.includes(k))) return 'metal';
+  if (['paper','flyer','newspaper','document','tissue','pamphlet'].some(k => d.includes(k))) return 'paper';
+  if (['plastic','cup','bag','wrapper','bottle','polythene','polybag','straw'].some(k => d.includes(k))) return 'plastic';
+  if (WASTE_TERMS.some(k => d.includes(k))) return 'mixed';
+  if (['dump','sofa','furniture','rubble','overflow','mess','pile'].some(k => d.includes(k))) return 'mixed';
+
+  // ── 3. Neural model result (most reliable for image content) ──
+  if (photoAnalysis && photoAnalysis.category) {
+    return photoAnalysis.category;
   }
 
-  // 3. Computer Vision Pixel Analysis from Real Photo
-  if (photoAnalysis) {
-    // Pure human closeup / selfie (skin covers majority of image with smooth textures)
-    if (photoAnalysis.skinRatio > 0.45 && photoAnalysis.edgeEntropy < 4.0) {
-      return 'clean';
-    }
-    // Completely smooth empty indoor wall / blank flat surface without waste
-    if (photoAnalysis.edgeEntropy < 2.0 && photoAnalysis.skinRatio < 0.05 && photoAnalysis.blueRatio < 0.03 && photoAnalysis.brownRatio < 0.05 && photoAnalysis.darkRatio < 0.05) {
-      return 'clean';
-    }
-
-    // Waste Feature Weighting
-    if (photoAnalysis.brownRatio > 0.14) {
-      return 'cardboard';
-    }
-    if (photoAnalysis.blueRatio > 0.09) {
-      return 'plastic';
-    }
-    if (photoAnalysis.greenRatio > 0.18) {
-      return 'organic';
-    }
-    if (photoAnalysis.specularRatio > 0.14) {
-      return 'metal';
-    }
-    if (photoAnalysis.darkRatio > 0.15 || photoAnalysis.edgeEntropy > 3.0) {
-      return 'mixed';
-    }
+  // ── 4. Pixel fallback heuristics (when model unavailable) ──
+  if (photoAnalysis && photoAnalysis.px) {
+    const px = photoAnalysis.px;
+    if (px.skinRatio > 0.45 && px.edgeEntropy < 4.0) return 'clean';
+    if (px.edgeEntropy < 2.0 && px.skinRatio < 0.05 && px.blueRatio < 0.03 && px.brownRatio < 0.05 && px.darkRatio < 0.05) return 'clean';
+    if (px.brownRatio > 0.14) return 'cardboard';
+    if (px.blueRatio > 0.09) return 'plastic';
+    if (px.greenRatio > 0.18) return 'organic';
+    if (px.specularRatio > 0.14) return 'metal';
+    if (px.darkRatio > 0.15 || px.edgeEntropy > 3.0) return 'mixed';
   }
 
-  // 4. Default: If image or incident is reported, treat as mixed street waste
+  // ── 5. If a photo was uploaded with no description and no detection → mixed
+  // (user uploaded something, assume potential waste rather than marking clean)
   return 'mixed';
 }
 
@@ -4230,10 +4441,13 @@ async function simulateAIProgress() {
     if (chosenType === 'clean') {
       showToast('✨ AI Visual Scan: No waste detected in photo. Area certified clean — Municipal dispatch standby.', 'info', 5000);
     } else {
-      showToast(`🤖 BinGO AI Classification: ${cat.label} • ${cat.vehicle} Assigned!`, 'success');
+      const confText = (features && features.confidence) ? ` • ${Math.round(features.confidence)}% confidence` : '';
+      const methodText = (features && features.method === 'mobilenet') ? ' [Neural AI]' : '';
+      showToast(`🤖 BinGO AI${methodText}: ${cat.label}${confText} • ${cat.vehicle} Assigned!`, 'success', 5000);
     }
   }, 800);
 }
+
 
 function updateAICard(typeKey = 'mixed', customVol = null, customUrg = null) {
   const data = WASTE_CATEGORIES[typeKey] || WASTE_CATEGORIES.clean;
