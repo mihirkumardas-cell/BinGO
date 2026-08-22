@@ -129,3 +129,13 @@ async def readiness(request: Request):
             status_code=503,
             content={"status": "not_ready", "error": str(e)},
         )
+
+
+# ── Static Files (Frontend UI) ────────────────────────────────────────────────
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+
