@@ -30,7 +30,9 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role_enum"), nullable=False, default=UserRole.CITIZEN
+        Enum(UserRole, name="user_role_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=UserRole.CITIZEN,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -54,7 +56,12 @@ class User(Base):
     last_login_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    reports = relationship("Report", back_populates="reporter", lazy="noload")
+    reports = relationship(
+        "Report",
+        foreign_keys="[Report.reporter_id]",
+        back_populates="reporter",
+        lazy="noload",
+    )
     notifications = relationship("Notification", back_populates="user", lazy="noload")
 
     def __repr__(self) -> str:

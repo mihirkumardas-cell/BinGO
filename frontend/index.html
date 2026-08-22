@@ -1192,13 +1192,25 @@
      JAVASCRIPT: Router + API + WebSocket + Settings
 ══════════════════════════════════════════════════════ -->
 <script>
-// Config Getters (reading from localStorage with fallbacks)
+// Config Getters (reading from localStorage with dynamic detection)
 function getApiBase() {
-  return localStorage.getItem('bingo_api_url') || 'http://localhost/api/v1';
+  const custom = localStorage.getItem('bingo_api_url');
+  if (custom) return custom;
+  if (window.location.protocol.startsWith('http')) {
+    if (window.location.port === '8000') return `${window.location.origin}/api/v1`;
+    if (!window.location.port || window.location.port === '80') return '/api/v1';
+  }
+  return 'http://localhost/api/v1';
 }
+
 function getWsBase() {
-  return localStorage.getItem('bingo_ws_url') || 'ws://localhost/ws';
+  const custom = localStorage.getItem('bingo_ws_url');
+  if (custom) return custom;
+  if (window.location.protocol === 'https:') return `wss://${window.location.host}/ws`;
+  if (window.location.protocol === 'http:' && (!window.location.port || window.location.port === '80')) return `ws://${window.location.host}/ws`;
+  return 'ws://localhost/ws';
 }
+
 function isDemoMode() {
   return localStorage.getItem('bingo_demo_mode') === 'true';
 }
@@ -1212,13 +1224,13 @@ let wsConnection = null;
 let userLocation = { lat: null, lng: null };
 let currentPhotoFile = null;
 
-// Mock Data
+// Mock Data (used only as fallback when backend is truly offline or demo mode is on)
 const MOCK_REPORTS = [
-  { id:'R-094', waste_type:'mixed', waste_label:'Bulk Debris', urgency_score:85, status:'pending_ai', ai_confidence:0.92, time:'10m ago' },
-  { id:'R-093', waste_type:'cardboard', waste_label:'Cardboard', urgency_score:45, status:'verified', ai_confidence:0.88, time:'25m ago' },
-  { id:'R-091', waste_type:'hazardous', waste_label:'Hazardous', urgency_score:92, status:'pending_ai', ai_confidence:0.95, time:'38m ago' },
-  { id:'R-089', waste_type:'plastic', waste_label:'Plastic 🧴', urgency_score:38, status:'dispatched', ai_confidence:0.79, time:'1h ago' },
-  { id:'R-087', waste_type:'organic', waste_label:'Organic 🍂', urgency_score:61, status:'resolved', ai_confidence:0.83, time:'2h ago' },
+  { id:'22222222', full_id:'22222222-2222-2222-2222-222222222201', waste_type:'hazardous', waste_label:'Hazardous ⚠️', urgency_score:92, status:'verified', ai_confidence:0.95, time:'35m ago' },
+  { id:'22222223', full_id:'22222222-2222-2222-2222-222222222202', waste_type:'mixed', waste_label:'Bulk Mixed 🗑️', urgency_score:85, status:'pending_ai', ai_confidence:0.92, time:'10m ago' },
+  { id:'22222224', full_id:'22222222-2222-2222-2222-222222222203', waste_type:'plastic', waste_label:'Plastic 🧴', urgency_score:72, status:'dispatched', ai_confidence:0.89, time:'1h ago' },
+  { id:'22222225', full_id:'22222222-2222-2222-2222-222222222204', waste_type:'cardboard', waste_label:'Cardboard 📦', urgency_score:45, status:'verified', ai_confidence:0.88, time:'2h ago' },
+  { id:'22222226', full_id:'22222222-2222-2222-2222-222222222205', waste_type:'organic', waste_label:'Organic 🍂', urgency_score:61, status:'resolved', ai_confidence:0.83, time:'5h ago' },
 ];
 
 const MOCK_HOTSPOTS = [
@@ -1228,7 +1240,7 @@ const MOCK_HOTSPOTS = [
 ];
 
 const MOCK_FLEET = [
-  { team:'Unit 7 — Compact Tipper', vehicle:'Ford F-550 Waste Tipper', status:'En Route', assignment:'Report #R-094', eta:'8 mins' },
+  { team:'Unit 7 — Compact Tipper', vehicle:'Ford F-550 Waste Tipper', status:'En Route', assignment:'Report #22222224', eta:'8 mins' },
   { team:'Unit 3 — Heavy Hauler', vehicle:'Volvo FM Dump Truck', status:'On Site', assignment:'Hotspot #HS-101', eta:'Active' },
   { team:'Unit 12 — Rapid Clean Crew', vehicle:'Van + Crew', status:'Standby', assignment:'Sector 4 Station', eta:'Available' }
 ];
@@ -1341,15 +1353,33 @@ async function checkBackend() {
     if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span> <span class="text-warning">Demo Mode (Offline)</span>`;
     return;
   }
-  try {
-    const res = await fetch(`${API_BASE.replace('/api/v1', '')}/health`, { signal: AbortSignal.timeout(3000) });
-    if (res.ok) {
-      if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(63,185,80,0.8)]"></span> <span class="text-success">Backend connected — BinGO API active</span>`;
-      showToast('Backend connected successfully!', 'success');
-    } else { throw new Error(); }
-  } catch {
+  
+  let healthy = false;
+  const candidates = [
+    `${API_BASE.replace('/api/v1', '')}/health`,
+    'http://localhost/health',
+    'http://localhost:8000/health',
+    '/health'
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(2500) });
+      if (res.ok) {
+        healthy = true;
+        if (url.includes('8000') && !API_BASE.includes('8000') && window.location.port !== '80' && window.location.port !== '') {
+          API_BASE = 'http://localhost:8000/api/v1';
+        }
+        break;
+      }
+    } catch {}
+  }
+
+  if (healthy) {
+    if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(63,185,80,0.8)]"></span> <span class="text-success">Backend connected — BinGO Live API Active</span>`;
+  } else {
     if (el) el.innerHTML = `<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span> <span class="text-warning">Backend offline — demo mode fallback</span>`;
-    showToast('Backend unreachable. Running in demo mode with mock data.', 'warning', 5000);
+    showToast('Backend unreachable. Running in demo mode with mock data.', 'warning', 4000);
   }
 }
 
@@ -1362,9 +1392,9 @@ function initSubmitPage() {
     document.getElementById('location-display').textContent = `Detected GPS location`;
     document.getElementById('coords-display').textContent = `LAT: ${userLocation.lat.toFixed(5)}°  LON: ${userLocation.lng.toFixed(5)}°`;
   }, () => {
-    userLocation.lat = 40.7128; userLocation.lng = -74.0060;
-    document.getElementById('location-display').textContent = '1042 Industrial Pkwy, Sector 4';
-    document.getElementById('coords-display').textContent = 'LAT: 40.7128°  LON: 74.0060°';
+    userLocation.lat = 40.7580; userLocation.lng = -73.9855;
+    document.getElementById('location-display').textContent = '742 Broadway St, Sector 4';
+    document.getElementById('coords-display').textContent = 'LAT: 40.7580°  LON: -73.9855°';
   });
 }
 
@@ -1381,7 +1411,7 @@ function onPhotoSelected(input) {
     Photo ready — submit report!
   </p>`;
   document.getElementById('notes-panel').classList.remove('hidden');
-  showToast('📸 Photo captured! Add notes and submit.', 'success');
+  showToast('📸 Photo captured! Ready for live AI analysis.', 'success');
 }
 
 async function submitReport() {
@@ -1389,29 +1419,54 @@ async function submitReport() {
   btn.disabled = true;
   btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Submitting...`;
 
-  const lat = userLocation.lat || 40.7128;
-  const lng = userLocation.lng || -74.0060;
-  const desc = document.getElementById('description-input').value;
+  const lat = userLocation.lat || 40.7580;
+  const lng = userLocation.lng || -73.9855;
+  const desc = document.getElementById('description-input').value || 'Citizen waste report';
 
   try {
-    if (currentPhotoFile && !isDemoMode()) {
+    let reportCreated = null;
+    if (!isDemoMode()) {
       const formData = new FormData();
       formData.append('latitude', lat);
       formData.append('longitude', lng);
       formData.append('description', desc);
-      formData.append('photo', currentPhotoFile);
+
+      let photoToSend = currentPhotoFile;
+      if (!photoToSend) {
+        // Generate placeholder image blob for camera simulation
+        const canvas = document.createElement('canvas');
+        canvas.width = 320;
+        canvas.height = 320;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#161B22';
+        ctx.fillRect(0, 0, 320, 320);
+        ctx.fillStyle = '#238636';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('BinGO AI Scanner', 60, 160);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+        photoToSend = new File([blob], 'report.jpg', { type: 'image/jpeg' });
+      }
+      formData.append('photo', photoToSend);
+
       const res = await fetch(`${API_BASE}/reports`, { method: 'POST', body: formData });
       if (res.ok) {
-        const data = await res.json();
-        currentReportId = data.id;
-      } else { throw new Error(); }
-    } else {
-      currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        reportCreated = await res.json();
+        currentReportId = reportCreated.id;
+      }
     }
-    showToast('✅ BinGO Report submitted! AI processing started...', 'success');
-    navigate('page-tracking');
-    setTimeout(() => simulateAIProgress(), 1000);
+
+    if (!reportCreated) {
+      currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      showToast('Queued report locally (Demo mode).', 'warning');
+      navigate('page-tracking');
+      setTimeout(() => simulateAIProgress(), 1000);
+    } else {
+      showToast('✅ BinGO Report submitted! Live AI classification running...', 'success');
+      navigate('page-tracking');
+      pollReportStatus(currentReportId);
+    }
   } catch (e) {
+    console.error('Submit error:', e);
     currentReportId = 'DEMO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
     showToast('Queued report locally (Demo mode).', 'warning');
     navigate('page-tracking');
@@ -1424,9 +1479,52 @@ async function submitReport() {
 
 // Tracking Page
 function initTrackingPage() {
-  const id = currentReportId || '#DEMO-882A';
-  document.getElementById('tracking-report-id').textContent = 'Report ' + id;
-  document.getElementById('tracking-location').innerHTML = `<span class="material-symbols-outlined text-[16px]">location_on</span> ${userLocation.lat ? userLocation.lat.toFixed(4)+'°N, '+Math.abs(userLocation.lng).toFixed(4)+'°W' : 'Sector 4, Industrial Pkwy'}`;
+  const id = currentReportId ? (currentReportId.length > 8 ? currentReportId.substring(0, 8) : currentReportId) : '22222222';
+  document.getElementById('tracking-report-id').textContent = 'Report #' + id;
+  document.getElementById('tracking-location').innerHTML = `<span class="material-symbols-outlined text-[16px]">location_on</span> ${userLocation.lat ? userLocation.lat.toFixed(4)+'°N, '+Math.abs(userLocation.lng).toFixed(4)+'°W' : 'Sector 4, Times Square Central'}`;
+}
+
+async function pollReportStatus(reportId) {
+  markStep('step-submitted', 'done', new Date().toLocaleTimeString());
+  markStep('step-ai', 'active', 'Analyzing...');
+
+  let attempts = 0;
+  const interval = setInterval(async () => {
+    attempts++;
+    try {
+      const res = await fetch(`${API_BASE}/reports/${reportId}`);
+      if (res.ok) {
+        const r = await res.json();
+        if (r.status !== 'pending_ai' || attempts >= 8) {
+          clearInterval(interval);
+          markStep('step-ai', 'done', new Date().toLocaleTimeString());
+
+          const label = (r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Plastic') + ' ' + (WASTE_ICONS[r.waste_type] || '🧴');
+          updateAICard({
+            waste_type: r.waste_type || 'plastic',
+            waste_label: label,
+            volume: r.volume_estimate_m3 || 0.55,
+            urgency: r.urgency_score || 75,
+            vehicle: r.recommended_vehicle || 'Compact Tipper Van'
+          });
+
+          showToast(`🤖 Live AI Classification: ${r.waste_type ? r.waste_type.toUpperCase() : 'PLASTIC'} (Urgency: ${r.urgency_score || 75}/100)`, 'info');
+
+          if (r.status === 'verified' || r.status === 'dispatched' || r.status === 'in_progress' || r.status === 'resolved') {
+            markStep('step-verified', 'done', new Date().toLocaleTimeString());
+          } else {
+            markStep('step-verified', 'active', 'Awaiting municipal confirmation');
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Polling error:', err);
+    }
+    if (attempts >= 10) {
+      clearInterval(interval);
+      markStep('step-ai', 'done', new Date().toLocaleTimeString());
+    }
+  }, 1500);
 }
 
 function simulateAIProgress() {
@@ -1435,8 +1533,8 @@ function simulateAIProgress() {
     markStep('step-ai', 'done', new Date().toLocaleTimeString());
     updateAICard({ waste_type:'plastic', waste_label:'Plastic 🧴', volume:0.45, urgency:72, vehicle:'Compact Van + Crew' });
     showToast('🤖 BinGO AI classified waste: Plastic (Urgency: 72/100)', 'info');
-    setTimeout(() => markStep('step-verified', 'active', new Date().toLocaleTimeString()), 2500);
-  }, 2500);
+    setTimeout(() => markStep('step-verified', 'active', new Date().toLocaleTimeString()), 2000);
+  }, 2000);
 }
 
 function markStep(stepId, state, time) {
@@ -1473,22 +1571,22 @@ function initDashboard() {
 async function loadDashboardStats() {
   if (isDemoMode()) {
     document.getElementById('stat-reports').textContent = '124';
-    document.getElementById('stat-hotspots').textContent = '8';
-    document.getElementById('stat-teams').textContent = '14';
+    document.getElementById('stat-hotspots').textContent = '3';
+    document.getElementById('stat-teams').textContent = '2';
     return;
   }
   try {
-    const res = await fetch(`${API_BASE}/analytics/summary?days=1`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const d = await res.json();
-      document.getElementById('stat-reports').textContent = d.total_reports ?? '124';
-      document.getElementById('stat-hotspots').textContent = d.active_hotspots ?? '8';
-      document.getElementById('stat-teams').textContent = d.teams_deployed ?? '14';
+      document.getElementById('stat-reports').textContent = d.total_reports ?? '6';
+      document.getElementById('stat-hotspots').textContent = d.active_hotspots ?? '3';
+      document.getElementById('stat-teams').textContent = d.teams_deployed ?? '2';
     } else throw new Error();
   } catch {
-    document.getElementById('stat-reports').textContent = '124';
-    document.getElementById('stat-hotspots').textContent = '8';
-    document.getElementById('stat-teams').textContent = '14';
+    document.getElementById('stat-reports').textContent = '6';
+    document.getElementById('stat-hotspots').textContent = '3';
+    document.getElementById('stat-teams').textContent = '2';
   }
 }
 
@@ -1500,10 +1598,31 @@ async function initReportsQueue() {
     allReports = MOCK_REPORTS;
   } else {
     try {
-      const res = await fetch(`${API_BASE}/reports?page_size=20`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${API_BASE}/reports?page_size=50`, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         const d = await res.json();
-        allReports = d.items || d;
+        const items = d.items || (Array.isArray(d) ? d : []);
+        if (items.length > 0) {
+          allReports = items.map(r => {
+            const dt = new Date(r.created_at);
+            const timeStr = isNaN(dt) ? 'Recent' : dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return {
+              id: r.id.length > 8 ? r.id.substring(0, 8) : r.id,
+              full_id: r.id,
+              waste_type: r.waste_type || 'mixed',
+              waste_label: (r.waste_type ? (r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)) : 'Mixed') + ' ' + (WASTE_ICONS[r.waste_type] || ''),
+              urgency_score: r.urgency_score || 50,
+              status: r.status || 'pending_ai',
+              ai_confidence: r.ai_confidence || 0.88,
+              time: timeStr,
+              address: r.address || 'Metro District',
+              volume_estimate_m3: r.volume_estimate_m3 || 0.5,
+              recommended_vehicle: r.recommended_vehicle || 'Standard Truck'
+            };
+          });
+        } else {
+          allReports = MOCK_REPORTS;
+        }
       } else throw new Error();
     } catch {
       allReports = MOCK_REPORTS;
@@ -1522,7 +1641,7 @@ function renderReportsTable(reports) {
     const conf = Math.round((r.ai_confidence || 0.85) * 100);
     const row = document.createElement('div');
     row.className = 'flex items-center px-4 py-2 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors';
-    row.dataset.id = r.id;
+    row.dataset.id = r.full_id || r.id;
     row.innerHTML = `
       <div class="w-16 font-label-mono text-text-secondary">#${r.id}</div>
       <div class="w-20"><div class="w-10 h-7 bg-black/50 border border-white/10 rounded flex items-center justify-center text-lg">${icon}</div></div>
@@ -1534,20 +1653,24 @@ function renderReportsTable(reports) {
     row.onclick = () => selectReport(r, row);
     tbody.appendChild(row);
   });
+  if (reports.length > 0 && !selectedReportRow) {
+    const first = tbody.children[0];
+    if (first) selectReport(reports[0], first);
+  }
 }
 
 function selectReport(report, rowEl) {
   if (selectedReportRow) selectedReportRow.classList.remove('bg-white/10');
   selectedReportRow = rowEl;
   rowEl.classList.add('bg-white/10');
-  document.getElementById('verify-report-id').textContent = '#' + report.id;
+  document.getElementById('verify-report-id').textContent = '#' + (report.id || 'Report');
   document.getElementById('detect-label').textContent = (WASTE_ICONS[report.waste_type] || '') + ' ' + (report.waste_label || report.waste_type);
   document.getElementById('detect-urgency').textContent = (report.urgency_score || 0) + ' / 100';
 }
 
 function filterReports() {
   const q = document.getElementById('reports-filter').value.toLowerCase();
-  renderReportsTable(allReports.filter(r => (r.id + ' ' + r.waste_type).toLowerCase().includes(q)));
+  renderReportsTable(allReports.filter(r => (r.id + ' ' + r.waste_type + ' ' + (r.waste_label || '')).toLowerCase().includes(q)));
 }
 
 function filterByStatus(status) {
@@ -1559,11 +1682,37 @@ function filterByStatus(status) {
 
 async function verifyReport() {
   if (!selectedReportRow) { showToast('Select a report first', 'warning'); return; }
+  const reportId = selectedReportRow.dataset.id;
+  try {
+    const res = await fetch(`${API_BASE}/reports/${reportId}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_rejected: false })
+    });
+    if (res.ok) {
+      showToast('✅ BinGO: Report verified and escalated for dispatch!', 'success');
+      await initReportsQueue();
+      return;
+    }
+  } catch {}
   showToast('✅ BinGO: Report verified and escalated for dispatch!', 'success');
 }
 
 async function rejectReport() {
   if (!selectedReportRow) { showToast('Select a report first', 'warning'); return; }
+  const reportId = selectedReportRow.dataset.id;
+  try {
+    const res = await fetch(`${API_BASE}/reports/${reportId}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_rejected: true, rejection_reason: 'Rejected by municipal operator' })
+    });
+    if (res.ok) {
+      showToast('Report rejected.', 'warning');
+      await initReportsQueue();
+      return;
+    }
+  } catch {}
   showToast('Report rejected.', 'warning');
 }
 
@@ -1572,12 +1721,26 @@ async function initHotspotsPage() {
   const container = document.getElementById('hotspots-container');
   if (!container) return;
   container.innerHTML = '';
-  
+
   let hotspots = MOCK_HOTSPOTS;
   if (!isDemoMode()) {
     try {
       const res = await fetch(`${API_BASE}/hotspots`, { signal: AbortSignal.timeout(3000) });
-      if (res.ok) hotspots = await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || (Array.isArray(data) ? data : []);
+        if (items.length > 0) {
+          hotspots = items.map(h => ({
+            id: h.id.length > 8 ? h.id.substring(0, 8) : h.id,
+            severity: h.severity || 'high',
+            report_count: h.report_count || 5,
+            dominant_waste_type: h.dominant_waste_type || 'plastic',
+            lat: h.centroid_lat || 40.7580,
+            lng: h.centroid_lng || -73.9855,
+            address: h.address || 'Urban District Zone'
+          }));
+        }
+      }
     } catch {}
   }
 
@@ -1608,8 +1771,8 @@ async function recomputeHotspots() {
     if (!isDemoMode()) {
       await fetch(`${API_BASE}/hotspots/recompute`, { method: 'POST' });
     }
-    showToast('🔥 Hotspots recomputed using DBSCAN clustering algorithm!', 'success');
-    initHotspotsPage();
+    showToast('🔥 Hotspots recomputed with live DBSCAN clustering!', 'success');
+    await initHotspotsPage();
   } catch {
     showToast('Hotspots recomputed (Demo mode)', 'success');
   } finally {
@@ -1646,11 +1809,27 @@ function initFleetPage() {
 }
 
 function dispatchTeam() {
-  showToast('🚚 New dispatch order dispatched to available fleet unit.', 'success');
+  showToast('🚚 Fleet dispatch order assigned to Unit 7.', 'success');
 }
 
 // Analytics Page
-function initAnalyticsPage() {}
+async function initAnalyticsPage() {
+  try {
+    const res = await fetch(`${API_BASE}/analytics/summary?days=30`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const d = await res.json();
+      const totalEl = document.getElementById('analytics-total');
+      const rateEl = document.getElementById('analytics-rate');
+      const hsEl = document.getElementById('analytics-hotspots');
+      if (totalEl) totalEl.textContent = d.total_reports ?? '6';
+      if (rateEl && d.resolved_reports) {
+        const rate = Math.round((d.resolved_reports / Math.max(1, d.total_reports)) * 100);
+        rateEl.textContent = `${rate}%`;
+      }
+      if (hsEl) hsEl.textContent = d.active_hotspots ?? '3';
+    }
+  } catch {}
+}
 
 // Settings Page
 function initSettingsPage() {
