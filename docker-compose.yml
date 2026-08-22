@@ -98,6 +98,8 @@ services:
         condition: service_healthy
     volumes:
       - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+      - ./app:/app/app
+      - ./alembic:/app/alembic
     command: >
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
 
@@ -119,6 +121,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - ./app:/app/app
     command: arq app.workers.worker_main.WorkerSettings
 
   # ── AI Microservice ──────────────────────────────────────────
@@ -136,6 +140,7 @@ services:
     ports:
       - "8001:8001"
     volumes:
+      - ./ai_service:/app/ai_service
       - ai_weights:/app/weights
     depends_on:
       db:

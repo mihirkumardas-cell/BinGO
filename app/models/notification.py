@@ -43,10 +43,12 @@ class Notification(Base):
     )
 
     type: Mapped[NotificationType] = mapped_column(
-        Enum(NotificationType, name="notification_type_enum"), nullable=False
+        Enum(NotificationType, name="notification_type_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
     channel: Mapped[NotificationChannel] = mapped_column(
-        Enum(NotificationChannel, name="notification_channel_enum"), nullable=False
+        Enum(NotificationChannel, name="notification_channel_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)

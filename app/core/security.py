@@ -18,18 +18,23 @@ from app.models.user import User, UserRole
 
 settings = get_settings()
 
-# ── Password hashing ─────────────────────────────────────────────────────────
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def hash_password(plain: str) -> str:
-    return pwd_context.hash(plain)
+    pwd_bytes = plain.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    try:
+        pwd_bytes = plain.encode("utf-8")[:72]
+        return bcrypt.checkpw(pwd_bytes, hashed.encode("utf-8"))
+    except Exception:
+        return False
 
 
 # ── Token creation ────────────────────────────────────────────────────────────
@@ -75,19 +80,26 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     if not credentials:
-        # Fallback to guest system user
+        # Fallback to admin system user for unauthenticated frontend requests
+        result = await db.execute(
+            select(User).where(User.role.in_([UserRole.SUPER_ADMIN, UserRole.MUNICIPAL_ADMIN])).limit(1)
+        )
+        admin = result.scalar_one_or_none()
+        if admin:
+            return admin
         result = await db.execute(select(User).limit(1))
         guest = result.scalar_one_or_none()
         if guest:
             return guest
-        # If no users exist, create guest
+        # If no users exist, create admin guest
         guest = User(
             id=UUID("00000000-0000-0000-0000-000000000001"),
-            email="guest@bingo.app",
-            full_name="BinGO Guest",
-            hashed_password=hash_password("guest123"),
-            role=UserRole.CITIZEN,
+            email="admin@bingo.app",
+            full_name="BinGO Admin",
+            hashed_password=hash_password("admin123"),
+            role=UserRole.SUPER_ADMIN,
             is_active=True,
+            is_verified=True,
         )
         db.add(guest)
         await db.flush()

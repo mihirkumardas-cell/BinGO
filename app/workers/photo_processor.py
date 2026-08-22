@@ -174,15 +174,18 @@ async def enqueue_photo_processing(
     longitude: float,
 ) -> None:
     """Enqueue the photo processing job via arq."""
-    import arq
-    from app.core.redis_client import get_redis
-
-    redis = await get_redis()
-    pool = arq.ArqRedis(redis.connection_pool)  # type: ignore
-    await pool.enqueue_job(
-        "process_photo_job",
-        report_id=report_id,
-        photo_key=photo_key,
-        latitude=latitude,
-        longitude=longitude,
-    )
+    try:
+        from arq import create_pool
+        from arq.connections import RedisSettings
+        redis_settings = RedisSettings.from_dsn(settings.redis_url)
+        pool = await create_pool(redis_settings)
+        await pool.enqueue_job(
+            "process_photo_job",
+            report_id=report_id,
+            photo_key=photo_key,
+            latitude=latitude,
+            longitude=longitude,
+        )
+        await pool.close()
+    except Exception as e:
+        logger.error("enqueue_photo_failed", error=str(e))

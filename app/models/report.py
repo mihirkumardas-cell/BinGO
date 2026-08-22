@@ -65,7 +65,7 @@ class Report(Base):
 
     # ── AI Classification ─────────────────────────────────────────
     waste_type: Mapped[WasteType] = mapped_column(
-        Enum(WasteType, name="waste_type_enum"),
+        Enum(WasteType, name="waste_type_enum", values_callable=lambda obj: [e.value for e in obj]),
         default=WasteType.UNKNOWN,
         nullable=False,
     )
@@ -86,7 +86,7 @@ class Report(Base):
 
     # ── Status & Deduplication ────────────────────────────────────
     status: Mapped[ReportStatus] = mapped_column(
-        Enum(ReportStatus, name="report_status_enum"),
+        Enum(ReportStatus, name="report_status_enum", values_callable=lambda obj: [e.value for e in obj]),
         default=ReportStatus.PENDING_AI,
         nullable=False,
         index=True,
