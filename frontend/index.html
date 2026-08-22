@@ -4025,6 +4025,7 @@ async function analyzeImagePixels(photoFile) {
             let greenPixels = 0;
             let bluePlasticPixels = 0;
             let brownCardboardPixels = 0;
+            let darkTrashBagPixels = 0;
             let specularPixels = 0;
             let rTotal = 0, gTotal = 0, bTotal = 0;
             let lumDiffTotal = 0;
@@ -4041,38 +4042,42 @@ async function analyzeImagePixels(photoFile) {
               const max = Math.max(r, g, b);
               const min = Math.min(r, g, b);
 
-              // 1. Skin tone detector (standard human skin spectrum covering diverse skin tones in RGB & YCbCr)
-              const isSkinRGB = (r > 60 && g > 40 && b > 20 && (max - min > 15) && Math.abs(r - g) > 12 && r > g && g >= b);
+              // 1. Strict Skin Tone Detector (Human face / selfie / hand closeup in YCbCr space)
               const y = 0.299 * r + 0.587 * g + 0.114 * b;
               const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
               const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
-              const isSkinYCbCr = (y > 70 && cb >= 75 && cb <= 130 && cr >= 130 && cr <= 178);
+              const isStrictSkin = (y > 80 && cb >= 85 && cb <= 125 && cr >= 135 && cr <= 175 && r > g && g > b && (r - b) > 20);
 
-              if (isSkinRGB || isSkinYCbCr) {
+              if (isStrictSkin) {
                 skinPixels++;
               }
 
-              // 2. Green / Organic vegetation
-              if (g > r * 1.2 && g > b * 1.2 && g > 60) {
+              // 2. Green / Organic vegetation & food waste
+              if (g > r * 1.15 && g > b * 1.15 && g > 55) {
                 greenPixels++;
               }
 
-              // 3. Blue / Synthetic plastic wrapper
-              if (b > r * 1.25 && b > g * 1.15 && b > 80) {
+              // 3. Blue / Synthetic plastic wrapper & container tones
+              if (b > r * 1.18 && b > g * 1.10 && b > 65) {
                 bluePlasticPixels++;
               }
 
-              // 4. Brown / Kraft cardboard packaging tones
-              if (r > 120 && g > 80 && g < r && b < g * 0.8 && (r - b) > 35) {
+              // 4. Brown / Kraft cardboard & wooden pallet packaging tones
+              if (r > 110 && g > 75 && g < r && b < g * 0.85 && (r - b) > 30 && (r - g) < 60) {
                 brownCardboardPixels++;
               }
 
-              // 5. Specular metal/glass highlight
-              if (max > 220 && (max - min) < 30) {
+              // 5. Dark garbage bags / asphalt / rubble
+              if (r < 55 && g < 55 && b < 55) {
+                darkTrashBagPixels++;
+              }
+
+              // 6. Specular metal / glass highlight
+              if (max > 225 && (max - min) < 25) {
                 specularPixels++;
               }
 
-              // Edge contrast with adjacent pixel
+              // Edge contrast with adjacent pixel (texture/clutter complexity)
               if (i + 4 < data.length) {
                 const lum1 = 0.299 * r + 0.587 * g + 0.114 * b;
                 const lum2 = 0.299 * data[i + 4] + 0.587 * data[i + 5] + 0.114 * data[i + 6];
@@ -4084,6 +4089,7 @@ async function analyzeImagePixels(photoFile) {
             const greenRatio = greenPixels / totalPixels;
             const blueRatio = bluePlasticPixels / totalPixels;
             const brownRatio = brownCardboardPixels / totalPixels;
+            const darkRatio = darkTrashBagPixels / totalPixels;
             const specularRatio = specularPixels / totalPixels;
             const edgeEntropy = lumDiffTotal / totalPixels;
 
@@ -4092,6 +4098,7 @@ async function analyzeImagePixels(photoFile) {
               greenRatio,
               blueRatio,
               brownRatio,
+              darkRatio,
               specularRatio,
               edgeEntropy
             });
@@ -4113,74 +4120,74 @@ async function analyzeImagePixels(photoFile) {
 function determineWasteCategory(desc = '', photoAnalysis = null) {
   const d = (desc || '').toLowerCase();
 
-  // 1. Direct explicit non-waste / human keyword checks
+  // 1. Explicit Non-Waste / Clean Intent Checks (Evaluated FIRST)
   if (
-    d.includes('clean') || d.includes('nothing') || d.includes('hand') ||
-    d.includes('palm') || d.includes('finger') || d.includes('face') ||
-    d.includes('person') || d.includes('human') || d.includes('selfie') ||
-    d.includes('body') || d.includes('skin') || d.includes('room') ||
-    d.includes('clear') || d.includes('empty') || d.includes('wall') ||
-    d.includes('table') || d.includes('desk') || d.includes('test')
+    d.includes('no waste') || d.includes('clean area') || d.includes('nothing here') ||
+    d.includes('clean') || d.includes('palm only') || d.includes('hand only') ||
+    d.includes('selfie') || d.includes('clear road') || d.includes('empty sidewalk') ||
+    d.includes('blank wall') || d.includes('zero waste') || d.includes('not waste') ||
+    d.includes('no trash') || d.includes('no garbage')
   ) {
     return 'clean';
   }
 
-  // 2. Real Computer Vision Pixel Analysis
-  if (photoAnalysis) {
-    // If skin tone comprises > 18% of image -> hand / selfie / person (NOT waste!)
-    if (photoAnalysis.skinRatio > 0.18) {
-      return 'clean';
-    }
-    // If surface is ultra smooth and plain (empty wall, flat indoor surface)
-    if (photoAnalysis.edgeEntropy < 3.8 && photoAnalysis.skinRatio < 0.08 && photoAnalysis.blueRatio < 0.05) {
-      return 'clean';
-    }
-    // Visual material detection
-    if (photoAnalysis.brownRatio > 0.22) {
-      return 'cardboard';
-    }
-    if (photoAnalysis.blueRatio > 0.18) {
-      return 'plastic';
-    }
-    if (photoAnalysis.greenRatio > 0.28) {
-      return 'organic';
-    }
-    if (photoAnalysis.specularRatio > 0.20) {
-      return 'metal';
-    }
-  }
-
-  // 3. Contextual Description Keywords
+  // 2. Specific Contextual Waste Material Keywords
   if (d.includes('chemical') || d.includes('hazard') || d.includes('spill') || d.includes('toxic') || d.includes('oil') || d.includes('battery')) {
     return 'hazardous';
   }
   if (d.includes('food') || d.includes('organic') || d.includes('peel') || d.includes('fruit') || d.includes('vegetable') || d.includes('rotten')) {
     return 'organic';
   }
-  if (d.includes('cardboard') || d.includes('box') || d.includes('carton') || d.includes('package')) {
+  if (d.includes('cardboard') || d.includes('box') || d.includes('carton') || d.includes('package') || d.includes('packaging')) {
     return 'cardboard';
   }
   if (d.includes('glass') || d.includes('broken') || (d.includes('bottle') && d.includes('glass')) || d.includes('shard')) {
     return 'glass';
   }
-  if (d.includes('can') || d.includes('metal') || d.includes('iron') || d.includes('wire') || d.includes('tin') || d.includes('scrap')) {
+  if (d.includes('can') || d.includes('metal') || d.includes('iron') || d.includes('wire') || d.includes('tin') || d.includes('scrap') || d.includes('steel')) {
     return 'metal';
   }
   if (d.includes('paper') || d.includes('flyer') || d.includes('newspaper') || d.includes('document')) {
     return 'paper';
   }
-  if (d.includes('plastic') || d.includes('cup') || d.includes('bag') || d.includes('wrapper') || d.includes('bottle')) {
+  if (d.includes('plastic') || d.includes('cup') || d.includes('bag') || d.includes('wrapper') || d.includes('bottle') || d.includes('polythene')) {
     return 'plastic';
   }
-  if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble')) {
-    return 'mixed';
-  }
-  if (d.includes('waste') || d.includes('rubbish') || d.includes('litter') || d.includes('dirty') || d.includes('garbage') || d.includes('mess')) {
+  if (d.includes('dump') || d.includes('sofa') || d.includes('furniture') || d.includes('debris') || d.includes('trash') || d.includes('rubble') || d.includes('waste') || d.includes('rubbish') || d.includes('litter') || d.includes('garbage') || d.includes('overflow') || d.includes('mess')) {
     return 'mixed';
   }
 
-  // 4. Default: If no waste features are detected, treat as Clean Area rather than falsely triggering a dump dispatch!
-  return 'clean';
+  // 3. Computer Vision Pixel Analysis from Real Photo
+  if (photoAnalysis) {
+    // Pure human closeup / selfie (skin covers majority of image with smooth textures)
+    if (photoAnalysis.skinRatio > 0.45 && photoAnalysis.edgeEntropy < 4.0) {
+      return 'clean';
+    }
+    // Completely smooth empty indoor wall / blank flat surface without waste
+    if (photoAnalysis.edgeEntropy < 2.0 && photoAnalysis.skinRatio < 0.05 && photoAnalysis.blueRatio < 0.03 && photoAnalysis.brownRatio < 0.05 && photoAnalysis.darkRatio < 0.05) {
+      return 'clean';
+    }
+
+    // Waste Feature Weighting
+    if (photoAnalysis.brownRatio > 0.14) {
+      return 'cardboard';
+    }
+    if (photoAnalysis.blueRatio > 0.09) {
+      return 'plastic';
+    }
+    if (photoAnalysis.greenRatio > 0.18) {
+      return 'organic';
+    }
+    if (photoAnalysis.specularRatio > 0.14) {
+      return 'metal';
+    }
+    if (photoAnalysis.darkRatio > 0.15 || photoAnalysis.edgeEntropy > 3.0) {
+      return 'mixed';
+    }
+  }
+
+  // 4. Default: If image or incident is reported, treat as mixed street waste
+  return 'mixed';
 }
 
 async function pollReportStatus(reportId) {
@@ -4197,7 +4204,11 @@ async function pollReportStatus(reportId) {
           const type = (r.waste_type && r.waste_type !== 'mixed') ? r.waste_type : determineWasteCategory(r.description, features);
           updateAICard(type, r.volume_estimate_m3, r.urgency_score);
           const cat = WASTE_CATEGORIES[type] || WASTE_CATEGORIES.clean;
-          showToast(`🤖 AI Classified: ${cat.label} (Urgency: ${r.urgency_score || cat.urgency}/100)`, 'info');
+          if (type === 'clean') {
+            showToast('✨ AI Visual Verification: Area is certified clean! No municipal vehicle dispatched.', 'info', 5000);
+          } else {
+            showToast(`🤖 AI Classified: ${cat.label} (Urgency: ${r.urgency_score || cat.urgency}/100)`, 'info');
+          }
         }
       }
     } catch {}
@@ -4217,14 +4228,14 @@ async function simulateAIProgress() {
     updateAICard(chosenType);
     const cat = WASTE_CATEGORIES[chosenType] || WASTE_CATEGORIES.clean;
     if (chosenType === 'clean') {
-      showToast('✨ AI Visual Scan: No waste detected in photo (Hand/Clean area). Area marked clean!', 'info', 4500);
+      showToast('✨ AI Visual Scan: No waste detected in photo. Area certified clean — Municipal dispatch standby.', 'info', 5000);
     } else {
       showToast(`🤖 BinGO AI Classification: ${cat.label} • ${cat.vehicle} Assigned!`, 'success');
     }
-  }, 1000);
+  }, 800);
 }
 
-function updateAICard(typeKey = 'clean', customVol = null, customUrg = null) {
+function updateAICard(typeKey = 'mixed', customVol = null, customUrg = null) {
   const data = WASTE_CATEGORIES[typeKey] || WASTE_CATEGORIES.clean;
   const volVal = customVol !== null ? customVol : data.volume;
   const urgVal = customUrg !== null ? customUrg : data.urgency;
@@ -4233,17 +4244,29 @@ function updateAICard(typeKey = 'clean', customVol = null, customUrg = null) {
   const vol = document.getElementById('volume-display');
   const urg = document.getElementById('urgency-score');
   const arc = document.getElementById('urgency-arc');
+  const trackingBadge = document.getElementById('tracking-status-badge');
 
   if (badge) badge.innerHTML = `<span class="text-secondary">${data.icon}</span> ${data.label}`;
-  if (vol) vol.textContent = `~${volVal} m³`;
+  if (vol) vol.textContent = typeKey === 'clean' ? '0.0 m³' : `~${volVal} m³`;
   if (urg) urg.textContent = urgVal;
   if (arc) {
-    if (urgVal === 0) {
+    if (urgVal === 0 || typeKey === 'clean') {
       arc.style.strokeDashoffset = 251.2;
       arc.setAttribute('stroke', '#3FB950');
     } else {
       arc.style.strokeDashoffset = 251.2 * (1 - urgVal / 100);
       arc.setAttribute('stroke', urgVal > 75 ? '#DA3633' : '#D29922');
+    }
+  }
+
+  // Top Tracking Status Badge
+  if (trackingBadge) {
+    if (typeKey === 'clean') {
+      trackingBadge.className = 'px-2 py-1 bg-success/20 border border-success/40 rounded text-label-mono font-label-mono text-success flex items-center gap-1 text-xs font-bold';
+      trackingBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-success"></span> AREA CERTIFIED CLEAN';
+    } else {
+      trackingBadge.className = 'px-2 py-1 bg-surface-raised/50 backdrop-blur-md border border-warning/30 rounded text-label-mono font-label-mono text-warning flex items-center gap-1 shadow-[0_0_10px_rgba(210,153,34,0.15)] text-xs';
+      trackingBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> ACTIVE DISPATCH';
     }
   }
 
@@ -4253,39 +4276,81 @@ function updateAICard(typeKey = 'clean', customVol = null, customUrg = null) {
   const vEta  = document.getElementById('vehicle-eta');
   const vDesc = document.getElementById('vehicle-desc');
   const vBadge = document.getElementById('vehicle-status-badge');
+  const vIcon = document.getElementById('vehicle-icon');
 
-  if (vName) vName.textContent = data.vehicle;
-  if (vUnit) vUnit.textContent = data.unit;
-  if (vEta) vEta.innerHTML = `<span class="material-symbols-outlined text-[14px]">timer</span> ETA: ${data.eta}`;
-  if (vDesc) vDesc.textContent = data.desc;
-  if (vBadge) {
-    if (typeKey === 'clean') {
+  if (typeKey === 'clean') {
+    if (vName) vName.textContent = 'Standby (No Vehicle Dispatched)';
+    if (vUnit) vUnit.textContent = 'Monitoring Station • Area Certified Clean';
+    if (vEta) vEta.innerHTML = `<span class="material-symbols-outlined text-[14px]">check_circle</span> Status: No Action Required`;
+    if (vDesc) vDesc.textContent = '✨ AI visual inspection confirmed zero waste accumulation. Municipal resources conserved.';
+    if (vIcon) vIcon.textContent = 'verified';
+    if (vBadge) {
       vBadge.className = 'px-2 py-0.5 rounded-full bg-success/20 text-success text-[10px] font-bold border border-success/40 flex items-center gap-1';
-      vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-success"></span> AREA CLEAN';
-    } else {
+      vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-success"></span> STANDBY (AREA CLEAN)';
+    }
+
+    // Halt and freeze dispatch pipeline at Step 2
+    if (statusSimulationTimer) clearInterval(statusSimulationTimer);
+    const fillBar = document.getElementById('timeline-fill-bar');
+    if (fillBar) fillBar.style.height = '25%';
+
+    const stepAiDesc = document.getElementById('step-ai-desc');
+    if (stepAiDesc) stepAiDesc.textContent = 'Classification: Clean / Non-Waste (0.0 m³) · AI Verified';
+
+    const stepDispLabel = document.getElementById('step-dispatched-label');
+    const stepDispDesc = document.getElementById('step-verified');
+    const stepDispDot = document.getElementById('step-dispatched-dot');
+    if (stepDispLabel) stepDispLabel.className = 'text-xs font-bold text-text-secondary';
+    if (stepDispDesc) stepDispDesc.textContent = 'Standby: No municipal dispatch required';
+    if (stepDispDot) stepDispDot.className = 'w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0 z-10 opacity-50';
+
+    const stepEnrouteLabel = document.getElementById('step-enroute-label');
+    const stepEnrouteDesc = document.getElementById('step-enroute-desc');
+    const stepEnrouteDot = document.getElementById('step-enroute-dot');
+    if (stepEnrouteLabel) stepEnrouteLabel.className = 'text-xs font-bold text-text-secondary';
+    if (stepEnrouteDesc) stepEnrouteDesc.textContent = 'N/A: Area is clean & clear';
+    if (stepEnrouteDot) stepEnrouteDot.className = 'w-6 h-6 rounded-full bg-white/5 border border-white/20 flex items-center justify-center shrink-0 mt-0 z-10 opacity-50';
+
+    const stepClearLabel = document.getElementById('step-cleared-label');
+    const stepClearDesc = document.getElementById('step-cleared-desc');
+    const stepClearDot = document.getElementById('step-cleared-dot');
+    if (stepClearLabel) stepClearLabel.className = 'text-xs font-bold text-success';
+    if (stepClearDesc) stepClearDesc.textContent = 'Area Certified Clean ✨';
+    if (stepClearDot) {
+      stepClearDot.className = 'w-6 h-6 rounded-full bg-success/20 border border-success/50 flex items-center justify-center shrink-0 mt-0 z-10 text-success';
+      stepClearDot.innerHTML = '<span class="material-symbols-outlined text-[11px] text-success">check</span>';
+    }
+
+    // Remove fleet vehicle marker from tracking map
+    if (trackingLiveMap && liveFleetMarker) {
+      try { trackingLiveMap.removeLayer(liveFleetMarker); } catch {}
+      liveFleetMarker = null;
+    }
+
+    const preview = document.getElementById('last-sms-preview');
+    if (preview) {
+      preview.innerHTML = `&ldquo;BinGO: Report #${currentReportId || '8492'} AI Verified: Area is Clean. No dispatch needed.&rdquo;`;
+    }
+  } else {
+    // Waste IS detected -> Proceed with normal dispatch pipeline
+    if (vName) vName.textContent = data.vehicle;
+    if (vUnit) vUnit.textContent = data.unit;
+    if (vEta) vEta.innerHTML = `<span class="material-symbols-outlined text-[14px]">timer</span> ETA: ${data.eta}`;
+    if (vDesc) vDesc.textContent = data.desc;
+    if (vIcon) vIcon.textContent = 'rv_hookup';
+    if (vBadge) {
       vBadge.className = 'px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold border border-primary/40 flex items-center gap-1';
       vBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> EN ROUTE';
     }
-  }
 
-  // Update Timeline Step 2
-  const stepAi = document.getElementById('step-ai');
-  if (stepAi) {
-    const textDesc = stepAi.querySelector('.font-label-mono');
-    if (textDesc) {
-      textDesc.textContent = typeKey === 'clean'
-        ? 'Classification: Clean / Non-Waste (0.0 m³) • Confidence: 99%'
-        : `Material: ${data.label} (~${volVal} m³) • Confidence: 95%`;
-    }
-  }
-  const stepVer = document.getElementById('step-verified');
-  if (stepVer) {
-    const textDesc = stepVer.querySelector('.font-label-mono');
-    if (textDesc) {
-      textDesc.textContent = typeKey === 'clean'
-        ? 'Dispatch: Standby (No Vehicle Required)'
-        : `Assigned: ${data.vehicle} (${data.eta})`;
-    }
+    const stepAiDesc = document.getElementById('step-ai-desc');
+    if (stepAiDesc) stepAiDesc.textContent = `Material: ${data.label} (~${volVal} m³) · 95% conf`;
+
+    const stepDispDesc = document.getElementById('step-verified');
+    if (stepDispDesc) stepDispDesc.textContent = `Assigned: ${data.vehicle} (${data.eta})`;
+
+    // Trigger active 5-step status progression simulation
+    startStatusSimulation();
   }
 }
 
@@ -5171,7 +5236,7 @@ function navigate(pageId) {
     if (pageId === 'page-citizen-map') { initCitizenMap(); }
     if (pageId === 'page-dashboard')   { initDashboard(); }
     if (pageId === 'page-reports')     { initReportsQueue(); }
-    if (pageId === 'page-tracking')    { initTrackingPage(); initTrackingLiveMap(); startStatusSimulation(); }
+    if (pageId === 'page-tracking')    { initTrackingPage(); initTrackingLiveMap(); }
     if (pageId === 'page-submit')      { initSubmitPage(); }
     if (pageId === 'page-hotspots')    { initHotspotsPage(); }
     if (pageId === 'page-fleet')       { initFleetPage(); }
