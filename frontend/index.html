@@ -4765,6 +4765,8 @@ async function logAdminFeedbackToActiveLearning(reportId, aiPredicted, groundTru
       await fetch(`${API_BASE}/ai-ops/active-learning/log-feedback`, { method: 'POST', body: fd, signal: AbortSignal.timeout(5000) });
     } catch (e) { console.warn('AL feedback log failed:', e); }
   }
+}
+
 // ── Gamification, Streaks & Micro-Rewards ────────────────────────────────────
 const DEFAULT_CITIZEN_STATS = {
   points: 145,
